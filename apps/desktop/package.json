@@ -10,7 +10,8 @@
     "check": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "electron": "^37.2.0"
+    "electron": "^37.2.0",
+    "@grogbot/contracts": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",

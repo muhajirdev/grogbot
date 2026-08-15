@@ -23,6 +23,7 @@ export function createAuth(
     secret: string;
     baseURL: string;
     trustedOrigins: string[];
+    cookieDomain?: string;
     google?: OAuthCredentials;
     github?: OAuthCredentials;
   },
@@ -31,6 +32,18 @@ export function createAuth(
     secret: opts.secret,
     baseURL: opts.baseURL,
     trustedOrigins: opts.trustedOrigins,
+    advanced: opts.cookieDomain
+      ? {
+          crossSubDomainCookies: {
+            enabled: true,
+            domain: opts.cookieDomain,
+          },
+          defaultCookieAttributes: {
+            sameSite: "none",
+            secure: true,
+          },
+        }
+      : undefined,
     database: drizzleAdapter(db, {
       provider: "pg",
       schema: {

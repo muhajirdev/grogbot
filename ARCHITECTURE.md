@@ -27,7 +27,7 @@ The **workspace** (Better Auth org) also has:
 | Topic | Choice |
 | --- | --- |
 | Product | Grok Bot-shaped teammates + Composio + team context/skills |
-| UI | Messaging app: Bot list, thread, computer pane. **Web first.** Desktop = Electron around web. Mobile = Expo later |
+| UI | Messaging app. **Web first.** Packaged desktop loads grogbot.com (API: api.grogbot.com). Dev desktop loads local Vite. Mobile = Expo later |
 | API | **oRPC** — contract in `@grogbot/contracts`, client in `@grogbot/rpc` |
 | Actor | **One Rivet actor per bot** |
 | Shared data | **One Postgres** — auth, bots, threads, messages, skills, artifacts |

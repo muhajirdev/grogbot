@@ -82,6 +82,9 @@ importers:
 
   apps/desktop:
     dependencies:
+      '@grogbot/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       electron:
         specifier: ^37.2.0
         version: 37.10.3

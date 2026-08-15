@@ -1,5 +1,6 @@
 import { createSandboxProvider, createWakeupDriver } from "@grogbot/adapters";
 import { createAuth } from "@grogbot/auth";
+import { grogbotCookieDomain } from "@grogbot/contracts";
 import { createDb } from "@grogbot/db";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
@@ -20,6 +21,7 @@ export function createApp(env: Env): AppHandles {
     secret: env.authSecret,
     baseURL: env.authUrl,
     trustedOrigins: env.corsOrigins,
+    cookieDomain: grogbotCookieDomain(env.webOrigin),
     google: oauth.google,
     github: oauth.github,
   });

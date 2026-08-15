@@ -57,6 +57,13 @@ Desktop (same web UI in a window):
 pnpm dev:desktop
 ```
 
+That loads local Vite. A **packaged** desktop build opens **https://grogbot.com**, which talks to **https://api.grogbot.com**. Override with `WEB_ORIGIN` if you self-host.
+
+Production OAuth callbacks:
+
+- `https://api.grogbot.com/api/auth/callback/google`
+- `https://api.grogbot.com/api/auth/callback/github`
+
 Mobile (Expo stub, later):
 
 ```bash

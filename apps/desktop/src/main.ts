@@ -1,6 +1,14 @@
+import { CLOUD_WEB_ORIGIN } from "@grogbot/contracts";
 import { app, BrowserWindow } from "electron";
 
-const WEB_URL = process.env.WEB_ORIGIN ?? "http://127.0.0.1:5173";
+/**
+ * Packaged desktop is a thin client of the hosted web app (which talks to
+ * api.grogbot.com). Dev still loads the local Vite server.
+ */
+function webUrl(): string {
+  if (process.env.WEB_ORIGIN) return process.env.WEB_ORIGIN;
+  return app.isPackaged ? CLOUD_WEB_ORIGIN : "http://127.0.0.1:5173";
+}
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -16,7 +24,7 @@ function createWindow(): void {
       sandbox: true,
     },
   });
-  void win.loadURL(WEB_URL);
+  void win.loadURL(webUrl());
 }
 
 app.whenReady().then(() => {
