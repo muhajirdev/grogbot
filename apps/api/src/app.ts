@@ -1,9 +1,9 @@
+import type { SandboxProvider, WakeupDriver } from "@grogbot/adapter-kit";
+import { createSandboxProvider, createWakeupDriver } from "@grogbot/adapters";
+import { type Auth, createAuth } from "@grogbot/auth";
+import { createDb, type Database } from "@grogbot/db";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import type { SandboxProvider, WakeupDriver } from "@grogbot/adapter-kit";
-import { PostgresWakeupDriver, createSandboxProvider } from "@grogbot/adapters";
-import { createAuth, type Auth } from "@grogbot/auth";
-import { createDb, type Database } from "@grogbot/db";
 import type { Env } from "./env.js";
 
 export interface AppHandles {
@@ -21,7 +21,7 @@ export function createApp(env: Env): AppHandles {
     baseURL: env.authUrl,
     webOrigin: env.webOrigin,
   });
-  const wakeup = new PostgresWakeupDriver(db);
+  const wakeup = createWakeupDriver(env.workerUrl);
   const sandbox = createSandboxProvider(env.sandboxProvider);
 
   const app = new Hono();
@@ -41,6 +41,7 @@ export function createApp(env: Env): AppHandles {
       version: "0.0.1",
       runtime: env.agentRuntime,
       sandbox: env.sandboxProvider,
+      wakeup: env.workerUrl ? "rivet-http" : "rivet",
     }),
   );
 

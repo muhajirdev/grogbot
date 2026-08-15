@@ -1,113 +1,109 @@
 # Architecture
 
-**Grogbot** is open-core **Grok Bot**: AI teammates with a real computer. Composio for app integrations. Team-shared context and skills (the one idea we take from [Cloudflare OS](https://github.com/cloudflare/cloudflare-os)). Not an office suite, not gadgets, not Gatekeepers, not Workers-first.
+**Grogbot** is open-core **Grok Bot**: named teammates with a real computer. Message them like people. Composio for Gmail/Slack/GitHub. Workspace-shared context and skills. BYOK models.
 
-Job queue follows [Paperclip](https://github.com/paperclipai/paperclip)’s table + poller. Cloudflare OS is a source only for **workspace knowledge + skills**.
+UI: copy Grok Bot simplicity — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md). Rooms later: [docs/rooms-plan.md](./docs/rooms-plan.md).
 
 ## Product
 
-Grok Bot simplicity. You create a bot, message it like a person, it has a computer, it keeps working.
+Each **bot** (teammate) has:
 
-Each bot has:
+- a home **office** thread (v1 is 1:1; extra humans later)
+- one **computer** (sandbox) — on the bot, not the room
+- memory, routines, history
 
-- one thread (v1 is 1:1; schema allows more people later)
-- one computer (sandbox)
-- memory
-- routines
-- history
+A **Rivet actor is the bot**. Serial queue + cron + named delayed schedules. One body, one VM, one Pi at a time.
 
 The **workspace** (Better Auth org) also has:
 
-- **Shared context** — markdown the whole team curates (how we work, voice, policies). Every bot in the workspace can read it.
-- **Shared skills** — markdown how-tos (`skills/*.md`) loaded for every bot. Same idea as company skills in Cloudflare OS; stored as files we own, not a CF kernel.
-- **Composio plugins** — connect Gmail, Slack, GitHub, etc. Optional `COMPOSIO_API_KEY`. No key = computer-only still works.
+- **Shared context** — team markdown (how we work). Every bot can read it.
+- **Shared skills** — `skills/*.md` for every bot.
+- **Composio plugins** — optional `COMPOSIO_API_KEY`. No key = computer-only still works.
 
-We do **not** build: gadgets, blueprints-as-apps, code-mode Dynamic Workers, Cap’n Web office docs, Gatekeeper workers.
-
-### Memory scopes
-
-| Scope | Who sees it |
-| --- | --- |
-| `bot` | That teammate only |
-| `user` | That human, across their bots |
-| `workspace` | Everyone in the org — shared context + skills |
-
-### Composio
-
-`ConnectorProvider`. Catalog + OAuth + tool execute. Personal accounts (my Gmail) stay on the user. Company tools (shared Slack) are workspace-visible so every bot can use them once connected. We pay Composio on hosted cloud; self-hosters paste their own key.
-
-Not a replacement for the computer. APIs where they exist; browser when they don’t.
-
-### Multiplayer (later, not v1 UX)
-
-Several humans in one thread, shared computer lease. Schema already has `thread_members` and message `actor_*`. No Discord clone now.
+**Postgres** is the team source of truth (auth, bots, threads, messages, skills, artifact index). **Rivet** is wakeup and serial execution. They do not share that work.
 
 ## Locked decisions
 
 | Topic | Choice |
 | --- | --- |
 | Product | Grok Bot-shaped teammates + Composio + team context/skills |
-| First cloud | **Fly or Railway** — stateful Node API + worker |
-| Cloudflare | Later adapter, not v1 |
+| UI | Messaging app: Bot list, thread, computer pane |
+| Actor | **One Rivet actor per bot** |
+| Shared data | **One Postgres** — auth, bots, threads, messages, skills, artifacts |
+| Wakeup | Rivet queue / `schedule` / cron on that actor |
+| First cloud | **Fly or Railway** — Node API + actor host (worker) |
+| Cloudflare later | **Rivet’s Durable Object driver** |
 | ORM | **Drizzle** + Postgres |
-| Jobs | **`jobs` table** + poller (`FOR UPDATE SKIP LOCKED`) |
 | Auth | **Better Auth**, organizations = workspaces |
-| Models | **Pi** catalog + BYOK (OpenRouter, OpenAI, Anthropic) |
-| Database | **One Postgres**, `workspace_id` everywhere |
-| Sandbox | `docker` (local) · `e2b` (hosted) · `desktop` (trusted machine only) · `fake` (tests) |
+| Models | **Pi** catalog + BYOK |
+| Sandbox | `docker` local · `e2b` hosted · `desktop` trusted machine only · `fake` tests |
 | Homes | Disk v1 · `HomeStore` → R2 later |
-| Realtime | Postgres events + SSE · `RealtimeFanout` |
-| Plugins | **Composio** (optional key) |
-| Team knowledge | Workspace memory + skills markdown |
-| Multiplayer | Not v1. Keep membership/actors/leases |
+| Realtime | Events + SSE now · actor WebSocket later if needed |
+| Plugins | **Composio** (optional) |
+| Rooms v1 | Bot’s office. Multi-bot rooms: plan only |
 
-## Why a job table, not Graphile + Prisma
+## Wakeup (Rivet)
 
-Graphile is Postgres `LISTEN`. Prisma is awkward on Workers. A job table + Drizzle is the same Fly app; job names can later be invoked from Cloudflare Queues. **Agnostic means four ports, not two runtimes.**
+The API must not wait on Pi. Waking a bot is: chat now, routine at 9:00, sleep the VM after idle.
 
-## Processes (v1, stateful)
+- **One actor per `botId`.** Never key the actor on `threadId`.
+- Immediate work goes on that actor’s queue (`run.continue`).
+- Routines are cron on that actor (`routine.wakeup`). Postgres `routines` is metadata (prompt, cron string, last/next); Rivet fires it.
+- Idle sleep is a named delayed schedule (`computer.sleep`). Same `jobKey` replaces the previous timer.
+- Two humans in one office share **one** actor queue.
+- Two bots in one room (later) are **two** actors.
+
+v1 code: `RivetWakeupDriver` is an in-process stand-in (serial queue + `setTimeout` per `jobKey`). The worker hosts it. The API enqueues over HTTP (`WORKER_URL`). Swap the body for rivetkit (engine, then Cloudflare DO driver) without changing `WakeupDriver`.
+
+agentOS is **not** the v1 computer — Docker / E2B / desktop are.
+
+## Processes (v1)
 
 ```
-Web (Vite :5173) ──► API (Hono :3100) ──► Postgres
+Web (Vite :5173) ──► API (Hono :3100) ──► Postgres (truth)
                            │
-                           │ enqueue job
-                           ▼
-                     Worker (poller)
+                           │ POST /wakeup
+                           v
+                     Worker (Rivet actors)
                            │
          ┌─────────────────┼─────────────────┐
          ▼                 ▼                 ▼
     Pi (BYOK)         Sandbox            Composio
     + workspace       docker/e2b         (if key set)
-      skills/context
+      skills
 ```
 
-Job names: `run.continue` · `routine.wakeup` · `computer.sleep`
+Wake a bot with:
+
+- `run.continue` — user messaged (immediate, that bot’s queue)
+- `routine.wakeup` — cron on that actor
+- `computer.sleep` — named delayed schedule, replaced on activity
 
 ## Ports
 
-| Port | v1 | Later Cloudflare |
+| Port | v1 | Later |
 | --- | --- | --- |
-| `WakeupDriver` | Postgres poller | Queue + DO alarm |
-| `RealtimeFanout` | Postgres events + SSE | DO WebSocket |
+| `WakeupDriver` | Rivet actor (in-process on the worker; HTTP from API) | Rivet engine / CF DO driver |
+| `RealtimeFanout` | Postgres events + SSE | actor WebSocket or DO |
 | `HomeStore` | filesystem | R2 |
 | `SandboxProvider` | Docker / E2B / desktop / fake | E2B / CF sandbox |
 | `ConnectorProvider` | Composio or no-op | same |
 
-Executor must not import `fs`, `dockerode`, Graphile, or Cloudflare bindings.
+Executor must not import `fs`, `dockerode`, or Cloudflare bindings. The **actor host** (worker) may import Rivet. The Pi loop still talks only to ports.
 
 ## Build order
 
-1. Monorepo, schema, jobs, auth, health *(done)*
-2. `threads.send` → enqueue → scripted runtime
+1. Monorepo, schema, auth, health, Rivet wakeup stub *(this)*
+2. `threads.send` → bot actor → scripted runtime
 3. Docker computer
 4. Pi + BYOK
-5. Thin web shell — copy Grok Bot: Bot list, thread, computer pane. See [docs/grok-bot-ui.md](./docs/grok-bot-ui.md).
+5. Thin web shell — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md)
 6. Workspace context + skills in the system prompt
 7. Composio plugins UI
 8. E2B for Fly
 9. Desktop (Electron), never on hosted cloud
-10. Extra humans in an office, then multi-bot rooms — see [docs/rooms-plan.md](./docs/rooms-plan.md). Not v1 code.
+10. Extra humans, then multi-bot rooms — [docs/rooms-plan.md](./docs/rooms-plan.md)
 
 ## Out of v1
 
-Gadgets, Gatekeepers, Cloudflare Workers as the host, D1, Turso, Graphile, Prisma, Electron/Expo packagers, Pi subscription OAuth (ChatGPT/Copilot device code), Discord UI.
+Gadgets, Gatekeepers, Cloudflare Workers as the host, D1, Turso, Prisma, PGlite as product DB, Electron/Expo packagers, Pi subscription OAuth, Discord UI, agentOS as the default computer, multi-bot rooms.

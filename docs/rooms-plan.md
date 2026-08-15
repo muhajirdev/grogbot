@@ -59,7 +59,7 @@ True parallel for “the same teammate in two rooms” would mean a **second com
 | Two bots, one room | **Yes.** Two actors, two computers. |
 | One bot, two rooms | **No** on one VM. Serial queue. Or spawn a child bot. |
 
-Rivet’s actor queue is the feature: it serializes one bot. Do not run two agentOS/E2B sessions for the same bot unless you have two sandboxes.
+Rivet’s actor queue is the feature: it serializes one bot. Do not run two sandboxes for the same bot unless you have two computers (a child bot = new actor).
 
 ## Lock-in to avoid when we *do* build B
 

@@ -1,6 +1,6 @@
 # Contributing
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for locked decisions.
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for locked decisions (Rivet actor per bot, Postgres for team data).
 
 ```bash
 pnpm install

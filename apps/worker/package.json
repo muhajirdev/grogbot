@@ -9,8 +9,8 @@
     "check": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@grogbot/adapter-kit": "workspace:*",
     "@grogbot/adapters": "workspace:*",
-    "@grogbot/db": "workspace:*",
     "dotenv": "^17.2.1"
   },
   "devDependencies": {

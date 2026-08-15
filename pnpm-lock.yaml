@@ -85,12 +85,12 @@ importers:
 
   apps/worker:
     dependencies:
+      '@grogbot/adapter-kit':
+        specifier: workspace:*
+        version: link:../../packages/adapter-kit
       '@grogbot/adapters':
         specifier: workspace:*
         version: link:../../packages/adapters
-      '@grogbot/db':
-        specifier: workspace:*
-        version: link:../../packages/db
       dotenv:
         specifier: ^17.2.1
         version: 17.4.2
@@ -117,12 +117,6 @@ importers:
       '@grogbot/adapter-kit':
         specifier: workspace:*
         version: link:../adapter-kit
-      '@grogbot/db':
-        specifier: workspace:*
-        version: link:../db
-      drizzle-orm:
-        specifier: ^0.44.5
-        version: 0.44.7(kysely@0.29.5)(postgres@3.4.9)
     devDependencies:
       typescript:
         specifier: ^5.9.2

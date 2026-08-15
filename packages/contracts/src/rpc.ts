@@ -20,6 +20,7 @@ export const appContract = {
       version: z.string(),
       runtime: z.string(),
       sandbox: z.string(),
+      wakeup: z.string(),
     }),
   ),
   me: oc.output(MeSchema),

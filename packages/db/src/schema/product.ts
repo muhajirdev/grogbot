@@ -137,23 +137,7 @@ export const runs = pgTable("runs", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const jobs = pgTable(
-  "jobs",
-  {
-    id: text("id").primaryKey(),
-    name: text("name").notNull(),
-    payload: jsonb("payload").notNull().$type<Record<string, unknown>>(),
-    runAt: timestamp("run_at", { withTimezone: true }).notNull().defaultNow(),
-    jobKey: text("job_key"),
-    lockedAt: timestamp("locked_at", { withTimezone: true }),
-    lockedBy: text("locked_by"),
-    attempts: integer("attempts").notNull().default(0),
-    lastError: text("last_error"),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  },
-  (t) => [uniqueIndex("jobs_job_key").on(t.jobKey)],
-);
-
+/** Cron metadata. Firing is the bot’s Rivet actor (`routine.wakeup`), not Postgres. */
 export const routines = pgTable("routines", {
   id: text("id").primaryKey(),
   workspaceId: text("workspace_id")

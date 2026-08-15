@@ -1,6 +1,6 @@
 # Grok Bot UI copy-brief
 
-Grogbot should **feel like Grok Bot**: a messaging app of named teammates, not a workflow builder, IDE, or Discord. This is the visual and onboarding spec. Product/architecture stays ours (one computer per bot, Postgres, Composio).
+Grogbot should **feel like Grok Bot**: a messaging app of named teammates, not a workflow builder, IDE, or Discord. This is the visual and onboarding spec. Product/architecture stays ours (one computer per bot, Postgres for team data, Rivet actor per bot, Composio).
 
 We could not screenshot the live desktop app (paywalled: SuperGrok Heavy / Cursor Ultra). This brief is from official docs and marketing as of 11–15 Aug 2026.
 
@@ -203,7 +203,7 @@ Empty composer and New Agent must still work without those.
 1. Welcome → sign in → 3-beat tour → “meet a teammate” (name, title, description, color+shape).
 2. Sidebar of Bots; click = that office thread.
 3. Chat transcript with inline “working,” files, approval.
-4. Computer pane: fake/scripted first, then Docker/E2B; takeover control.
+4. Computer pane: fake/scripted first, then Docker/E2B; takeover control. Wakeup is the bot’s Rivet actor, not a queue UI.
 5. Edit profile on the Bot, not a separate admin app.
 6. First-run does not require Composio.
 

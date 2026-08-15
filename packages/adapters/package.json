@@ -11,9 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@grogbot/adapter-kit": "workspace:*",
-    "@grogbot/db": "workspace:*",
-    "drizzle-orm": "^0.44.5"
+    "@grogbot/adapter-kit": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.9.2",

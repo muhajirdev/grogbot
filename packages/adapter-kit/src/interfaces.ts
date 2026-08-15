@@ -10,25 +10,46 @@ import type {
 } from "./types.js";
 
 export interface WakeupDriver {
+  /** Enqueue onto the Rivet actor for `job.botId` (serial queue / named schedule). */
   enqueue(job: WakeupJob): Promise<void>;
-  start(handlers: Record<string, (payload: Record<string, unknown>) => Promise<void>>): Promise<void>;
+  start(
+    handlers: Record<
+      string,
+      (payload: Record<string, unknown>) => Promise<void>
+    >,
+  ): Promise<void>;
   stop(): Promise<void>;
 }
 
 export interface RealtimeFanout {
   publish(threadId: string, payload: string): Promise<void>;
-  subscribe(threadId: string, onMessage: (payload: string) => void): Promise<() => Promise<void>>;
+  subscribe(
+    threadId: string,
+    onMessage: (payload: string) => void,
+  ): Promise<() => Promise<void>>;
 }
 
 export interface HomeStore {
-  readFile(botId: string, path: string, context: AdapterContext): Promise<string>;
-  writeFile(botId: string, path: string, content: string, context: AdapterContext): Promise<void>;
+  readFile(
+    botId: string,
+    path: string,
+    context: AdapterContext,
+  ): Promise<string>;
+  writeFile(
+    botId: string,
+    path: string,
+    content: string,
+    context: AdapterContext,
+  ): Promise<void>;
   list(
     botId: string,
     path: string,
     context: AdapterContext,
   ): Promise<Array<{ path: string; kind: "file" | "dir"; size: number }>>;
-  exportHome(botId: string, context: AdapterContext): AsyncIterable<PortableFile>;
+  exportHome(
+    botId: string,
+    context: AdapterContext,
+  ): AsyncIterable<PortableFile>;
 }
 
 export interface SandboxProvider {
@@ -46,6 +67,9 @@ export interface SandboxProvider {
 }
 
 export interface AgentRuntime {
-  run(request: AgentRunRequest, context: AdapterContext): AsyncIterable<AgentRuntimeEvent>;
+  run(
+    request: AgentRunRequest,
+    context: AdapterContext,
+  ): AsyncIterable<AgentRuntimeEvent>;
   abort(runId: string): Promise<void>;
 }
