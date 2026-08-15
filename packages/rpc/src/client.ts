@@ -23,11 +23,10 @@ export function createGrogbotClient(
     url: `${prefix}/rpc`,
     headers: options.headers,
     fetch: async (request) => {
-      const next = new Request(request, {
+      const fetchFn = options.fetch ?? globalThis.fetch.bind(globalThis);
+      return fetchFn(request, {
         credentials: options.credentials ?? "include",
       });
-      const fetchFn = options.fetch ?? globalThis.fetch.bind(globalThis);
-      return fetchFn(next);
     },
   });
   return createORPCClient(link);

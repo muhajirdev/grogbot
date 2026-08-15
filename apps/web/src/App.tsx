@@ -13,14 +13,15 @@ export function App() {
   const session = authClient.useSession();
   const [gate, setGate] = useState<Gate>("boot");
   const [botId, setBotId] = useState(window.location.hash.replace(/^#/, ""));
+  const userId = session.data?.user.id;
 
   useEffect(() => {
     applyTheme(readTheme());
   }, []);
 
   useEffect(() => {
-    if (session.isPending) return;
-    if (!session.data) {
+    if (!userId) {
+      if (session.isPending) return;
       setGate((current) => (current === "auth" ? "auth" : "welcome"));
       return;
     }
@@ -34,10 +35,13 @@ export function App() {
           setGate("office");
         }
       })
-      .catch(() => setGate("welcome"));
-  }, [session.isPending, session.data]);
+      .catch((caught: unknown) => {
+        console.error(caught);
+        setGate("auth");
+      });
+  }, [session.isPending, userId]);
 
-  if (gate === "boot" || session.isPending) {
+  if (gate === "boot" && session.isPending) {
     return (
       <div className="screen">
         <p className="kicker">Grogbot</p>
