@@ -30,10 +30,17 @@ export const appContract = {
   },
   threads: {
     subscribe: oc
-      .input(z.object({ botId: Id, cursor: z.number().int().min(-1) }))
+      .input(z.object({ threadId: Id, cursor: z.number().int().min(-1) }))
       .output(eventIterator(ProductEventSchema)),
     send: oc
-      .input(z.object({ botId: Id, text: z.string().min(1) }))
+      .input(
+        z.object({
+          threadId: Id,
+          text: z.string().min(1),
+          /** Which bot to wake. v1 omit = the office owner (only bot). */
+          targetBotId: Id.optional(),
+        }),
+      )
       .output(z.object({ taskId: Id, runId: Id, seq: z.number().int() })),
   },
   computer: {

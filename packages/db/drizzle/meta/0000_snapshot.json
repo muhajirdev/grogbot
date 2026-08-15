@@ -1,5 +1,5 @@
 {
-  "id": "098ac381-9306-4ae2-82c0-b3bfe4de769b",
+  "id": "5f2beb2f-9a78-4102-a986-58ebb98914e3",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -647,6 +647,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "home_thread_id": {
+          "name": "home_thread_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -689,10 +695,31 @@
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
+        },
+        "bots_home_thread_id_threads_id_fk": {
+          "name": "bots_home_thread_id_threads_id_fk",
+          "tableFrom": "bots",
+          "tableTo": "threads",
+          "columnsFrom": [
+            "home_thread_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "bots_home_thread_id_unique": {
+          "name": "bots_home_thread_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "home_thread_id"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -1712,8 +1739,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.thread_members": {
-      "name": "thread_members",
+    "public.thread_participants": {
+      "name": "thread_participants",
       "schema": "",
       "columns": {
         "id": {
@@ -1728,8 +1755,14 @@
           "primaryKey": false,
           "notNull": true
         },
-        "user_id": {
-          "name": "user_id",
+        "participant_type": {
+          "name": "participant_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "participant_id": {
+          "name": "participant_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -1750,8 +1783,8 @@
         }
       },
       "indexes": {
-        "thread_members_thread_user": {
-          "name": "thread_members_thread_user",
+        "thread_participants_unique": {
+          "name": "thread_participants_unique",
           "columns": [
             {
               "expression": "thread_id",
@@ -1760,7 +1793,13 @@
               "nulls": "last"
             },
             {
-              "expression": "user_id",
+              "expression": "participant_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "participant_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1773,25 +1812,12 @@
         }
       },
       "foreignKeys": {
-        "thread_members_thread_id_threads_id_fk": {
-          "name": "thread_members_thread_id_threads_id_fk",
-          "tableFrom": "thread_members",
+        "thread_participants_thread_id_threads_id_fk": {
+          "name": "thread_participants_thread_id_threads_id_fk",
+          "tableFrom": "thread_participants",
           "tableTo": "threads",
           "columnsFrom": [
             "thread_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "thread_members_user_id_user_id_fk": {
-          "name": "thread_members_user_id_user_id_fk",
-          "tableFrom": "thread_members",
-          "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
           ],
           "columnsTo": [
             "id"
@@ -1822,11 +1848,12 @@
           "primaryKey": false,
           "notNull": true
         },
-        "bot_id": {
-          "name": "bot_id",
+        "kind": {
+          "name": "kind",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "'office'"
         },
         "created_at": {
           "name": "created_at",
@@ -1850,31 +1877,10 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
-        },
-        "threads_bot_id_bots_id_fk": {
-          "name": "threads_bot_id_bots_id_fk",
-          "tableFrom": "threads",
-          "tableTo": "bots",
-          "columnsFrom": [
-            "bot_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "threads_bot_id_unique": {
-          "name": "threads_bot_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "bot_id"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

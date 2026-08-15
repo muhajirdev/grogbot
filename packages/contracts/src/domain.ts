@@ -9,7 +9,8 @@ export const BotSchema = z.object({
   description: z.string(),
   instructions: z.string(),
   parentBotId: Id.nullable(),
-  threadId: Id,
+  /** Office thread. Open this for v1 1:1. */
+  homeThreadId: Id,
   createdAt: z.string(),
   updatedAt: z.string(),
 });
