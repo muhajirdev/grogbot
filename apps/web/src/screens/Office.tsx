@@ -355,7 +355,10 @@ export function Office(props: { botId: string }) {
                 ? `${computer.usingBotName} has the mouse on ${computer.name}. Files and logins are shared; one mouse at a time.`
                 : working
                   ? `${bot?.name ?? "Bot"} is using ${computer?.name ?? "this computer"}.\n${working}`
-                  : `${computer?.name ?? "Desk"}${computer?.isDefault ? " (default)" : ""}. Teammates on this desk share files and logins.`}
+                  : computer?.isDefault ||
+                      (computer?.teammates && computer.teammates.length > 1)
+                    ? `${computer?.name ?? "Desk"}${computer?.isDefault ? " (default)" : ""}. Teammates on this desk share files and logins.`
+                    : `${computer?.name ?? "Computer"}. Isolated computer — files and logins stay here.`}
         </div>
         <div className="profile">
           {computer?.controlHolder === "user" ? (
