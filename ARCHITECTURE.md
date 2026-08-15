@@ -1,105 +1,116 @@
 # Architecture
 
-Open-core product: AI teammates with a real computer. Inspired by [Rakazo](https://github.com/elie222/rakazo) and [Paperclip](https://github.com/paperclipai/paperclip). Not a clone of either.
+**Grogbot** is open-core **Grok Bot**: named teammates with a real computer. Message them like people. Composio for Gmail/Slack/GitHub. Workspace-shared context and skills. BYOK models.
 
-## Product (v1)
+UI: copy Grok Bot simplicity — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md). Rooms later: [docs/rooms-plan.md](./docs/rooms-plan.md).
 
-Each bot has:
+## Product
 
-- one thread (v1 behaves 1:1 human; schema allows more members later)
-- one computer (sandbox)
-- memory (markdown documents)
-- routines (schedules)
-- history (messages + events)
+Each **bot** (teammate) has:
 
-v1 is **computer + BYOK models**. Plugins (Composio etc.) are a later `ConnectorProvider`. Subagents / spawn-bot come after the seams work.
+- a home **office** thread (v1 is 1:1; extra humans later)
+- one **computer** (sandbox) — on the bot, not the room
+- memory, routines, history
+
+A **Rivet actor is the bot**. Serial queue + cron + named delayed schedules. One body, one VM, one Pi at a time.
+
+The **workspace** (Better Auth org) also has:
+
+- **Shared context** — team markdown (how we work). Every bot can read it.
+- **Shared skills** — `skills/*.md` for every bot.
+- **Composio plugins** — optional `COMPOSIO_API_KEY`. No key = computer-only still works.
+
+**Postgres** is the team source of truth (auth, bots, threads, messages, skills, artifact index). **Rivet** is wakeup and serial execution. They do not share that work.
 
 ## Locked decisions
 
 | Topic | Choice |
 | --- | --- |
-| First cloud | **Fly or Railway** — stateful Node API + worker |
-| Cloudflare | Later adapter, not v1 |
+| Product | Grok Bot-shaped teammates + Composio + team context/skills |
+| UI | Messaging app. **Web first.** Packaged desktop loads grogbot.com (API: api.grogbot.com). Dev desktop loads local Vite. Mobile = Expo later |
+| API | **oRPC** — contract in `@grogbot/contracts`, client in `@grogbot/rpc` |
+| Web | **Vite + React 19 + TanStack Router** (SPA). oRPC queries via `@orpc/tanstack-query`. Not TanStack Start — API stays Hono so Electron can load the same origin. |
+| Actor | **One Rivet actor per bot** |
+| Shared data | **One Postgres** — auth, bots, threads, messages, skills, artifacts |
+| Wakeup | Rivet queue / `schedule` / cron on that actor |
+| First cloud | **Fly or Railway** — Node API + actor host (worker) |
+| Cloudflare later | **Rivet’s Durable Object driver** |
 | ORM | **Drizzle** + Postgres |
-| Jobs | **`jobs` table** + poller (`FOR UPDATE SKIP LOCKED`) |
-| Auth | **Better Auth**, email/password, organizations = workspaces |
-| Models | BYOK: OpenRouter, OpenAI, Anthropic |
-| System of record | **One Postgres**, `workspace_id` everywhere. Not D1/Turso per customer |
-| Sandbox | `docker` (local default) · `e2b` (hosted) · `desktop` (trusted machine only) · `fake` (tests) |
-| Homes | Local disk v1 · `HomeStore` interface so R2 can replace it |
-| Realtime | Events in Postgres + SSE from the API. `RealtimeFanout` interface |
-| Plugins | Out of v1 |
-| Multiplayer | Not v1 UX. Schema has `thread_members` and message `actor_*` so group chat is not a rewrite |
+| Auth | **Better Auth** — email/password, Google, GitHub. Organizations = workspaces |
+| Models | **Pi** catalog + BYOK |
+| Sandbox | `docker` local · `e2b` hosted · `desktop` trusted machine only · `fake` tests |
+| Homes | Disk v1 · `HomeStore` → R2 later |
+| Realtime | oRPC event iterator now · actor WebSocket later if needed |
+| Plugins | **Composio** (optional) |
+| Rooms v1 | Bot’s office. Multi-bot rooms: plan only |
 
-## Why not Rakazo’s Graphile + Prisma
+## Wakeup (Rivet)
 
-Graphile Worker is Postgres `LISTEN` + a vendor runner. Workers cannot `LISTEN`. Prisma’s engine is awkward on Workers.
+The API must not wait on Pi. Waking a bot is: chat now, routine at 9:00, sleep the VM after idle.
 
-A job table + Drizzle is the same Fly app, and the three job names can later be invoked from Cloudflare Queues. See the conversation that led here: **agnostic means four ports, not two runtimes.**
+- **One actor per `botId`.** Never key the actor on `threadId`.
+- Immediate work goes on that actor’s queue (`run.continue`).
+- Routines are cron on that actor (`routine.wakeup`). Postgres `routines` is metadata (prompt, cron string, last/next); Rivet fires it.
+- Idle sleep is a named delayed schedule (`computer.sleep`). Same `jobKey` replaces the previous timer.
+- Two humans in one office share **one** actor queue.
+- Two bots in one room (later) are **two** actors.
 
-## Processes (v1, stateful)
+v1 code: `RivetWakeupDriver` is an in-process stand-in (serial queue + `setTimeout` per `jobKey`). The worker hosts it. The API enqueues over HTTP (`WORKER_URL`). Swap the body for rivetkit (engine, then Cloudflare DO driver) without changing `WakeupDriver`.
+
+agentOS is **not** the v1 computer — Docker / E2B / desktop are.
+
+## Processes (v1)
 
 ```
-Web (Vite :5173) ──► API (Hono :3100) ──► Postgres
-                           │
-                           │ enqueue job
-                           ▼
-                     Worker (poller)
-                           │
-              ┌────────────┼────────────┐
-              ▼            ▼            ▼
-         AgentRuntime   Sandbox      HomeStore
-         (later: Pi)    docker/e2b   disk
+Web (Vite :5173) ─┐
+Desktop (Electron)─┼──► API oRPC (Hono :3100) ──► Postgres (truth)
+Mobile (Expo) ────┘          │
+                             │ POST /wakeup
+                             v
+                       Worker (Rivet actors)
+                             │
+           ┌─────────────────┼─────────────────┐
+           ▼                 ▼                 ▼
+      Pi (BYOK)         Sandbox            Composio
+      + workspace       docker/e2b         (if key set)
+        skills
 ```
 
-Job names:
+Clients share **one contract**. Web is what we build against now. Desktop loads that same web app. Expo is a later shell on the same `@grogbot/rpc` client.
 
-- `run.continue`
-- `routine.wakeup`
-- `computer.sleep`
+Wake a bot with:
 
-## Ports (keep the executor free of Fly/CF)
+- `run.continue` — user messaged (immediate, that bot’s queue)
+- `routine.wakeup` — cron on that actor
+- `computer.sleep` — named delayed schedule, replaced on activity
 
-| Port | v1 | Later Cloudflare |
+## Ports
+
+| Port | v1 | Later |
 | --- | --- | --- |
-| `WakeupDriver` | Postgres poller | Queue + Durable Object alarm |
-| `RealtimeFanout` | Postgres events + SSE | Durable Object WebSocket |
+| `WakeupDriver` | Rivet actor (in-process on the worker; HTTP from API) | Rivet engine / CF DO driver |
+| Product API | **oRPC** `POST /rpc/*` (Hono). `GET /health` for probes | same contract |
+| `RealtimeFanout` | oRPC event iterator (`threads.subscribe`) | actor WebSocket or DO |
 | `HomeStore` | filesystem | R2 |
 | `SandboxProvider` | Docker / E2B / desktop / fake | E2B / CF sandbox |
+| `ConnectorProvider` | Composio or no-op | same |
 
-The executor must not import `fs`, `dockerode`, Graphile, or Cloudflare bindings.
-
-Do **not** implement Fly and Workers in v1. Do **not** add Redis “for Cloudflare.”
-
-## Multiplayer later (do not build now)
-
-Cheap leftovers already in schema:
-
-- workspace membership (Better Auth org)
-- `thread_members`
-- messages: `actor_type` + `actor_id`
-- computer `control_holder` lease
-- realtime by `thread_id`, not `user_id`
-
-Not now: Discord UI, channels, presence, voice.
-
-## Cloud later
-
-1. **Hosted on Fly/Railway** — same processes, `SANDBOX_PROVIDER=e2b`. Easy.
-2. **Control plane on Cloudflare** — swap wakeup, fanout, home. Agent loop stays E2B/Container, not a vanilla Worker. Medium, only if these ports stay clean.
+Executor must not import `fs`, `dockerode`, or Cloudflare bindings. The **actor host** (worker) may import Rivet. The Pi loop still talks only to ports.
 
 ## Build order
 
-1. This monorepo, schema, jobs, auth, health
-2. `threads.send` → enqueue → worker stub
-3. Fake sandbox + scripted runtime (tests)
-4. Docker computer
-5. BYOK OpenRouter / OpenAI
-6. Thin web shell
-7. E2B for Fly
-8. Desktop provider (Electron), never on hosted cloud
-9. Plugins / group threads / Cloudflare adapters — after the product works
+1. Monorepo, schema, auth, health, Rivet wakeup stub, oRPC contract *(this)*
+2. `threads.send` → bot actor → scripted runtime
+3. Docker computer
+4. Pi + BYOK
+5. Thin **web** shell — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md)
+6. Workspace context + skills in the system prompt
+7. Composio plugins UI
+8. E2B for Fly
+9. Desktop window (Electron around web), never on hosted cloud
+10. Extra humans, then multi-bot rooms — [docs/rooms-plan.md](./docs/rooms-plan.md)
+11. Expo mobile (same oRPC client, RN chrome)
 
-## Explicitly out of v1
+## Out of v1
 
-Composio, Electron packagers, Expo, Pi OAuth (ChatGPT/Copilot device code), Cloudflare Workers, D1, Turso, Graphile, Prisma, per-tenant databases.
+Gadgets, Gatekeepers, Cloudflare Workers as the host, D1, Turso, Prisma, PGlite as product DB, store signing / Electron-builder / EAS submit, Pi subscription OAuth, Discord UI, agentOS as the default computer, multi-bot rooms.

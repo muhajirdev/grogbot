@@ -5,7 +5,7 @@ import type {
   ComputerRef,
   ProcessEvent,
   SandboxProvider,
-} from "@rekan/adapter-kit";
+} from "@grogbot/adapter-kit";
 
 export class FakeSandboxProvider implements SandboxProvider {
   readonly boxes = new Map<string, ComputerRef>();

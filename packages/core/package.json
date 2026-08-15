@@ -1,5 +1,5 @@
 {
-  "name": "@rekan/core",
+  "name": "@grogbot/core",
   "version": "0.0.1",
   "license": "MIT",
   "type": "module",
@@ -11,7 +11,10 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@rekan/contracts": "workspace:*"
+    "@grogbot/adapter-kit": "workspace:*",
+    "@grogbot/contracts": "workspace:*",
+    "@grogbot/db": "workspace:*",
+    "drizzle-orm": "^0.44.5"
   },
   "devDependencies": {
     "typescript": "^5.9.2",

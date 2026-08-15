@@ -123,19 +123,6 @@ CREATE TABLE "events" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "jobs" (
-	"id" text PRIMARY KEY NOT NULL,
-	"name" text NOT NULL,
-	"payload" jsonb NOT NULL,
-	"run_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"job_key" text,
-	"locked_at" timestamp with time zone,
-	"locked_by" text,
-	"attempts" integer DEFAULT 0 NOT NULL,
-	"last_error" text,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL
-);
---> statement-breakpoint
 CREATE TABLE "memory_documents" (
 	"id" text PRIMARY KEY NOT NULL,
 	"workspace_id" text NOT NULL,
@@ -276,7 +263,6 @@ ALTER TABLE "threads" ADD CONSTRAINT "threads_bot_id_bots_id_fk" FOREIGN KEY ("b
 ALTER TABLE "user_model_credentials" ADD CONSTRAINT "user_model_credentials_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE UNIQUE INDEX "member_org_user" ON "member" USING btree ("organization_id","user_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "events_thread_seq" ON "events" USING btree ("thread_id","seq");--> statement-breakpoint
-CREATE UNIQUE INDEX "jobs_job_key" ON "jobs" USING btree ("job_key");--> statement-breakpoint
 CREATE UNIQUE INDEX "memory_workspace_scope_bot_path" ON "memory_documents" USING btree ("workspace_id","scope","bot_id","path");--> statement-breakpoint
 CREATE UNIQUE INDEX "messages_thread_seq" ON "messages" USING btree ("thread_id","seq");--> statement-breakpoint
 CREATE UNIQUE INDEX "thread_members_thread_user" ON "thread_members" USING btree ("thread_id","user_id");

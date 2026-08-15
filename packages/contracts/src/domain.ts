@@ -1,5 +1,13 @@
 import * as z from "zod";
-import { ActorType, ControlHolder, Id, MemoryScope, RunStatus, SandboxKind } from "./ids.js";
+import {
+  ActorType,
+  AvatarShape,
+  ControlHolder,
+  Id,
+  MemoryScope,
+  RunStatus,
+  SandboxKind,
+} from "./ids.js";
 
 export const BotSchema = z.object({
   id: Id,
@@ -8,6 +16,8 @@ export const BotSchema = z.object({
   title: z.string(),
   description: z.string(),
   instructions: z.string(),
+  avatarColor: z.string(),
+  avatarShape: AvatarShape,
   parentBotId: Id.nullable(),
   threadId: Id,
   createdAt: z.string(),
@@ -20,6 +30,18 @@ export const CreateBotInput = z.object({
   title: z.string().max(160).default(""),
   description: z.string().max(4000).default(""),
   instructions: z.string().max(20000).default(""),
+  avatarColor: z.string().max(32).default("#5b7cff"),
+  avatarShape: AvatarShape.default("circle"),
+});
+
+export const UpdateBotInput = z.object({
+  botId: Id,
+  name: z.string().min(1).max(80).optional(),
+  title: z.string().max(160).optional(),
+  description: z.string().max(4000).optional(),
+  instructions: z.string().max(20000).optional(),
+  avatarColor: z.string().max(32).optional(),
+  avatarShape: AvatarShape.optional(),
 });
 
 export const MessageBlockSchema = z.discriminatedUnion("kind", [

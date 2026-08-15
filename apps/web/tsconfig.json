@@ -4,6 +4,8 @@
     "jsx": "react-jsx",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
     "module": "ESNext",
     "moduleResolution": "bundler",
     "rootDir": "src"

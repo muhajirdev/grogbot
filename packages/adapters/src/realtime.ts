@@ -1,4 +1,4 @@
-import type { RealtimeFanout } from "@rekan/adapter-kit";
+import type { RealtimeFanout } from "@grogbot/adapter-kit";
 
 export class InProcessFanout implements RealtimeFanout {
   private listeners = new Map<string, Set<(payload: string) => void>>();

@@ -1,5 +1,5 @@
 {
-  "name": "@rekan/api",
+  "name": "@grogbot/api",
   "version": "0.0.1",
   "license": "MIT",
   "type": "module",
@@ -10,15 +10,21 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.19.1",
-    "@rekan/adapter-kit": "workspace:*",
-    "@rekan/adapters": "workspace:*",
-    "@rekan/auth": "workspace:*",
-    "@rekan/db": "workspace:*",
+    "@grogbot/adapter-kit": "workspace:*",
+    "@grogbot/adapters": "workspace:*",
+    "@grogbot/auth": "workspace:*",
+    "@grogbot/contracts": "workspace:*",
+    "@grogbot/core": "workspace:*",
+    "@grogbot/db": "workspace:*",
+    "@orpc/server": "^1.10.0",
     "dotenv": "^17.2.1",
+    "drizzle-orm": "^0.44.5",
     "hono": "^4.9.6"
   },
   "devDependencies": {
+    "@grogbot/rpc": "workspace:*",
     "tsx": "^4.20.5",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
   }
 }
