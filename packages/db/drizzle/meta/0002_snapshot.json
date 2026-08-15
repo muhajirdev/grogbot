@@ -1,6 +1,6 @@
 {
-  "id": "761376d2-3d23-458c-bb90-a98284a555c5",
-  "prevId": "68661668-8217-4669-9234-5eface2edd8f",
+  "id": "161d27e4-cf5d-4759-bd31-6e200b4b56fd",
+  "prevId": "fc165aec-4aca-4cff-9268-db65f317c2ae",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -667,13 +667,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "guest_kind": {
-          "name": "guest_kind",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'off'"
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -961,136 +954,6 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.guest_connectors": {
-      "name": "guest_connectors",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "bot_id": {
-          "name": "bot_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "workspace_id": {
-          "name": "workspace_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "kind": {
-          "name": "kind",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "token_hash": {
-          "name": "token_hash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "online": {
-          "name": "online",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "last_seen_at": {
-          "name": "last_seen_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "revoked_at": {
-          "name": "revoked_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "guest_connectors_bot_id_bots_id_fk": {
-          "name": "guest_connectors_bot_id_bots_id_fk",
-          "tableFrom": "guest_connectors",
-          "tableTo": "bots",
-          "columnsFrom": [
-            "bot_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "guest_connectors_workspace_id_organization_id_fk": {
-          "name": "guest_connectors_workspace_id_organization_id_fk",
-          "tableFrom": "guest_connectors",
-          "tableTo": "organization",
-          "columnsFrom": [
-            "workspace_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "guest_connectors_user_id_user_id_fk": {
-          "name": "guest_connectors_user_id_user_id_fk",
-          "tableFrom": "guest_connectors",
-          "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "guest_connectors_bot_id_unique": {
-          "name": "guest_connectors_bot_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "bot_id"
-          ]
-        }
-      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
