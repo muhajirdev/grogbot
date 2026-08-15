@@ -1,0 +1,33 @@
+import type { AppContract } from "@grogbot/contracts";
+import { createORPCClient } from "@orpc/client";
+import { RPCLink } from "@orpc/client/fetch";
+import type { ContractRouterClient } from "@orpc/contract";
+
+export type GrogbotClient = ContractRouterClient<AppContract>;
+
+export interface CreateGrogbotClientOptions {
+  /** Origin of the API, no trailing slash. Empty string uses same-origin `/rpc` (Vite proxy). */
+  baseUrl: string;
+  headers?:
+    | Record<string, string>
+    | (() => Record<string, string> | Promise<Record<string, string>>);
+  fetch?: typeof globalThis.fetch;
+  credentials?: "include" | "omit" | "same-origin";
+}
+
+export function createGrogbotClient(
+  options: CreateGrogbotClientOptions,
+): GrogbotClient {
+  const prefix = options.baseUrl.replace(/\/$/, "");
+  const link = new RPCLink({
+    url: `${prefix}/rpc`,
+    headers: options.headers,
+    fetch: async (request) => {
+      const fetchFn = options.fetch ?? globalThis.fetch.bind(globalThis);
+      return fetchFn(request, {
+        credentials: options.credentials ?? "include",
+      });
+    },
+  });
+  return createORPCClient(link);
+}

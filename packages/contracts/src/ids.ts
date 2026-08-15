@@ -29,8 +29,17 @@ export type RunStatus = z.infer<typeof RunStatus>;
 export const SandboxKind = z.enum(["docker", "e2b", "desktop", "fake"]);
 export type SandboxKind = z.infer<typeof SandboxKind>;
 
-export const MemoryScope = z.enum(["bot", "user"]);
+export const MemoryScope = z.enum(["bot", "user", "workspace"]);
 export type MemoryScope = z.infer<typeof MemoryScope>;
 
 export const ControlHolder = z.enum(["bot", "user", "none"]);
 export type ControlHolder = z.infer<typeof ControlHolder>;
+
+export const AvatarShape = z.enum([
+  "circle",
+  "squircle",
+  "diamond",
+  "triangle",
+  "hex",
+]);
+export type AvatarShape = z.infer<typeof AvatarShape>;

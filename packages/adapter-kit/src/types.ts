@@ -1,4 +1,4 @@
-import type { SandboxKind } from "@rekan/contracts";
+import type { SandboxKind } from "@grogbot/contracts";
 
 export interface AdapterContext {
   operationId: string;
@@ -10,9 +10,12 @@ export interface AdapterContext {
 }
 
 export interface WakeupJob {
+  /** Rivet actor key — the bot, never the room. */
+  botId: string;
   name: string;
   payload: Record<string, unknown>;
   runAt?: Date;
+  /** Named schedule on that actor (e.g. computer.sleep). Replaces the previous one. */
   jobKey?: string;
 }
 

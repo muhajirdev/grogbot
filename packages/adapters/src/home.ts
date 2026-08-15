@@ -1,6 +1,6 @@
 import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { AdapterContext, HomeStore, PortableFile } from "@rekan/adapter-kit";
+import type { AdapterContext, HomeStore, PortableFile } from "@grogbot/adapter-kit";
 
 export class DiskHomeStore implements HomeStore {
   constructor(private readonly root: string) {}

@@ -1,5 +1,5 @@
 {
-  "name": "rekan",
+  "name": "grogbot",
   "private": true,
   "version": "0.0.1",
   "license": "MIT",
@@ -8,15 +8,17 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "turbo dev --filter=@rekan/api --filter=@rekan/worker --filter=@rekan/web",
+    "dev": "turbo dev --filter=@grogbot/api --filter=@grogbot/worker --filter=@grogbot/web",
+    "dev:desktop": "turbo dev --filter=@grogbot/api --filter=@grogbot/worker --filter=@grogbot/web --filter=@grogbot/desktop",
+    "dev:mobile": "pnpm --filter @grogbot/mobile start",
     "build": "turbo build",
     "check": "turbo check",
     "lint": "biome check .",
     "format": "biome check --write .",
     "test": "vitest run",
-    "db:generate": "pnpm --filter @rekan/db generate",
-    "db:migrate": "pnpm --filter @rekan/db migrate",
-    "db:push": "pnpm --filter @rekan/db push"
+    "db:generate": "pnpm --filter @grogbot/db generate",
+    "db:migrate": "pnpm --filter @grogbot/db migrate",
+    "db:push": "pnpm --filter @grogbot/db push"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.8",
@@ -25,5 +27,11 @@
     "turbo": "^2.5.6",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "react": "19.2.3",
+      "react-dom": "19.2.3"
+    }
   }
 }
