@@ -101,7 +101,7 @@ Executor must not import `fs`, `dockerode`, Graphile, or Cloudflare bindings.
 2. `threads.send` → enqueue → scripted runtime
 3. Docker computer
 4. Pi + BYOK
-5. Thin web shell (Grok Bot-simple: bot list, thread, computer pane)
+5. Thin web shell — copy Grok Bot: Bot list, thread, computer pane. See [docs/grok-bot-ui.md](./docs/grok-bot-ui.md).
 6. Workspace context + skills in the system prompt
 7. Composio plugins UI
 8. E2B for Fly

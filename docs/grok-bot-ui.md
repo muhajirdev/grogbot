@@ -1,0 +1,210 @@
+# Grok Bot UI copy-brief
+
+Grogbot should **feel like Grok Bot**: a messaging app of named teammates, not a workflow builder, IDE, or Discord. This is the visual and onboarding spec. Product/architecture stays ours (one computer per bot, Postgres, Composio).
+
+We could not screenshot the live desktop app (paywalled: SuperGrok Heavy / Cursor Ultra). This brief is from official docs and marketing as of 11–15 Aug 2026.
+
+**Look at these while building:**
+
+| What | Where |
+| --- | --- |
+| Marketing, job chips, computer takeover line | [x.ai/bot](https://x.ai/bot) |
+| Launch post, quotes, use-case tabs | [x.ai/news/introducing-grok-bot](https://x.ai/news/introducing-grok-bot) |
+| First-run steps | [docs: get started](https://docs.x.ai/grok-bot/get-started) |
+| Sidebar, profile, New Agent | [docs: bots](https://docs.x.ai/grok-bot/bots) |
+| Chat, `@`, groups | [docs: chat](https://docs.x.ai/grok-bot/chat-and-collaboration) |
+| Agent Computer pane | [docs: computer](https://docs.x.ai/grok-bot/computer-and-apps) |
+| First-run + iPhone | [docs: iOS](https://docs.x.ai/grok-bot/mobile) |
+| Appearance, attention states | [docs: settings](https://docs.x.ai/grok-bot/settings-and-notifications) |
+| Sidebar screenshot description (Inbox Manager, Talent Scout…) | [eesel review](https://www.eesel.ai/blog/grok-bot-review) |
+| Walkthrough video | [YouTube: Cursor Just Released Grok Bot](https://www.youtube.com/watch?v=QTcZPI-g7is) |
+
+---
+
+## What “simple” means
+
+Official line: *Create a Bot, message it, grant access as needed. No workflow builder.*
+
+Quote they highlight: *“There wasn’t anything to learn. It was just like bringing on a coworker.”*
+
+Copy this:
+
+- First action is **talk**, not configure a graph.
+- A Bot is a **contact**: name, title, description, avatar, one thread.
+- Computer is a **pane you can ignore**. Work continues if you close it.
+- Plugins exist, but first task can be “summarize this file” with no connector.
+- Sign-in to tools happens **when the Bot hits a wall**, via computer takeover — not a 20-field setup wizard.
+
+Do not copy:
+
+- Their **one shared cloud computer** for all Bots (logins leak across the roster). We keep **one computer per bot**.
+- Group chat of 2–6 Bots in v1 (see [rooms-plan.md](./rooms-plan.md)).
+- Teach-by-demonstration in v1.
+- Cursor-only sign-in / Ultra paywall.
+
+---
+
+## Layout (desktop)
+
+Three regions. Looks like iMessage + a remote desktop, not Linear.
+
+```
++------------------+---------------------------+------------------+
+| SIDEBAR          | THREAD                    | DETAILS / COMPUTER
+|                  |                           |
+| Grok Bot         |  Piper                    | Agent Computer
+| [New]  Cmd+N     |  Product performance      | [Working]
+|                  |                           | +--------------+
+| o Inbox Manager  |  You: summarize this PDF  | |  browser /   |
+| o Talent Scout   |                           | |  desktop     |
+| o Expense Mgr    |  Piper: working…          | |  clicks      |
+| o Piper      *   |  [tool: browser]          | +--------------+
+|                  |  [file: summary.md]       | Take over
+| ---- hidden ---- |                           |
+| Plugins          |  [  Message Piper     ]   | Profile
+|                  |   @  /  attach            | name, title,
++------------------+---------------------------+ desc, avatar
+```
+
+- **Left:** roster of Bots (and later groups). Pin at top. Hide without deleting. Unread / needs-attention / working.
+- **Center:** one conversation with that Bot. Transcript is the audit log (tools, computer, files, approvals inline).
+- **Right or overlay:** **Agent Computer** preview + **Bot actions → Edit Profile**.
+
+Composer:
+
+- Plain text.
+- Attach / drag files (they cap ~6 at once).
+- `@` = Bot, group, routine, connector.
+- `/` = saved skill.
+- Send while it is working = redirect. “Stop now” = halt (does not undo).
+
+Job-title chips on marketing (use as first-bot suggestions, not as a template gallery product):
+
+Sales Outbound · Talent Scout · Paid Media · Expense Manager · Product Performance · Bug Reproduction · Account Health · Chief of Staff
+
+Docs examples: **Talent Scout**, **Expense Manager**, **Bug Reproduction**. Avoid **General Helper**.
+
+---
+
+## Visual style
+
+- **Messaging app**, not a dashboard. No kanban of agents as the home screen.
+- Each Bot: **short name**, **job title**, **description**, **avatar**.
+- Avatar onboarding: pick a **color and shape** (geometric, not a photoreal face). Sidebar shows that mark like a contact photo.
+- Appearance: Follow system / Light / Dark (`Cmd/Ctrl+,`).
+- Attention in the list:
+  - Needs attention (question, approval, handoff)
+  - Unread result
+  - Working / typing
+- Notifications off while the window is focused; dock/sidebar still badge.
+- Result cards in-thread: files, images, links, tool output — preview in place.
+
+Copy voice: teammate, job, handoff, come back when you need approval. Not “agent run,” “workflow,” “orchestration.”
+
+---
+
+## Onboarding (copy this sequence)
+
+Desktop ([get started](https://docs.x.ai/grok-bot/get-started)):
+
+```
+  Welcome
+    [ Get started ]     -->  browser Cursor/Grokbot login
+         |
+         v
+  Short tour: Bots, shared computer, routines
+  "Which tools do you use?"   (shapes suggestions; does NOT connect yet)
+  Computer boots in the background
+         |
+         v
+  Meet a future teammate
+    suggested jobs     or    [ Create your own ]
+         |
+         v
+  Name + one primary job + how it should work
+  Open the thread. First message is a real task.
+```
+
+Create-your-own fields (example from docs):
+
+- **Name:** Piper
+- **Job:** Product performance
+- **Description:** operational rules — sources, output shape, **never** change production.
+
+After that, **New** / `Cmd+N` → **Create new agent** → opens **New Agent** → **Bot actions → Edit Profile** (name, title, description, avatar) → give a task.
+
+iPhone: Login with Cursor → first-run tour → choose first Bot → wait for computer → same roster. `+` → New Agent | New Group Chat.
+
+**Our v1 trim:** same tour, but say “this bot’s computer” not “shared computer.” Skip group chat. Plugins = Composio when we have it; first-run tool question can still be asked.
+
+### First-task recipe (surface in empty composer)
+
+A good handoff has: outcome, sources, constraints, deliverable, when to stop for you.
+
+Zero-connector starter they recommend:
+
+> Summarize this document in five bullets. List every date, decision, and open question. Cite the section. Do not change the source file.
+
+Then a tool task that may takeover-login.
+
+---
+
+## Computer pane
+
+Label: **Agent Computer** (we can say **Computer**).
+
+- Live view: clicks, typing, navigation, status (**You're in control** / **Working**).
+- Marketing line on [x.ai/bot](https://x.ai/bot): *“Sign in to Zendesk so I can work the support queue.”*
+- Takeover for password, 2FA, CAPTCHA, payment. User does that on the computer, **not in chat**. Then “continue.”
+- Closing the pane or the laptop does not stop cloud work.
+- Files live in a workspace folder; conversation still gets the final artifact or a link.
+
+**Grok:** one VM, many screens. **Grogbot v1:** one VM per bot; pane shows **this** bot’s sandbox. Same UX, different isolation.
+
+---
+
+## Profile vs chat
+
+| Put in description (durable) | Put in a message (this task) |
+| --- | --- |
+| Never send mail without approval | Draft follow-ups for these 12 accounts |
+| How to format weekly reports | Use last week’s numbers |
+
+Edit: **View conversation details → Agent settings** (name, title, description, avatar, notify).
+
+Sidebar: Pin, Hide (work continues), Show hidden, Duplicate (profile only, not history), Delete.
+
+---
+
+## iOS (later, same objects)
+
+Home = Bot list. Message, dictate, photo, `@`, threads, reactions. Computer from the conversation for watch/takeover. Routines: pause/resume on mobile; edit schedule on desktop. Same Bots as desktop.
+
+v1 web can ignore iOS chrome; keep the **contact list + thread + computer** mental model so mobile is not a rewrite.
+
+---
+
+## What not to build in v1 (theirs, not ours yet)
+
+- Group of 2–6 Bots, `@everyone`
+- Bot-to-bot DMs
+- Teach a task (record up to 10 min)
+- Command palette search across all chats
+- Auto-review policy engine
+- Local-computer execution
+- Marketplace of skills
+
+Empty composer and New Agent must still work without those.
+
+---
+
+## Implementation checklist (web)
+
+1. Welcome → sign in → 3-beat tour → “meet a teammate” (name, title, description, color+shape).
+2. Sidebar of Bots; click = that office thread.
+3. Chat transcript with inline “working,” files, approval.
+4. Computer pane: fake/scripted first, then Docker/E2B; takeover control.
+5. Edit profile on the Bot, not a separate admin app.
+6. First-run does not require Composio.
+
+Sources: xAI Grok Bot docs dated around 11 Aug 2026, [x.ai/bot](https://x.ai/bot), [introducing grok bot](https://x.ai/news/introducing-grok-bot).
