@@ -9,10 +9,12 @@ UI: copy Grok Bot simplicity — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md). R
 Each **bot** (teammate) has:
 
 - a home **office** thread (v1 is 1:1; extra humans later)
-- one **computer** (sandbox) — on the bot, not the room
+- a bound **computer** (sandbox) — workspace **Desk** by default, or a new isolated computer
 - memory, routines, history
 
-A **Rivet actor is the bot**. Serial queue + cron + named delayed schedules. One body, one VM, one Pi at a time.
+A **Rivet actor is the bot**. Serial queue + cron + named delayed schedules. One brain, one Pi at a time.
+
+**Computers** are a separate primitive. Many bots can share one desk (files and logins). GUI computer-use is one mouse (`control_holder`); brains still run on their own actors. A bot created with a new computer gets its own VM.
 
 The **workspace** (Better Auth org) also has:
 
@@ -31,6 +33,7 @@ The **workspace** (Better Auth org) also has:
 | API | **oRPC** — contract in `@grogbot/contracts`, client in `@grogbot/rpc` |
 | Web | **Vite + React 19 + TanStack Router** (SPA). oRPC queries via `@orpc/tanstack-query`. Not TanStack Start — API stays Hono so Electron can load the same origin. |
 | Actor | **One Rivet actor per bot** |
+| Computer | **Workspace Desk by default.** New computer = isolated sandbox. GUI serialized per desk. |
 | Shared data | **One Postgres** — auth, bots, threads, messages, skills, artifacts |
 | Wakeup | Rivet queue / `schedule` / cron on that actor |
 | First cloud | **Fly or Railway** — Node API + actor host (worker) |

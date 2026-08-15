@@ -9,9 +9,15 @@ import {
   tasks,
   threads,
 } from "@grogbot/db";
-import { and, asc, eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
+import {
+  activeBotIdsOnComputer,
+  fanoutComputerUpdated,
+  getBotComputer,
+  tryClaimComputer,
+} from "./computer.js";
 import { newId } from "./ids.js";
-import { appendEvent, nextSeq, toComputerStatus } from "./office.js";
+import { appendEvent, nextSeq } from "./office.js";
 import { assertTransition } from "./run-state.js";
 
 async function setRunStatus(
@@ -66,29 +72,10 @@ export async function continueRun(opts: {
     .limit(1);
   if (!task || !bot || !thread) return;
 
-  await db
-    .update(computers)
-    .set({
-      state: "running",
-      controlHolder: "bot",
-      controlHolderId: bot.id,
-      updatedAt: new Date(),
-    })
-    .where(eq(computers.botId, bot.id));
-  const [computer] = await db
-    .select()
-    .from(computers)
-    .where(eq(computers.botId, bot.id))
-    .limit(1);
+  const computer = await getBotComputer(db, bot);
   if (computer) {
-    await appendEvent(db, {
-      workspaceId: run.workspaceId,
-      threadId: run.threadId,
-      botId: run.botId,
-      type: "computer.updated",
-      payload: toComputerStatus(computer) as unknown as Record<string, unknown>,
-      runId,
-    });
+    const claimed = await tryClaimComputer(db, computer, bot.id, "running");
+    await fanoutComputerUpdated(db, claimed.computer, bot.id, runId);
   }
 
   await appendEvent(db, {
@@ -230,20 +217,14 @@ export async function sleepComputer(
   db: Database,
   botId: string,
 ): Promise<void> {
-  const [computer] = await db
-    .select()
-    .from(computers)
-    .where(eq(computers.botId, botId))
-    .limit(1);
+  const [bot] = await db.select().from(bots).where(eq(bots.id, botId)).limit(1);
+  if (!bot) return;
+  const computer = await getBotComputer(db, bot);
   if (!computer) return;
   if (computer.controlHolder === "user") return;
-  const [active] = await db
-    .select()
-    .from(runs)
-    .where(and(eq(runs.botId, botId), eq(runs.status, "running")))
-    .limit(1);
-  if (active) return;
-  await db
+  const active = await activeBotIdsOnComputer(db, computer.id);
+  if (active.length > 0) return;
+  const [updated] = await db
     .update(computers)
     .set({
       state: "stopped",
@@ -251,24 +232,9 @@ export async function sleepComputer(
       controlHolderId: null,
       updatedAt: new Date(),
     })
-    .where(eq(computers.botId, botId));
-  const [thread] = await db
-    .select()
-    .from(threads)
-    .where(eq(threads.botId, botId))
-    .limit(1);
-  const [updated] = await db
-    .select()
-    .from(computers)
-    .where(eq(computers.botId, botId))
-    .limit(1);
-  if (thread && updated) {
-    await appendEvent(db, {
-      workspaceId: updated.workspaceId,
-      threadId: thread.id,
-      botId,
-      type: "computer.updated",
-      payload: toComputerStatus(updated) as unknown as Record<string, unknown>,
-    });
+    .where(eq(computers.id, computer.id))
+    .returning();
+  if (updated) {
+    await fanoutComputerUpdated(db, updated, botId);
   }
 }

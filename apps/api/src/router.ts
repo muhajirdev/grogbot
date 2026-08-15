@@ -1,5 +1,10 @@
 import { appContract } from "@grogbot/contracts";
-import { listEventsAfter, sleep, toBotDto } from "@grogbot/core";
+import {
+  getBotComputer,
+  listEventsAfter,
+  sleep,
+  toBotDto,
+} from "@grogbot/core";
 import { userModelCredentials } from "@grogbot/db";
 import { implement } from "@orpc/server";
 import { eq } from "drizzle-orm";
@@ -10,6 +15,7 @@ import {
   getComputer,
   getOffice,
   listBots,
+  listComputers,
   sendMessage,
   setComputerControl,
   stopBotRuns,
@@ -45,7 +51,8 @@ export const appRouter = os.router({
     get: os.bots.get.handler(async ({ context, input }) => {
       const actor = await requireActor(context);
       const { bot, thread } = await getOffice(context, actor, input.botId);
-      return toBotDto(bot, thread.id);
+      const desk = await getBotComputer(context.db, bot);
+      return toBotDto(bot, thread.id, { computerName: desk?.name });
     }),
     create: os.bots.create.handler(async ({ context, input }) => {
       const actor = await requireActor(context);
@@ -85,6 +92,12 @@ export const appRouter = os.router({
       const actor = await requireActor(context);
       await stopBotRuns(context, actor, input.botId);
       return { ok: true as const };
+    }),
+  },
+  computers: {
+    list: os.computers.list.handler(async ({ context }) => {
+      const actor = await requireActor(context);
+      return listComputers(context, actor);
     }),
   },
   computer: {

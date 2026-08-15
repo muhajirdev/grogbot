@@ -78,6 +78,7 @@ export function Office(props: { botId: string }) {
 
   async function refreshBots(selectId?: string) {
     await queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
+    await queryClient.invalidateQueries({ queryKey: orpc.computers.key() });
     const list = await queryClient.ensureQueryData(
       orpc.bots.list.queryOptions(),
     );
@@ -179,10 +180,17 @@ export function Office(props: { botId: string }) {
   const statusLabel = useMemo(() => {
     if (!computer) return "Idle";
     if (computer.controlHolder === "user") return "You're in control";
+    if (
+      computer.usingBotId &&
+      computer.usingBotId !== bot?.id &&
+      (computer.state === "running" || computer.state === "booting")
+    ) {
+      return `${computer.usingBotName ?? "Teammate"} has the mouse`;
+    }
     if (computer.state === "running" || computer.state === "booting")
       return "Working";
     return "Idle";
-  }, [computer]);
+  }, [bot, computer, working]);
 
   return (
     <div className="office">
@@ -225,6 +233,9 @@ export function Office(props: { botId: string }) {
               <span>
                 <div className="name">{item.name}</div>
                 <div className="title">{item.title || "Teammate"}</div>
+                {item.computerName ? (
+                  <div className="title">{item.computerName}</div>
+                ) : null}
               </span>
             </Link>
           ))}
@@ -315,15 +326,20 @@ export function Office(props: { botId: string }) {
       </section>
       <aside className="pane">
         <div className="pane-head">
-          <strong className="ui">Computer</strong>
+          <strong className="ui">{computer?.name ?? "Computer"}</strong>
           <span className="ui">{statusLabel}</span>
         </div>
         <div className="screen-box">
           {computer?.controlHolder === "user"
             ? "You're in control. Sign in, 2FA, or pay here — not in chat."
-            : working
-              ? `${bot?.name ?? "Bot"} is using this computer.\n${working}`
-              : "Idle. This pane is this bot’s machine, not a shared VM."}
+            : computer?.usingBotId && computer.usingBotId !== bot?.id
+              ? `${computer.usingBotName} has the mouse on ${computer.name}. Files and logins are shared; one mouse at a time.`
+              : working
+                ? `${bot?.name ?? "Bot"} is using ${computer?.name ?? "this computer"}.\n${working}`
+                : computer?.isDefault ||
+                    (computer?.teammates && computer.teammates.length > 1)
+                  ? `${computer?.name ?? "Desk"}${computer?.isDefault ? " (default)" : ""}. Teammates on this desk share files and logins.`
+                  : `${computer?.name ?? "Computer"}. Isolated computer — files and logins stay here.`}
         </div>
         <div className="profile">
           {computer?.controlHolder === "user" ? (
@@ -368,7 +384,9 @@ export function Office(props: { botId: string }) {
             </button>
           )}
           <p className="lede" style={{ fontSize: 14 }}>
-            Closing this pane does not stop work.
+            {computer?.teammates && computer.teammates.length > 1
+              ? `On this desk: ${computer.teammates.map((item) => item.name).join(", ")}.`
+              : "Closing this pane does not stop work."}
           </p>
         </div>
       </aside>
@@ -513,7 +531,12 @@ function NewBotModal(props: {
   const [name, setName] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [computer, setComputer] = useState<"default" | "new" | string>(
+    "default",
+  );
   const [busy, setBusy] = useState(false);
+  const desksQuery = useQuery(orpc.computers.list.queryOptions());
+  const desks = desksQuery.data ?? [];
   return (
     <ModalShell onClose={props.onClose}>
       <p className="kicker">New</p>
@@ -534,6 +557,40 @@ function NewBotModal(props: {
           onChange={(e) => setDescription(e.target.value)}
         />
       </label>
+      <p className="kicker" style={{ marginTop: 16 }}>
+        Computer
+      </p>
+      <p className="lede" style={{ fontSize: 14, marginBottom: 12 }}>
+        Default Desk is shared. Create a new computer only for private logins.
+      </p>
+      <div className="chips">
+        <button
+          type="button"
+          className={`chip${computer === "default" ? " on" : ""}`}
+          onClick={() => setComputer("default")}
+        >
+          {desks.find((item) => item.isDefault)?.name ?? "Desk"} (default)
+        </button>
+        {desks
+          .filter((item) => !item.isDefault)
+          .map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`chip${computer === item.id ? " on" : ""}`}
+              onClick={() => setComputer(item.id)}
+            >
+              {item.name}
+            </button>
+          ))}
+        <button
+          type="button"
+          className={`chip${computer === "new" ? " on" : ""}`}
+          onClick={() => setComputer("new")}
+        >
+          New computer
+        </button>
+      </div>
       <div className="row">
         <button
           className="btn"
@@ -542,7 +599,13 @@ function NewBotModal(props: {
           onClick={() => {
             setBusy(true);
             void client.bots
-              .create({ name, title, description, instructions: description })
+              .create({
+                name,
+                title,
+                description,
+                instructions: description,
+                computer,
+              })
               .then((bot) => props.onCreated(bot.id))
               .finally(() => setBusy(false));
           }}
