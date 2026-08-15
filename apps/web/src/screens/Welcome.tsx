@@ -1,4 +1,6 @@
-export function Welcome(props: { onStart: () => void }) {
+import type { ReactNode } from "react";
+
+export function Welcome(props: { start: ReactNode }) {
   return (
     <div className="screen">
       <div className="stack hero">
@@ -8,11 +10,7 @@ export function Welcome(props: { onStart: () => void }) {
           Create a Bot, message it, grant access as needed. No workflow builder.
           There isn’t anything to learn — it’s like bringing on a coworker.
         </p>
-        <div className="row">
-          <button className="btn" type="button" onClick={props.onStart}>
-            Get started
-          </button>
-        </div>
+        <div className="row">{props.start}</div>
       </div>
     </div>
   );

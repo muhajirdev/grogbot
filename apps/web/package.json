@@ -12,11 +12,15 @@
   "dependencies": {
     "@grogbot/contracts": "workspace:*",
     "@grogbot/rpc": "workspace:*",
+    "@orpc/tanstack-query": "^1.10.0",
+    "@tanstack/react-query": "^5.101.4",
+    "@tanstack/react-router": "^1.170.29",
     "better-auth": "^1.3.8",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
   "devDependencies": {
+    "@tanstack/router-plugin": "^1.168.32",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^5.0.2",

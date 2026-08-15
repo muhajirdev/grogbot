@@ -29,6 +29,7 @@ The **workspace** (Better Auth org) also has:
 | Product | Grok Bot-shaped teammates + Composio + team context/skills |
 | UI | Messaging app. **Web first.** Packaged desktop loads grogbot.com (API: api.grogbot.com). Dev desktop loads local Vite. Mobile = Expo later |
 | API | **oRPC** — contract in `@grogbot/contracts`, client in `@grogbot/rpc` |
+| Web | **Vite + React 19 + TanStack Router** (SPA). oRPC queries via `@orpc/tanstack-query`. Not TanStack Start — API stays Hono so Electron can load the same origin. |
 | Actor | **One Rivet actor per bot** |
 | Shared data | **One Postgres** — auth, bots, threads, messages, skills, artifacts |
 | Wakeup | Rivet queue / `schedule` / cron on that actor |

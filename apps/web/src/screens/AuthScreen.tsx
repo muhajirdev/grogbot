@@ -1,26 +1,26 @@
+import { useQuery } from "@tanstack/react-query";
+import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { authClient } from "../lib/auth";
-import { client } from "../lib/rpc";
+import { orpc } from "../lib/orpc";
 
 type OAuthId = "google" | "github";
 
-export function AuthScreen(props: { onBack: () => void }) {
+export function AuthScreen(props: { errorFromUrl?: string }) {
+  const router = useRouter();
+  const navigate = useNavigate();
+  const health = useQuery(orpc.health.queryOptions());
   const [mode, setMode] = useState<"in" | "up">("up");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState(props.errorFromUrl ?? "");
   const [busy, setBusy] = useState(false);
-  const [oauth, setOauth] = useState<OAuthId[]>(["google", "github"]);
+  const oauth: OAuthId[] = health.data?.oauth ?? ["google", "github"];
 
   useEffect(() => {
-    const fromUrl = new URLSearchParams(window.location.search).get("error");
-    if (fromUrl) setError(fromUrl);
-    void client
-      .health()
-      .then((health) => setOauth(health.oauth))
-      .catch(() => {});
-  }, []);
+    if (props.errorFromUrl) setError(props.errorFromUrl);
+  }, [props.errorFromUrl]);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -35,7 +35,12 @@ export function AuthScreen(props: { onBack: () => void }) {
           })
         : await authClient.signIn.email({ email, password });
     setBusy(false);
-    if (result.error) setError(result.error.message ?? "Could not continue");
+    if (result.error) {
+      setError(result.error.message ?? "Could not continue");
+      return;
+    }
+    await router.invalidate();
+    await navigate({ to: "/" });
   }
 
   async function social(provider: OAuthId) {
@@ -53,7 +58,7 @@ export function AuthScreen(props: { onBack: () => void }) {
     const result = await authClient.signIn.social({
       provider,
       callbackURL: "/",
-      errorCallbackURL: "/",
+      errorCallbackURL: "/login",
     });
     setBusy(false);
     if (result.error) setError(result.error.message ?? "Could not continue");
@@ -122,9 +127,9 @@ export function AuthScreen(props: { onBack: () => void }) {
           <button className="btn" type="submit" disabled={busy}>
             {busy ? "Working…" : mode === "up" ? "Continue" : "Sign in"}
           </button>
-          <button className="btn ghost" type="button" onClick={props.onBack}>
+          <Link to="/" className="btn ghost">
             Back
-          </button>
+          </Link>
         </div>
         <button
           className="btn ghost tiny"

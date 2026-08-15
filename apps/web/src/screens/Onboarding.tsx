@@ -1,12 +1,17 @@
 import type { AvatarShape } from "@grogbot/contracts";
+import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { AvatarMark } from "../components/Avatar";
 import { AVATAR_COLORS, AVATAR_SHAPES, SUGGESTED_JOBS } from "../lib/jobs";
+import { orpc } from "../lib/orpc";
 import { client } from "../lib/rpc";
 
 const TOOLS = ["Gmail", "Slack", "GitHub", "Calendar", "Drive", "Linear"];
 
-export function Onboarding(props: { onDone: (botId: string) => void }) {
+export function Onboarding() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [step, setStep] = useState(0);
   const [tools, setTools] = useState<string[]>([]);
   const [name, setName] = useState("Piper");
@@ -39,7 +44,8 @@ export function Onboarding(props: { onDone: (botId: string) => void }) {
         avatarShape: shape,
       });
       localStorage.setItem("grogbot.onboarded", "1");
-      props.onDone(bot.id);
+      await queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
+      await navigate({ to: "/$botId", params: { botId: bot.id } });
     } catch (caught) {
       setError(
         caught instanceof Error ? caught.message : "Could not create teammate",

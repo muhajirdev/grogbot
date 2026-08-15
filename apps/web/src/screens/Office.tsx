@@ -4,6 +4,8 @@ import type {
   ProductEvent,
   ThreadMessage,
 } from "@grogbot/contracts";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import {
   type FormEvent,
   type ReactNode,
@@ -15,6 +17,7 @@ import {
 import { AvatarMark } from "../components/Avatar";
 import { authClient } from "../lib/auth";
 import { AVATAR_COLORS, AVATAR_SHAPES, FIRST_TASK } from "../lib/jobs";
+import { orpc } from "../lib/orpc";
 import { client } from "../lib/rpc";
 import { applyTheme, readTheme, type Theme } from "../lib/theme";
 
@@ -54,9 +57,12 @@ function ModalShell(props: { onClose: () => void; children: ReactNode }) {
   );
 }
 
-export function Office(props: { initialBotId?: string }) {
-  const [bots, setBots] = useState<Bot[]>([]);
-  const [botId, setBotId] = useState(props.initialBotId ?? "");
+export function Office(props: { botId: string }) {
+  const navigate = useNavigate();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const botsQuery = useQuery(orpc.bots.list.queryOptions());
+  const bots = botsQuery.data ?? [];
   const [messages, setMessages] = useState<ThreadMessage[]>([]);
   const [working, setWorking] = useState("");
   const [computer, setComputer] = useState<ComputerStatus | null>(null);
@@ -67,28 +73,19 @@ export function Office(props: { initialBotId?: string }) {
   const [newOpen, setNewOpen] = useState(false);
   const [theme, setTheme] = useState<Theme>(readTheme());
   const scroller = useRef<HTMLDivElement>(null);
-  const bot = bots.find((item) => item.id === botId) ?? bots[0];
+  const bot = bots.find((item) => item.id === props.botId) ?? bots[0];
   const activeId = bot?.id;
 
   async function refreshBots(selectId?: string) {
-    const list = await client.bots.list();
-    setBots(list);
-    const next = selectId ?? botId ?? list[0]?.id ?? "";
-    if (next) {
-      setBotId(next);
-      window.location.hash = next;
+    await queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
+    const list = await queryClient.ensureQueryData(
+      orpc.bots.list.queryOptions(),
+    );
+    const next = selectId ?? props.botId ?? list[0]?.id;
+    if (next && next !== props.botId) {
+      await navigate({ to: "/$botId", params: { botId: next } });
     }
   }
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: load roster once on mount
-  useEffect(() => {
-    const startId = props.initialBotId;
-    void refreshBots(startId).catch((caught: unknown) => {
-      setError(
-        caught instanceof Error ? caught.message : "Could not load teammates",
-      );
-    });
-  }, []);
 
   useEffect(() => {
     applyTheme(theme);
@@ -214,14 +211,11 @@ export function Office(props: { initialBotId?: string }) {
         </div>
         <div className="bot-list">
           {bots.map((item) => (
-            <button
+            <Link
               key={item.id}
-              type="button"
+              to="/$botId"
+              params={{ botId: item.id }}
               className={`bot-item${item.id === bot?.id ? " on" : ""}`}
-              onClick={() => {
-                setBotId(item.id);
-                window.location.hash = item.id;
-              }}
             >
               <AvatarMark
                 name={item.name}
@@ -232,7 +226,7 @@ export function Office(props: { initialBotId?: string }) {
                 <div className="name">{item.name}</div>
                 <div className="title">{item.title || "Teammate"}</div>
               </span>
-            </button>
+            </Link>
           ))}
           {bots.length === 0 ? (
             <p className="empty">No teammates yet.</p>
@@ -405,7 +399,14 @@ export function Office(props: { initialBotId?: string }) {
             applyTheme(value);
           }}
           onClose={() => setSettingsOpen(false)}
-          onSignOut={() => void authClient.signOut()}
+          onSignOut={() => {
+            void (async () => {
+              await authClient.signOut();
+              queryClient.clear();
+              await router.invalidate();
+              await navigate({ to: "/" });
+            })();
+          }}
         />
       ) : null}
     </div>

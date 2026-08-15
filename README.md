@@ -8,7 +8,7 @@ Early scaffold: contracts, Postgres (team data), Rivet-shaped **one actor per bo
 
 ## Stack (locked)
 
-- TypeScript, pnpm, Hono, React, Vite
+- TypeScript, pnpm, Hono, React, Vite, TanStack Router
 - **oRPC** — one contract for web, desktop, and mobile
 - Postgres + Drizzle — workspaces, threads, skills
 - **Rivet actor per bot** — wakeup, serial runs, cron, idle sleep
@@ -40,7 +40,7 @@ pnpm dev
 - API: http://127.0.0.1:3100/health
 - oRPC: http://127.0.0.1:3100/rpc
 - Worker / actors: http://127.0.0.1:3101/health
-- Web: http://127.0.0.1:5173 — welcome, sign in (email, Google, or GitHub), hire a Bot, message it
+- Web: http://127.0.0.1:5173 — `/` welcome, `/login`, `/onboarding`, `/{botId}` office
 
 Google / GitHub need client IDs in `.env`. Use **127.0.0.1**, not localhost:
 
