@@ -4,7 +4,14 @@ import type {
   ProductEvent,
   ThreadMessage,
 } from "@grogbot/contracts";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  type FormEvent,
+  type ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { AvatarMark } from "../components/Avatar";
 import { authClient } from "../lib/auth";
 import { AVATAR_COLORS, AVATAR_SHAPES, FIRST_TASK } from "../lib/jobs";
@@ -31,7 +38,7 @@ function asMessage(payload: Record<string, unknown>): ThreadMessage | null {
   };
 }
 
-function ModalShell(props: { onClose: () => void; children: React.ReactNode }) {
+function ModalShell(props: { onClose: () => void; children: ReactNode }) {
   return (
     <div className="modal-back">
       <button
@@ -159,7 +166,7 @@ export function Office(props: { initialBotId?: string }) {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight });
   }, [messages.length, working]);
 
-  async function send(event: React.FormEvent) {
+  async function send(event: FormEvent) {
     event.preventDefault();
     if (!bot || !draft.trim()) return;
     const text = draft.trim();
@@ -188,13 +195,22 @@ export function Office(props: { initialBotId?: string }) {
             <p className="kicker">Grogbot</p>
             <span>Teammates</span>
           </div>
-          <button
-            className="btn tiny"
-            type="button"
-            onClick={() => setNewOpen(true)}
-          >
-            New
-          </button>
+          <div className="row">
+            <button
+              className="btn tiny"
+              type="button"
+              onClick={() => setNewOpen(true)}
+            >
+              New
+            </button>
+            <button
+              className="btn ghost tiny"
+              type="button"
+              onClick={() => setSettingsOpen(true)}
+            >
+              Settings
+            </button>
+          </div>
         </div>
         <div className="bot-list">
           {bots.map((item) => (
@@ -282,7 +298,13 @@ export function Office(props: { initialBotId?: string }) {
           <form onSubmit={(event) => void send(event)}>
             <textarea
               value={draft}
-              placeholder={bot ? `Message ${bot.name}` : "Message"}
+              placeholder={
+                messages.length === 0
+                  ? FIRST_TASK
+                  : bot
+                    ? `Message ${bot.name}`
+                    : "Message"
+              }
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.shiftKey) {
@@ -314,9 +336,19 @@ export function Office(props: { initialBotId?: string }) {
             <button
               className="btn"
               type="button"
-              onClick={() =>
-                bot && void client.computer.release({ botId: bot.id })
-              }
+              onClick={() => {
+                if (!bot) return;
+                void client.computer
+                  .release({ botId: bot.id })
+                  .then(setComputer)
+                  .catch((caught: unknown) =>
+                    setError(
+                      caught instanceof Error
+                        ? caught.message
+                        : "Could not continue",
+                    ),
+                  );
+              }}
             >
               Continue
             </button>
@@ -324,9 +356,19 @@ export function Office(props: { initialBotId?: string }) {
             <button
               className="btn ghost"
               type="button"
-              onClick={() =>
-                bot && void client.computer.takeover({ botId: bot.id })
-              }
+              onClick={() => {
+                if (!bot) return;
+                void client.computer
+                  .takeover({ botId: bot.id })
+                  .then(setComputer)
+                  .catch((caught: unknown) =>
+                    setError(
+                      caught instanceof Error
+                        ? caught.message
+                        : "Could not take over",
+                    ),
+                  );
+              }}
             >
               Take over
             </button>

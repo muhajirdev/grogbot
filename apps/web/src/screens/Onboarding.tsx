@@ -23,7 +23,7 @@ export function Onboarding(props: { onDone: (botId: string) => void }) {
     setTitle(job.title);
     setDescription(job.description);
     setName(job.title.split(" ")[0] ?? "Piper");
-    setStep(3);
+    setStep(4);
   }
 
   async function create() {

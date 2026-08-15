@@ -25,8 +25,9 @@ export class ScriptedAgentRuntime implements AgentRuntime {
       yield { type: "done", text: "stopped" };
       return;
     }
-    yield { type: "text", text: `Echo: ${request.prompt}` };
-    yield { type: "done", text: request.prompt };
+    const reply = `Echo: ${request.prompt}`;
+    yield { type: "text", text: reply };
+    yield { type: "done", text: reply };
     this.running.delete(request.runId);
   }
 }

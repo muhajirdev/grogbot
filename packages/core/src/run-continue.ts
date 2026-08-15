@@ -155,9 +155,8 @@ export async function continueRun(opts: {
           runId,
         });
       }
-      if (event.type === "text" || event.type === "done") {
-        if (event.text) reply = event.text;
-      }
+      if (event.type === "text" && event.text) reply = event.text;
+      if (event.type === "done" && event.text && !reply) reply = event.text;
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Run failed";
