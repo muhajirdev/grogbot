@@ -106,7 +106,7 @@ Executor must not import `fs`, `dockerode`, Graphile, or Cloudflare bindings.
 7. Composio plugins UI
 8. E2B for Fly
 9. Desktop (Electron), never on hosted cloud
-10. Group threads — after the above works
+10. Extra humans in an office, then multi-bot rooms — see [docs/rooms-plan.md](./docs/rooms-plan.md). Not v1 code.
 
 ## Out of v1
 
