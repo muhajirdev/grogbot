@@ -1,0 +1,24 @@
+{
+  "name": "@grogbot/api",
+  "version": "0.0.1",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "check": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.1",
+    "@grogbot/adapter-kit": "workspace:*",
+    "@grogbot/adapters": "workspace:*",
+    "@grogbot/auth": "workspace:*",
+    "@grogbot/db": "workspace:*",
+    "dotenv": "^17.2.1",
+    "hono": "^4.9.6"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}
