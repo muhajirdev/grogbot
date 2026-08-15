@@ -7,6 +7,7 @@ import type {
 import {
   AvatarShape,
   ControlHolder,
+  GuestKind,
   SandboxKind as SandboxKindSchema,
 } from "@grogbot/contracts";
 import {
@@ -30,9 +31,10 @@ export function sandboxKind(value: string): SandboxKind {
 export function toBotDto(
   bot: typeof bots.$inferSelect,
   threadId: string,
-  extras?: { computerName?: string },
+  extras?: { online?: boolean; computerName?: string },
 ): Bot {
   const shape = AvatarShape.safeParse(bot.avatarShape);
+  const guestKind = GuestKind.safeParse(bot.guestKind);
   return {
     id: bot.id,
     workspaceId: bot.workspaceId,
@@ -46,6 +48,8 @@ export function toBotDto(
     threadId,
     computerId: bot.computerId,
     computerName: extras?.computerName ?? "Desk",
+    guestKind: guestKind.success ? guestKind.data : "off",
+    guestOnline: extras?.online ?? false,
     createdAt: bot.createdAt.toISOString(),
     updatedAt: bot.updatedAt.toISOString(),
   };

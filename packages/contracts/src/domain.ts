@@ -3,6 +3,7 @@ import {
   ActorType,
   AvatarShape,
   ControlHolder,
+  GuestKind,
   Id,
   MemoryScope,
   RunStatus,
@@ -22,6 +23,8 @@ export const BotSchema = z.object({
   threadId: Id,
   computerId: Id,
   computerName: z.string(),
+  guestKind: GuestKind,
+  guestOnline: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -132,6 +135,21 @@ export const MemoryDocumentSchema = z.object({
   revision: z.number().int(),
   updatedAt: z.string(),
 });
+
+export const GuestStatusSchema = z.object({
+  botId: Id,
+  kind: GuestKind,
+  online: z.boolean(),
+  lastSeenAt: z.string().nullable(),
+  connectUrl: z.string(),
+});
+export type GuestStatus = z.infer<typeof GuestStatusSchema>;
+
+export const GuestConnectSchema = GuestStatusSchema.extend({
+  token: z.string(),
+  command: z.string(),
+});
+export type GuestConnect = z.infer<typeof GuestConnectSchema>;
 
 export const MeSchema = z.object({
   userId: Id,

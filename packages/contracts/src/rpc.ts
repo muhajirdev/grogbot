@@ -5,13 +5,15 @@ import {
   ComputerListItemSchema,
   ComputerStatusSchema,
   CreateBotInput,
+  GuestConnectSchema,
+  GuestStatusSchema,
   MemoryDocumentSchema,
   MeSchema,
   RoutineSchema,
   UpdateBotInput,
 } from "./domain.js";
 import { ProductEventSchema } from "./events.js";
-import { Id } from "./ids.js";
+import { GuestAgentKind, Id } from "./ids.js";
 
 const botId = z.object({ botId: Id });
 
@@ -49,6 +51,14 @@ export const appContract = oc.router({
     status: oc.input(botId).output(ComputerStatusSchema),
     takeover: oc.input(botId).output(ComputerStatusSchema),
     release: oc.input(botId).output(ComputerStatusSchema),
+  },
+  guests: {
+    status: oc.input(botId).output(GuestStatusSchema),
+    enable: oc
+      .input(z.object({ botId: Id, kind: GuestAgentKind }))
+      .output(GuestConnectSchema),
+    rotate: oc.input(botId).output(GuestConnectSchema),
+    disable: oc.input(botId).output(z.object({ ok: z.literal(true) })),
   },
   memory: {
     list: oc

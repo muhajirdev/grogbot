@@ -97,8 +97,20 @@ Wake a bot with:
 | `HomeStore` | filesystem | R2 |
 | `SandboxProvider` | Docker / E2B / desktop / fake | E2B / CF sandbox |
 | `ConnectorProvider` | Composio or no-op | same |
+| Guest runtime | Off. Opt-in: Hermes/OpenClaw dial `/guest/*` | same protocol |
 
 Executor must not import `fs`, `dockerode`, or Cloudflare bindings. The **actor host** (worker) may import Rivet. The Pi loop still talks only to ports.
+
+## Advanced — guest agents (off by default)
+
+Grogbot is the **host**. A bot can optionally allow Hermes or OpenClaw to connect **outbound** to this deployment (Multica-style daemon, not ACP-on-the-wire). Default remains scripted/Pi.
+
+1. Profile → Advanced → Hermes or OpenClaw. A one-time token is minted.
+2. On the machine that already has that CLI: `pnpm guest -- --url $GUEST_URL --token … --kind hermes`.
+3. The guest process dials `/guest/hello`, waits for `run` jobs, replies with events.
+4. Locally it may spawn `hermes acp` / `openclaw acp` (ACP stays on that machine). `--runtime fake` is for tests.
+
+The Rivet actor is still the bot. If the guest is offline, the run stays queued (`waiting for hermes…`). One guest session per bot. Turn off to return to Grogbot’s runtime.
 
 ## Build order
 

@@ -18,7 +18,8 @@
     "test": "vitest run",
     "db:generate": "pnpm --filter @grogbot/db generate",
     "db:migrate": "pnpm --filter @grogbot/db migrate",
-    "db:push": "pnpm --filter @grogbot/db push"
+    "db:push": "pnpm --filter @grogbot/db push",
+    "guest": "pnpm --filter @grogbot/guest start"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.8",

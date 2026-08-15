@@ -1,6 +1,7 @@
 import type {
   Bot,
   ComputerStatus,
+  GuestAgentKind,
   ProductEvent,
   ThreadMessage,
 } from "@grogbot/contracts";
@@ -148,6 +149,9 @@ export function Office(props: { botId: string }) {
         if (event.type === "computer.updated") {
           setComputer(event.payload as unknown as ComputerStatus);
         }
+        if (event.type === "guest.updated") {
+          void queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
+        }
       }
     })().catch((caught: unknown) => {
       if (!cancelled)
@@ -157,7 +161,7 @@ export function Office(props: { botId: string }) {
       cancelled = true;
       void iterator?.return?.();
     };
-  }, [activeId]);
+  }, [activeId, queryClient]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: scroll when the transcript grows
   useEffect(() => {
@@ -178,6 +182,12 @@ export function Office(props: { botId: string }) {
   }
 
   const statusLabel = useMemo(() => {
+    if (working) return "Working";
+    if (bot?.guestKind && bot.guestKind !== "off") {
+      return bot.guestOnline
+        ? `${bot.guestKind} connected`
+        : `Waiting for ${bot.guestKind}`;
+    }
     if (!computer) return "Idle";
     if (computer.controlHolder === "user") return "You're in control";
     if (
@@ -235,6 +245,13 @@ export function Office(props: { botId: string }) {
                 <div className="title">{item.title || "Teammate"}</div>
                 {item.computerName ? (
                   <div className="title">{item.computerName}</div>
+                ) : null}
+                {item.guestKind !== "off" ? (
+                  <div className="title">
+                    {item.guestOnline
+                      ? `${item.guestKind} online`
+                      : `${item.guestKind} offline`}
+                  </div>
                 ) : null}
               </span>
             </Link>
@@ -332,14 +349,16 @@ export function Office(props: { botId: string }) {
         <div className="screen-box">
           {computer?.controlHolder === "user"
             ? "You're in control. Sign in, 2FA, or pay here — not in chat."
-            : computer?.usingBotId && computer.usingBotId !== bot?.id
-              ? `${computer.usingBotName} has the mouse on ${computer.name}. Files and logins are shared; one mouse at a time.`
-              : working
-                ? `${bot?.name ?? "Bot"} is using ${computer?.name ?? "this computer"}.\n${working}`
-                : computer?.isDefault ||
-                    (computer?.teammates && computer.teammates.length > 1)
-                  ? `${computer?.name ?? "Desk"}${computer?.isDefault ? " (default)" : ""}. Teammates on this desk share files and logins.`
-                  : `${computer?.name ?? "Computer"}. Isolated computer — files and logins stay here.`}
+            : bot?.guestKind && bot.guestKind !== "off" && !bot.guestOnline
+              ? `This teammate is waiting for ${bot.guestKind} to connect from your machine. Off by default — enable it in Profile → Advanced.`
+              : computer?.usingBotId && computer.usingBotId !== bot?.id
+                ? `${computer.usingBotName} has the mouse on ${computer.name}. Files and logins are shared; one mouse at a time.`
+                : working
+                  ? `${bot?.name ?? "Bot"} is using ${computer?.name ?? "this computer"}.\n${working}`
+                  : computer?.isDefault ||
+                      (computer?.teammates && computer.teammates.length > 1)
+                    ? `${computer?.name ?? "Desk"}${computer?.isDefault ? " (default)" : ""}. Teammates on this desk share files and logins.`
+                    : `${computer?.name ?? "Computer"}. Isolated computer — files and logins stay here.`}
         </div>
         <div className="profile">
           {computer?.controlHolder === "user" ? (
@@ -396,7 +415,6 @@ export function Office(props: { botId: string }) {
           onClose={() => setProfileOpen(false)}
           onSaved={async () => {
             await refreshBots(bot.id);
-            setProfileOpen(false);
           }}
         />
       ) : null}
@@ -442,6 +460,16 @@ function ProfileModal(props: {
   const [color, setColor] = useState(props.bot.avatarColor);
   const [shape, setShape] = useState(props.bot.avatarShape);
   const [busy, setBusy] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(
+    props.bot.guestKind !== "off",
+  );
+  const [guestBusy, setGuestBusy] = useState(false);
+  const [guestError, setGuestError] = useState("");
+  const [issued, setIssued] = useState<{
+    token: string;
+    command: string;
+    kind: string;
+  } | null>(null);
   return (
     <ModalShell onClose={props.onClose}>
       <p className="kicker">Bot actions</p>
@@ -510,7 +538,10 @@ function ProfileModal(props: {
                 avatarColor: color,
                 avatarShape: shape,
               })
-              .then(props.onSaved)
+              .then(async () => {
+                await props.onSaved();
+                props.onClose();
+              })
               .finally(() => setBusy(false));
           }}
         >
@@ -520,6 +551,95 @@ function ProfileModal(props: {
           Close
         </button>
       </div>
+      <button
+        className="btn ghost tiny"
+        type="button"
+        style={{ marginTop: 20 }}
+        onClick={() => setAdvancedOpen((open) => !open)}
+      >
+        {advancedOpen ? "Hide advanced" : "Advanced"}
+      </button>
+      {advancedOpen ? (
+        <div className="advanced">
+          <p className="kicker">External agent</p>
+          <p className="lede" style={{ fontSize: 14, marginBottom: 12 }}>
+            Off by default. Hermes or OpenClaw connect outbound to this bot.
+            Grogbot stays the host; they bring their own keys and files.
+          </p>
+          <p className="lede" style={{ fontSize: 14 }}>
+            {props.bot.guestKind === "off"
+              ? "Using Grogbot’s runtime."
+              : props.bot.guestOnline
+                ? `${props.bot.guestKind} is connected.`
+                : `Waiting for ${props.bot.guestKind} to connect.`}
+          </p>
+          <div className="row">
+            {(["hermes", "openclaw"] as GuestAgentKind[]).map((kind) => (
+              <button
+                key={kind}
+                className={`chip${props.bot.guestKind === kind ? " on" : ""}`}
+                type="button"
+                disabled={guestBusy}
+                onClick={() => {
+                  setGuestBusy(true);
+                  setGuestError("");
+                  void client.guests
+                    .enable({ botId: props.bot.id, kind })
+                    .then((result) => {
+                      setIssued({
+                        token: result.token,
+                        command: result.command,
+                        kind,
+                      });
+                      return props.onSaved();
+                    })
+                    .catch((caught: unknown) =>
+                      setGuestError(
+                        caught instanceof Error
+                          ? caught.message
+                          : "Could not enable",
+                      ),
+                    )
+                    .finally(() => setGuestBusy(false));
+                }}
+              >
+                {kind}
+              </button>
+            ))}
+            {props.bot.guestKind !== "off" ? (
+              <button
+                className="btn ghost tiny"
+                type="button"
+                disabled={guestBusy}
+                onClick={() => {
+                  setGuestBusy(true);
+                  setIssued(null);
+                  void client.guests
+                    .disable({ botId: props.bot.id })
+                    .then(props.onSaved)
+                    .catch((caught: unknown) =>
+                      setGuestError(
+                        caught instanceof Error
+                          ? caught.message
+                          : "Could not disable",
+                      ),
+                    )
+                    .finally(() => setGuestBusy(false));
+                }}
+              >
+                Turn off
+              </button>
+            ) : null}
+          </div>
+          {issued ? (
+            <label className="field" style={{ marginTop: 12 }}>
+              <span>Run this on the machine that has {issued.kind}</span>
+              <textarea rows={3} readOnly value={issued.command} />
+            </label>
+          ) : null}
+          {guestError ? <p className="error">{guestError}</p> : null}
+        </div>
+      ) : null}
     </ModalShell>
   );
 }
