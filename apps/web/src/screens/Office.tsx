@@ -190,7 +190,7 @@ export function Office(props: { botId: string }) {
     if (computer.state === "running" || computer.state === "booting")
       return "Working";
     return "Idle";
-  }, [bot, computer, working]);
+  }, [bot, computer]);
 
   return (
     <div className="office">
