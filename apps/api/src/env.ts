@@ -1,3 +1,5 @@
+export type OAuthProviderId = "google" | "github";
+
 export interface Env {
   databaseUrl: string;
   authSecret: string;
@@ -7,6 +9,43 @@ export interface Env {
   sandboxProvider: string;
   agentRuntime: string;
   workerUrl?: string;
+  googleClientId?: string;
+  googleClientSecret?: string;
+  githubClientId?: string;
+  githubClientSecret?: string;
+}
+
+function pair(
+  id: string | undefined,
+  secret: string | undefined,
+): { clientId: string; clientSecret: string } | undefined {
+  const clientId = id?.trim();
+  const clientSecret = secret?.trim();
+  if (!clientId || !clientSecret) return undefined;
+  return { clientId, clientSecret };
+}
+
+type OAuthEnv = Pick<
+  Env,
+  | "googleClientId"
+  | "googleClientSecret"
+  | "githubClientId"
+  | "githubClientSecret"
+>;
+
+export function oauthCredentials(env: OAuthEnv) {
+  return {
+    google: pair(env.googleClientId, env.googleClientSecret),
+    github: pair(env.githubClientId, env.githubClientSecret),
+  };
+}
+
+export function oauthProviders(env: OAuthEnv): OAuthProviderId[] {
+  const creds = oauthCredentials(env);
+  const list: OAuthProviderId[] = [];
+  if (creds.google) list.push("google");
+  if (creds.github) list.push("github");
+  return list;
 }
 
 function parseOrigins(value: string | undefined, fallback: string[]): string[] {
@@ -43,5 +82,9 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     sandboxProvider: source.SANDBOX_PROVIDER ?? "fake",
     agentRuntime: source.AGENT_RUNTIME ?? "scripted",
     workerUrl: source.WORKER_URL,
+    googleClientId: source.GOOGLE_CLIENT_ID,
+    googleClientSecret: source.GOOGLE_CLIENT_SECRET,
+    githubClientId: source.GITHUB_CLIENT_ID,
+    githubClientSecret: source.GITHUB_CLIENT_SECRET,
   };
 }

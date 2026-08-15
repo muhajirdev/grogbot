@@ -1,7 +1,16 @@
-import type { Env } from "./env.js";
+import { type Env, oauthProviders } from "./env.js";
 
 export function healthPayload(
-  env: Pick<Env, "agentRuntime" | "sandboxProvider" | "workerUrl">,
+  env: Pick<
+    Env,
+    | "agentRuntime"
+    | "sandboxProvider"
+    | "workerUrl"
+    | "googleClientId"
+    | "googleClientSecret"
+    | "githubClientId"
+    | "githubClientSecret"
+  >,
 ) {
   return {
     ok: true as const,
@@ -9,5 +18,6 @@ export function healthPayload(
     runtime: env.agentRuntime,
     sandbox: env.sandboxProvider,
     wakeup: env.workerUrl ? "rivet-http" : "rivet",
+    oauth: oauthProviders(env),
   };
 }

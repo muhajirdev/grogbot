@@ -35,7 +35,7 @@ The **workspace** (Better Auth org) also has:
 | First cloud | **Fly or Railway** — Node API + actor host (worker) |
 | Cloudflare later | **Rivet’s Durable Object driver** |
 | ORM | **Drizzle** + Postgres |
-| Auth | **Better Auth**, organizations = workspaces |
+| Auth | **Better Auth** — email/password, Google, GitHub. Organizations = workspaces |
 | Models | **Pi** catalog + BYOK |
 | Sandbox | `docker` local · `e2b` hosted · `desktop` trusted machine only · `fake` tests |
 | Homes | Disk v1 · `HomeStore` → R2 later |

@@ -30,6 +30,18 @@ describe("oRPC", () => {
     await expect(client.health()).resolves.toEqual(healthPayload(env));
   });
 
+  it("lists Google and GitHub when those keys are set", () => {
+    expect(
+      healthPayload({
+        ...env,
+        googleClientId: "google-id",
+        googleClientSecret: "google-secret",
+        githubClientId: "github-id",
+        githubClientSecret: "github-secret",
+      }).oauth,
+    ).toEqual(["google", "github"]);
+  });
+
   it("requires a session to list bots", async () => {
     const app = new Hono();
     mountRpc(app, { env } as unknown as RpcContext);

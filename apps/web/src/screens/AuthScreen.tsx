@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { authClient } from "../lib/auth";
+import { client } from "../lib/rpc";
+
+type OAuthId = "google" | "github";
 
 export function AuthScreen(props: { onBack: () => void }) {
   const [mode, setMode] = useState<"in" | "up">("up");
@@ -8,6 +11,16 @@ export function AuthScreen(props: { onBack: () => void }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [oauth, setOauth] = useState<OAuthId[]>(["google", "github"]);
+
+  useEffect(() => {
+    const fromUrl = new URLSearchParams(window.location.search).get("error");
+    if (fromUrl) setError(fromUrl);
+    void client
+      .health()
+      .then((health) => setOauth(health.oauth))
+      .catch(() => {});
+  }, []);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -25,14 +38,54 @@ export function AuthScreen(props: { onBack: () => void }) {
     if (result.error) setError(result.error.message ?? "Could not continue");
   }
 
+  async function social(provider: OAuthId) {
+    setBusy(true);
+    setError("");
+    if (!oauth.includes(provider)) {
+      setBusy(false);
+      setError(
+        provider === "google"
+          ? "Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to .env, then restart."
+          : "Add GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET to .env, then restart.",
+      );
+      return;
+    }
+    const result = await authClient.signIn.social({
+      provider,
+      callbackURL: "/",
+      errorCallbackURL: "/",
+    });
+    setBusy(false);
+    if (result.error) setError(result.error.message ?? "Could not continue");
+  }
+
   return (
     <div className="screen">
       <form className="stack" onSubmit={submit}>
         <p className="kicker">Grogbot</p>
         <h1>{mode === "up" ? "Create your workspace" : "Welcome back"}</h1>
         <p className="lede">
-          Email and a password. This stays on your machine.
+          Google, GitHub, or email. This stays on your machine.
         </p>
+        <div className="oauth">
+          <button
+            className="btn ghost"
+            type="button"
+            disabled={busy}
+            onClick={() => void social("google")}
+          >
+            Continue with Google
+          </button>
+          <button
+            className="btn ghost"
+            type="button"
+            disabled={busy}
+            onClick={() => void social("github")}
+          >
+            Continue with GitHub
+          </button>
+        </div>
+        <p className="or-line">or email</p>
         {mode === "up" ? (
           <label className="field">
             <span>Name</span>

@@ -22,6 +22,7 @@ export const appContract = oc.router({
       runtime: z.string(),
       sandbox: z.string(),
       wakeup: z.string(),
+      oauth: z.array(z.enum(["google", "github"])),
     }),
   ),
   me: oc.output(MeSchema),

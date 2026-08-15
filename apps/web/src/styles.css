@@ -125,6 +125,25 @@ h3 {
   font-size: 12px;
 }
 
+.oauth {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0 4px;
+}
+
+.oauth .btn {
+  width: 100%;
+}
+
+.or-line {
+  margin: 16px 0 12px;
+  color: var(--muted);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .field {
   display: grid;
   gap: 6px;

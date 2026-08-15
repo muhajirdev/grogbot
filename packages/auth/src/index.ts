@@ -12,12 +12,19 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { organization as organizationPlugin } from "better-auth/plugins";
 
+export interface OAuthCredentials {
+  clientId: string;
+  clientSecret: string;
+}
+
 export function createAuth(
   db: Database,
   opts: {
     secret: string;
     baseURL: string;
     trustedOrigins: string[];
+    google?: OAuthCredentials;
+    github?: OAuthCredentials;
   },
 ) {
   return betterAuth({
@@ -37,6 +44,32 @@ export function createAuth(
       },
     }),
     emailAndPassword: { enabled: true, requireEmailVerification: false },
+    socialProviders: {
+      ...(opts.google
+        ? {
+            google: {
+              clientId: opts.google.clientId,
+              clientSecret: opts.google.clientSecret,
+            },
+          }
+        : {}),
+      ...(opts.github
+        ? {
+            github: {
+              clientId: opts.github.clientId,
+              clientSecret: opts.github.clientSecret,
+              scope: ["read:user", "user:email"],
+            },
+          }
+        : {}),
+    },
+    account: {
+      accountLinking: {
+        enabled: true,
+        trustedProviders: ["google", "github"],
+        requireLocalEmailVerified: false,
+      },
+    },
     plugins: [organizationPlugin()],
   });
 }
