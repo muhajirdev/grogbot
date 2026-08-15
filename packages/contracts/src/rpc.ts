@@ -2,6 +2,7 @@ import { eventIterator, oc } from "@orpc/contract";
 import * as z from "zod";
 import {
   BotSchema,
+  ComputerListItemSchema,
   ComputerStatusSchema,
   CreateBotInput,
   GuestConnectSchema,
@@ -42,6 +43,9 @@ export const appContract = oc.router({
       .input(z.object({ botId: Id, text: z.string().min(1).max(8000) }))
       .output(z.object({ taskId: Id, runId: Id, seq: z.number().int() })),
     stop: oc.input(botId).output(z.object({ ok: z.literal(true) })),
+  },
+  computers: {
+    list: oc.output(z.array(ComputerListItemSchema)),
   },
   computer: {
     status: oc.input(botId).output(ComputerStatusSchema),

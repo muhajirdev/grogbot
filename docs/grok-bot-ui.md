@@ -1,6 +1,6 @@
 # Grok Bot UI copy-brief
 
-Grogbot should **feel like Grok Bot**: a messaging app of named teammates, not a workflow builder, IDE, or Discord. This is the visual and onboarding spec. Product/architecture stays ours (one computer per bot, Postgres for team data, Rivet actor per bot, oRPC, Composio). **Implement on web first**; desktop reuses that UI; Expo gets the same contract later.
+Grogbot should **feel like Grok Bot**: a messaging app of named teammates, not a workflow builder, IDE, or Discord. This is the visual and onboarding spec. Product/architecture stays ours (workspace Desk shared by default, optional isolated computer, Postgres for team data, Rivet actor per bot, oRPC, Composio). **Implement on web first**; desktop reuses that UI; Expo gets the same contract later.
 
 We could not screenshot the live desktop app (paywalled: SuperGrok Heavy / Cursor Ultra). This brief is from official docs and marketing as of 11–15 Aug 2026.
 
@@ -37,7 +37,7 @@ Copy this:
 
 Do not copy:
 
-- Their **one shared cloud computer** for all Bots (logins leak across the roster). We keep **one computer per bot**.
+- Their **always-shared** computer with no escape hatch. We share a workspace **Desk** by default and let you create a new computer for private logins.
 - Group chat of 2–6 Bots in v1 (see [rooms-plan.md](./rooms-plan.md)).
 - Teach-by-demonstration in v1.
 - Cursor-only sign-in / Ultra paywall.
@@ -135,7 +135,7 @@ After that, **New** / `Cmd+N` → **Create new agent** → opens **New Agent** �
 
 iPhone: Login with Cursor → first-run tour → choose first Bot → wait for computer → same roster. `+` → New Agent | New Group Chat.
 
-**Our v1 trim:** same tour, but say “this bot’s computer” not “shared computer.” Skip group chat. Plugins = Composio when we have it; first-run tool question can still be asked.
+**Our v1 trim:** same tour, but the default computer is the workspace **Desk** (shared files and logins, one mouse). Skip group chat. Plugins = Composio when we have it; first-run tool question can still be asked.
 
 ### First-task recipe (surface in empty composer)
 

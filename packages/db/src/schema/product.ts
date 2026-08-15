@@ -9,6 +9,29 @@ import {
 } from "drizzle-orm/pg-core";
 import { organization, user } from "./auth.js";
 
+/** Workspace desk. Many bots can share one; GUI is one mouse at a time. */
+export const computers = pgTable("computers", {
+  id: text("id").primaryKey(),
+  workspaceId: text("workspace_id")
+    .notNull()
+    .references(() => organization.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull(),
+  name: text("name").notNull().default("Desk"),
+  isDefault: boolean("is_default").notNull().default(false),
+  kind: text("kind").notNull(),
+  providerRef: text("provider_ref"),
+  state: text("state").notNull().default("stopped"),
+  controlHolder: text("control_holder").notNull().default("none"),
+  controlHolderId: text("control_holder_id"),
+  controlLeaseId: text("control_lease_id"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export const bots = pgTable("bots", {
   id: text("id").primaryKey(),
   workspaceId: text("workspace_id")
@@ -17,6 +40,9 @@ export const bots = pgTable("bots", {
   userId: text("user_id")
     .notNull()
     .references(() => user.id),
+  computerId: text("computer_id")
+    .notNull()
+    .references(() => computers.id, { onDelete: "restrict" }),
   name: text("name").notNull(),
   title: text("title").notNull().default(""),
   description: text("description").notNull().default(""),
@@ -26,8 +52,12 @@ export const bots = pgTable("bots", {
   parentBotId: text("parent_bot_id"),
   /** off | hermes | openclaw | generic. Default off = Grogbot runtime. */
   guestKind: text("guest_kind").notNull().default("off"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const threads = pgTable("threads", {
@@ -39,7 +69,9 @@ export const threads = pgTable("threads", {
     .notNull()
     .unique()
     .references(() => bots.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 /** v1: one human. Later: several humans in the same thread. */
@@ -54,7 +86,9 @@ export const threadMembers = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     role: text("role").notNull().default("member"),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [uniqueIndex("thread_members_thread_user").on(t.threadId, t.userId)],
 );
@@ -71,7 +105,9 @@ export const messages = pgTable(
     actorId: text("actor_id"),
     blocks: jsonb("blocks").notNull().$type<unknown[]>(),
     runId: text("run_id"),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [uniqueIndex("messages_thread_seq").on(t.threadId, t.seq)],
 );
@@ -91,7 +127,9 @@ export const events = pgTable(
     type: text("type").notNull(),
     payload: jsonb("payload").notNull().$type<Record<string, unknown>>(),
     runId: text("run_id"),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [uniqueIndex("events_thread_seq").on(t.threadId, t.seq)],
 );
@@ -110,8 +148,12 @@ export const tasks = pgTable("tasks", {
   userId: text("user_id").notNull(),
   prompt: text("prompt").notNull(),
   status: text("status").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const runs = pgTable("runs", {
@@ -137,8 +179,12 @@ export const runs = pgTable("runs", {
   leaseExpiresAt: timestamp("lease_expires_at", { withTimezone: true }),
   startedAt: timestamp("started_at", { withTimezone: true }),
   completedAt: timestamp("completed_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 /** Cron metadata. Firing is the bot’s Rivet actor (`routine.wakeup`), not Postgres. */
@@ -158,28 +204,12 @@ export const routines = pgTable("routines", {
   active: boolean("active").notNull().default(false),
   lastRunAt: timestamp("last_run_at", { withTimezone: true }),
   nextRunAt: timestamp("next_run_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
-
-export const computers = pgTable("computers", {
-  id: text("id").primaryKey(),
-  workspaceId: text("workspace_id")
+  createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
-    .references(() => organization.id, { onDelete: "cascade" }),
-  botId: text("bot_id")
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
-    .unique()
-    .references(() => bots.id, { onDelete: "cascade" }),
-  userId: text("user_id").notNull(),
-  kind: text("kind").notNull(),
-  providerRef: text("provider_ref"),
-  state: text("state").notNull().default("stopped"),
-  controlHolder: text("control_holder").notNull().default("none"),
-  controlHolderId: text("control_holder_id"),
-  controlLeaseId: text("control_lease_id"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    .defaultNow(),
 });
 
 export const memoryDocuments = pgTable(
@@ -195,10 +225,21 @@ export const memoryDocuments = pgTable(
     path: text("path").notNull(),
     content: text("content").notNull(),
     revision: integer("revision").notNull().default(1),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
-  (t) => [uniqueIndex("memory_workspace_scope_bot_path").on(t.workspaceId, t.scope, t.botId, t.path)],
+  (t) => [
+    uniqueIndex("memory_workspace_scope_bot_path").on(
+      t.workspaceId,
+      t.scope,
+      t.botId,
+      t.path,
+    ),
+  ],
 );
 
 export const secrets = pgTable("secrets", {
@@ -209,7 +250,9 @@ export const secrets = pgTable("secrets", {
   workspaceId: text("workspace_id").notNull(),
   kind: text("kind").notNull(),
   ciphertext: text("ciphertext").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 /** Outbound guest (Hermes/OpenClaw) connector for one bot. Token shown once. */
@@ -230,8 +273,12 @@ export const guestConnectors = pgTable("guest_connectors", {
   online: boolean("online").notNull().default(false),
   lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
   revokedAt: timestamp("revoked_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const userModelCredentials = pgTable("user_model_credentials", {
@@ -245,6 +292,10 @@ export const userModelCredentials = pgTable("user_model_credentials", {
   secretId: text("secret_id").notNull(),
   isDefault: boolean("is_default").notNull().default(false),
   defaultModel: text("default_model"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });

@@ -31,7 +31,7 @@ export function sandboxKind(value: string): SandboxKind {
 export function toBotDto(
   bot: typeof bots.$inferSelect,
   threadId: string,
-  guest?: { online?: boolean },
+  extras?: { online?: boolean; computerName?: string },
 ): Bot {
   const shape = AvatarShape.safeParse(bot.avatarShape);
   const guestKind = GuestKind.safeParse(bot.guestKind);
@@ -46,8 +46,10 @@ export function toBotDto(
     avatarShape: shape.success ? shape.data : "circle",
     parentBotId: bot.parentBotId,
     threadId,
+    computerId: bot.computerId,
+    computerName: extras?.computerName ?? "Desk",
     guestKind: guestKind.success ? guestKind.data : "off",
-    guestOnline: guest?.online ?? false,
+    guestOnline: extras?.online ?? false,
     createdAt: bot.createdAt.toISOString(),
     updatedAt: bot.updatedAt.toISOString(),
   };
@@ -55,6 +57,12 @@ export function toBotDto(
 
 export function toComputerStatus(
   row: typeof computers.$inferSelect,
+  extras: {
+    viewingBotId: string;
+    usingBotId?: string | null;
+    usingBotName?: string | null;
+    teammates?: Array<{ id: string; name: string }>;
+  },
 ): ComputerStatus {
   const holder = ControlHolder.safeParse(row.controlHolder);
   const states: ComputerStatus["state"][] = [
@@ -66,11 +74,17 @@ export function toComputerStatus(
   ];
   const state = states.find((value) => value === row.state) ?? "stopped";
   return {
-    botId: row.botId,
+    id: row.id,
+    name: row.name,
+    isDefault: row.isDefault,
+    botId: extras.viewingBotId,
     kind: sandboxKind(row.kind),
     state,
     controlHolder: holder.success ? holder.data : "none",
     controlHolderId: row.controlHolderId,
+    usingBotId: extras.usingBotId ?? null,
+    usingBotName: extras.usingBotName ?? null,
+    teammates: extras.teammates ?? [],
     screenAvailable: state === "running" || state === "booting",
   };
 }
@@ -112,23 +126,47 @@ export async function appendEvent(
     runId?: string | null;
   },
 ): Promise<ProductEvent> {
-  const seq = await nextSeq(db, events, input.threadId);
-  const id = crypto.randomUUID();
-  const [row] = await db
-    .insert(events)
-    .values({
-      id,
-      workspaceId: input.workspaceId,
-      threadId: input.threadId,
-      botId: input.botId,
-      seq,
-      type: input.type,
-      payload: input.payload,
-      runId: input.runId ?? null,
-    })
-    .returning();
-  if (!row) throw new Error("Failed to append event");
-  return toProductEvent(row);
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const seq = await nextSeq(db, events, input.threadId);
+    const id = crypto.randomUUID();
+    try {
+      const [row] = await db
+        .insert(events)
+        .values({
+          id,
+          workspaceId: input.workspaceId,
+          threadId: input.threadId,
+          botId: input.botId,
+          seq,
+          type: input.type,
+          payload: input.payload,
+          runId: input.runId ?? null,
+        })
+        .returning();
+      if (!row) throw new Error("Failed to append event");
+      return toProductEvent(row);
+    } catch (error) {
+      if (!isUniqueSeqConflict(error) || attempt === 7) throw error;
+    }
+  }
+  throw new Error("Failed to append event");
+}
+
+function isUniqueSeqConflict(error: unknown): boolean {
+  let current: unknown = error;
+  for (let i = 0; i < 4 && current && typeof current === "object"; i += 1) {
+    const code = "code" in current ? current.code : undefined;
+    const constraint =
+      "constraint_name" in current ? current.constraint_name : undefined;
+    if (code === "23505") return true;
+    if (
+      constraint === "events_thread_seq" ||
+      constraint === "messages_thread_seq"
+    )
+      return true;
+    current = "cause" in current ? current.cause : undefined;
+  }
+  return false;
 }
 
 export async function listEventsAfter(

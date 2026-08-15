@@ -7,18 +7,20 @@ v1 code stays: one thread per bot (`threads.bot_id` unique), `thread_members` fo
 ## v1 — office
 
 ```
-  Human ---- office thread ---- Bot actor ---- one computer
+  Human ---- office thread ---- Bot actor ---- bound computer
+                                               (Desk by default)
 ```
 
 - Actor = the bot, never the room.
-- Computer = on the bot, never on the room.
+- Computer = a workspace primitive. Bots bind to one. Default is Desk (shared). New computer = isolated sandbox.
+- GUI on a shared desk is one mouse (`control_holder`). Two bots on Desk can think in parallel; they take turns clicking.
 - Extra humans can wait: `thread_members` + message `actor_type` / `actor_id` already exist. No extra UX.
 
 ## Later A — two humans, one office
 
 Same actor, same computer, same thread. Both humans send; both rings hit **one** queue so two people do not start two Pis.
 
-Computer lease (`control_holder`) is still on the bot: who has the screen.
+Computer lease (`control_holder`) is on the **computer**, not the bot: who has the screen.
 
 Realtime stays `threadId` (today the API keys off `botId` and looks up that thread).
 
@@ -34,11 +36,11 @@ This is a new product surface (not Discord in v1). Schema work then, not now:
 - UI: `focusedBotId` for the computer pane.
 
 ```
-  Human ---- group thread ---- Bot A actor ---- computer A
-                         +---- Bot B actor ---- computer B
+  Human ---- group thread ---- Bot A actor ---- computer (Desk or private)
+                         +---- Bot B actor ---- same Desk, or another computer
 ```
 
-Two bots in one room **can** run in parallel: two actors, two computers, two Pis. Messages interleave in one transcript. That is the point of per-bot actors.
+Two bots in one room **can** think in parallel (two actors). If they share Desk, GUI is serialized. If they have two computers, two mice.
 
 ## Can one actor run two rooms in parallel?
 
@@ -56,7 +58,8 @@ True parallel for “the same teammate in two rooms” would mean a **second com
 | Situation | Parallel? |
 |---|---|
 | Two humans, one office | No. One queue. |
-| Two bots, one room | **Yes.** Two actors, two computers. |
+| Two bots, one room, same Desk | Brains yes. GUI no (one mouse). |
+| Two bots, one room, two computers | **Yes.** Two actors, two VMs. |
 | One bot, two rooms | **No** on one VM. Serial queue. Or spawn a child bot. |
 
 Rivet’s actor queue is the feature: it serializes one bot. Do not run two sandboxes for the same bot unless you have two computers (a child bot = new actor).

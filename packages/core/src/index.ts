@@ -1,3 +1,4 @@
+export * from "./computer.js";
 export * from "./guest-http.js";
 export * from "./guest-hub.js";
 export * from "./guest-runtime.js";

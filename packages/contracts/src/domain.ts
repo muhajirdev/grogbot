@@ -21,6 +21,8 @@ export const BotSchema = z.object({
   avatarShape: AvatarShape,
   parentBotId: Id.nullable(),
   threadId: Id,
+  computerId: Id,
+  computerName: z.string(),
   guestKind: GuestKind,
   guestOnline: z.boolean(),
   createdAt: z.string(),
@@ -35,6 +37,10 @@ export const CreateBotInput = z.object({
   instructions: z.string().max(20000).default(""),
   avatarColor: z.string().max(32).default("#5b7cff"),
   avatarShape: AvatarShape.default("circle"),
+  /** default = workspace Desk. new = isolated computer. id = bind to that computer. */
+  computer: z
+    .union([z.literal("default"), z.literal("new"), Id])
+    .default("default"),
 });
 
 export const UpdateBotInput = z.object({
@@ -64,15 +70,37 @@ export const ThreadMessageSchema = z.object({
 });
 export type ThreadMessage = z.infer<typeof ThreadMessageSchema>;
 
+export const ComputerTeammateSchema = z.object({
+  id: Id,
+  name: z.string(),
+});
+export type ComputerTeammate = z.infer<typeof ComputerTeammateSchema>;
+
 export const ComputerStatusSchema = z.object({
+  id: Id,
+  name: z.string(),
+  isDefault: z.boolean(),
   botId: Id,
   kind: SandboxKind,
   state: z.enum(["stopped", "booting", "running", "suspended", "error"]),
   controlHolder: ControlHolder,
   controlHolderId: Id.nullable(),
+  usingBotId: Id.nullable(),
+  usingBotName: z.string().nullable(),
+  teammates: z.array(ComputerTeammateSchema),
   screenAvailable: z.boolean(),
 });
 export type ComputerStatus = z.infer<typeof ComputerStatusSchema>;
+
+export const ComputerListItemSchema = z.object({
+  id: Id,
+  name: z.string(),
+  isDefault: z.boolean(),
+  kind: SandboxKind,
+  state: z.enum(["stopped", "booting", "running", "suspended", "error"]),
+  agentCount: z.number().int(),
+});
+export type ComputerListItem = z.infer<typeof ComputerListItemSchema>;
 
 export const RunSchema = z.object({
   id: Id,
