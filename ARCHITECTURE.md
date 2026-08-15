@@ -27,7 +27,8 @@ The **workspace** (Better Auth org) also has:
 | Topic | Choice |
 | --- | --- |
 | Product | Grok Bot-shaped teammates + Composio + team context/skills |
-| UI | Messaging app: Bot list, thread, computer pane |
+| UI | Messaging app: Bot list, thread, computer pane. **Web first.** Desktop = Electron around web. Mobile = Expo later |
+| API | **oRPC** — contract in `@grogbot/contracts`, client in `@grogbot/rpc` |
 | Actor | **One Rivet actor per bot** |
 | Shared data | **One Postgres** — auth, bots, threads, messages, skills, artifacts |
 | Wakeup | Rivet queue / `schedule` / cron on that actor |
@@ -38,7 +39,7 @@ The **workspace** (Better Auth org) also has:
 | Models | **Pi** catalog + BYOK |
 | Sandbox | `docker` local · `e2b` hosted · `desktop` trusted machine only · `fake` tests |
 | Homes | Disk v1 · `HomeStore` → R2 later |
-| Realtime | Events + SSE now · actor WebSocket later if needed |
+| Realtime | oRPC event iterator now · actor WebSocket later if needed |
 | Plugins | **Composio** (optional) |
 | Rooms v1 | Bot’s office. Multi-bot rooms: plan only |
 
@@ -60,18 +61,21 @@ agentOS is **not** the v1 computer — Docker / E2B / desktop are.
 ## Processes (v1)
 
 ```
-Web (Vite :5173) ──► API (Hono :3100) ──► Postgres (truth)
-                           │
-                           │ POST /wakeup
-                           v
-                     Worker (Rivet actors)
-                           │
-         ┌─────────────────┼─────────────────┐
-         ▼                 ▼                 ▼
-    Pi (BYOK)         Sandbox            Composio
-    + workspace       docker/e2b         (if key set)
-      skills
+Web (Vite :5173) ─┐
+Desktop (Electron)─┼──► API oRPC (Hono :3100) ──► Postgres (truth)
+Mobile (Expo) ────┘          │
+                             │ POST /wakeup
+                             v
+                       Worker (Rivet actors)
+                             │
+           ┌─────────────────┼─────────────────┐
+           ▼                 ▼                 ▼
+      Pi (BYOK)         Sandbox            Composio
+      + workspace       docker/e2b         (if key set)
+        skills
 ```
+
+Clients share **one contract**. Web is what we build against now. Desktop loads that same web app. Expo is a later shell on the same `@grogbot/rpc` client.
 
 Wake a bot with:
 
@@ -84,7 +88,8 @@ Wake a bot with:
 | Port | v1 | Later |
 | --- | --- | --- |
 | `WakeupDriver` | Rivet actor (in-process on the worker; HTTP from API) | Rivet engine / CF DO driver |
-| `RealtimeFanout` | Postgres events + SSE | actor WebSocket or DO |
+| Product API | **oRPC** `POST /rpc/*` (Hono). `GET /health` for probes | same contract |
+| `RealtimeFanout` | oRPC event iterator (`threads.subscribe`) | actor WebSocket or DO |
 | `HomeStore` | filesystem | R2 |
 | `SandboxProvider` | Docker / E2B / desktop / fake | E2B / CF sandbox |
 | `ConnectorProvider` | Composio or no-op | same |
@@ -93,17 +98,18 @@ Executor must not import `fs`, `dockerode`, or Cloudflare bindings. The **actor 
 
 ## Build order
 
-1. Monorepo, schema, auth, health, Rivet wakeup stub *(this)*
+1. Monorepo, schema, auth, health, Rivet wakeup stub, oRPC contract *(this)*
 2. `threads.send` → bot actor → scripted runtime
 3. Docker computer
 4. Pi + BYOK
-5. Thin web shell — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md)
+5. Thin **web** shell — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md)
 6. Workspace context + skills in the system prompt
 7. Composio plugins UI
 8. E2B for Fly
-9. Desktop (Electron), never on hosted cloud
+9. Desktop window (Electron around web), never on hosted cloud
 10. Extra humans, then multi-bot rooms — [docs/rooms-plan.md](./docs/rooms-plan.md)
+11. Expo mobile (same oRPC client, RN chrome)
 
 ## Out of v1
 
-Gadgets, Gatekeepers, Cloudflare Workers as the host, D1, Turso, Prisma, PGlite as product DB, Electron/Expo packagers, Pi subscription OAuth, Discord UI, agentOS as the default computer, multi-bot rooms.
+Gadgets, Gatekeepers, Cloudflare Workers as the host, D1, Turso, Prisma, PGlite as product DB, store signing / Electron-builder / EAS submit, Pi subscription OAuth, Discord UI, agentOS as the default computer, multi-bot rooms.

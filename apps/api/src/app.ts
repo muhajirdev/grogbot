@@ -4,9 +4,12 @@ import { type Auth, createAuth } from "@grogbot/auth";
 import { createDb, type Database } from "@grogbot/db";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import type { RpcContext } from "./context.js";
 import type { Env } from "./env.js";
+import { healthPayload } from "./health.js";
+import { mountRpc } from "./rpc.js";
 
-export interface AppHandles {
+export interface AppHandles extends RpcContext {
   app: Hono;
   db: Database;
   auth: Auth;
@@ -19,7 +22,7 @@ export function createApp(env: Env): AppHandles {
   const auth = createAuth(db, {
     secret: env.authSecret,
     baseURL: env.authUrl,
-    webOrigin: env.webOrigin,
+    trustedOrigins: env.corsOrigins,
   });
   const wakeup = createWakeupDriver(env.workerUrl);
   const sandbox = createSandboxProvider(env.sandboxProvider);
@@ -28,22 +31,17 @@ export function createApp(env: Env): AppHandles {
   app.use(
     "*",
     cors({
-      origin: env.webOrigin,
+      origin: env.corsOrigins,
       credentials: true,
     }),
   );
 
   app.on(["GET", "POST"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 
-  app.get("/health", (c) =>
-    c.json({
-      ok: true as const,
-      version: "0.0.1",
-      runtime: env.agentRuntime,
-      sandbox: env.sandboxProvider,
-      wakeup: env.workerUrl ? "rivet-http" : "rivet",
-    }),
-  );
+  const handles: AppHandles = { app, db, auth, wakeup, sandbox, env };
+  mountRpc(app, handles);
 
-  return { app, db, auth, wakeup, sandbox };
+  app.get("/health", (c) => c.json(healthPayload(env)));
+
+  return handles;
 }

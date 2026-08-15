@@ -4,8 +4,8 @@ import {
   BotSchema,
   ComputerStatusSchema,
   CreateBotInput,
-  MeSchema,
   MemoryDocumentSchema,
+  MeSchema,
   RoutineSchema,
 } from "./domain.js";
 import { ProductEventSchema } from "./events.js";
@@ -13,7 +13,7 @@ import { Id } from "./ids.js";
 
 const botId = z.object({ botId: Id });
 
-export const appContract = {
+export const appContract = oc.router({
   health: oc.output(
     z.object({
       ok: z.literal(true),
@@ -41,11 +41,13 @@ export const appContract = {
     status: oc.input(botId).output(ComputerStatusSchema),
   },
   memory: {
-    list: oc.input(z.object({ botId: Id.optional() })).output(z.array(MemoryDocumentSchema)),
+    list: oc
+      .input(z.object({ botId: Id.optional() }))
+      .output(z.array(MemoryDocumentSchema)),
   },
   routines: {
     list: oc.input(botId).output(z.array(RoutineSchema)),
   },
-};
+});
 
 export type AppContract = typeof appContract;

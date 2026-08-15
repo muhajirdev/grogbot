@@ -1,4 +1,20 @@
+import { createGrogbotClient } from "@grogbot/rpc";
+import { useEffect, useState } from "react";
+
+const client = createGrogbotClient({ baseUrl: "" });
+
 export function App() {
+  const [health, setHealth] = useState("checking…");
+
+  useEffect(() => {
+    void client
+      .health()
+      .then((payload) => setHealth(`${payload.runtime} · ${payload.wakeup}`))
+      .catch((error: unknown) =>
+        setHealth(error instanceof Error ? error.message : "offline"),
+      );
+  }, []);
+
   return (
     <main
       style={{
@@ -21,8 +37,8 @@ export function App() {
         AI teammates you host.
       </h1>
       <p style={{ color: "#444", lineHeight: 1.5 }}>
-        Scaffold is up. API health at <code>/health</code>. Next: sign in,
-        create a Bot, message it — the worker hosts that Bot’s Rivet actor.
+        Web is the v1 surface. Desktop is this same app in a window. Mobile is
+        Expo later. API is oRPC — health: <code>{health}</code>
       </p>
     </main>
   );

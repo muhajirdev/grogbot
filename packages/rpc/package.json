@@ -1,0 +1,20 @@
+{
+  "name": "@grogbot/rpc",
+  "version": "0.0.1",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@grogbot/contracts": "workspace:*",
+    "@orpc/client": "^1.10.0",
+    "@orpc/contract": "^1.10.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}

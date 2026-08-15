@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "Grogbot",
+    "slug": "grogbot",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "scheme": "grogbot",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "dev.grogbot.mobile"
+    },
+    "android": {
+      "package": "dev.grogbot.mobile"
+    },
+    "plugins": []
+  }
+}

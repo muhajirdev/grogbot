@@ -10,8 +10,9 @@
     "check": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "@grogbot/rpc": "workspace:*",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
   },
   "devDependencies": {
     "@types/react": "^19.0.10",
