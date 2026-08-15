@@ -10,13 +10,11 @@ Grok Bot simplicity. You create a bot, message it like a person, it has a comput
 
 Each bot has:
 
-- a **home office** thread (v1 UX is this room)
-- one computer (sandbox) — always on the bot, never on the room
+- one thread (v1 is 1:1; schema allows more people later)
+- one computer (sandbox)
 - memory
 - routines
 - history
-
-A **room is a thread**. v1: one bot (owner) + humans. Later: more bots in the same thread without rewriting actors. Wakeup is always **one Rivet actor / one job per bot**, routed from the thread.
 
 The **workspace** (Better Auth org) also has:
 
@@ -40,20 +38,9 @@ We do **not** build: gadgets, blueprints-as-apps, code-mode Dynamic Workers, Cap
 
 Not a replacement for the computer. APIs where they exist; browser when they don’t.
 
-### Rooms (v1 office, later multi-bot)
+### Multiplayer (later, not v1 UX)
 
-```
-  v1:  Human(s) ---- office thread ---- one bot actor ---- one computer
-  later: Human ---- group thread ---- bot A actor ---- computer A
-                               +---- bot B actor ---- computer B
-                               (route by targetBotId / @mention; default = owner)
-```
-
-- `threads` have no unique `bot_id`. `bots.home_thread_id` is the office shortcut.
-- `thread_participants` holds humans **and** bots (`owner` | `member`).
-- `threads.send` / `subscribe` take `threadId`. Computer APIs stay `botId`.
-- v1 creates an `office` thread, one bot participant (`owner`), one human. Do not ship group UX yet.
-- No Discord. Fail closed if several bots and no `targetBotId`.
+Several humans in one thread, shared computer lease. Schema already has `thread_members` and message `actor_*`. No Discord clone now.
 
 ## Locked decisions
 
@@ -72,7 +59,7 @@ Not a replacement for the computer. APIs where they exist; browser when they don
 | Realtime | Postgres events + SSE · `RealtimeFanout` |
 | Plugins | **Composio** (optional key) |
 | Team knowledge | Workspace memory + skills markdown |
-| Rooms | v1 = bot office. Schema: participants + homeThreadId. Multi-bot later |
+| Multiplayer | Not v1. Keep membership/actors/leases |
 
 ## Why a job table, not Graphile + Prisma
 
@@ -119,7 +106,7 @@ Executor must not import `fs`, `dockerode`, Graphile, or Cloudflare bindings.
 7. Composio plugins UI
 8. E2B for Fly
 9. Desktop (Electron), never on hosted cloud
-10. Extra humans in an office, then multi-bot rooms (`targetBotId`) — after the above works
+10. Group threads — after the above works
 
 ## Out of v1
 

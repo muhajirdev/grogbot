@@ -22,48 +22,37 @@ export const bots = pgTable("bots", {
   description: text("description").notNull().default(""),
   instructions: text("instructions").notNull().default(""),
   parentBotId: text("parent_bot_id"),
-  /** v1 office thread. A bot may join other threads later via thread_participants. */
-  homeThreadId: text("home_thread_id")
-    .unique()
-    .references(() => threads.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-/** A room. v1 = one bot's office. Later = group with many bots. No unique bot_id. */
 export const threads = pgTable("threads", {
   id: text("id").primaryKey(),
   workspaceId: text("workspace_id")
     .notNull()
     .references(() => organization.id, { onDelete: "cascade" }),
-  kind: text("kind").notNull().default("office"),
+  botId: text("bot_id")
+    .notNull()
+    .unique()
+    .references(() => bots.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-/**
- * Humans and bots in a room.
- * v1 office: one bot (role=owner) + humans.
- * Later group: many bots; wakeup uses owner or targetBotId.
- */
-export const threadParticipants = pgTable(
-  "thread_participants",
+/** v1: one human. Later: several humans in the same thread. */
+export const threadMembers = pgTable(
+  "thread_members",
   {
     id: text("id").primaryKey(),
     threadId: text("thread_id")
       .notNull()
       .references(() => threads.id, { onDelete: "cascade" }),
-    participantType: text("participant_type").notNull(),
-    participantId: text("participant_id").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
     role: text("role").notNull().default("member"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [
-    uniqueIndex("thread_participants_unique").on(
-      t.threadId,
-      t.participantType,
-      t.participantId,
-    ),
-  ],
+  (t) => [uniqueIndex("thread_members_thread_user").on(t.threadId, t.userId)],
 );
 
 export const messages = pgTable(
