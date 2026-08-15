@@ -30,7 +30,7 @@ describe("oRPC", () => {
     await expect(client.health()).resolves.toEqual(healthPayload(env));
   });
 
-  it("lists no bots yet", async () => {
+  it("requires a session to list bots", async () => {
     const app = new Hono();
     mountRpc(app, { env } as unknown as RpcContext);
     const client = createGrogbotClient({
@@ -41,6 +41,8 @@ describe("oRPC", () => {
         return app.request(request);
       },
     });
-    await expect(client.bots.list()).resolves.toEqual([]);
+    await expect(client.bots.list()).rejects.toMatchObject({
+      code: "UNAUTHORIZED",
+    });
   });
 });

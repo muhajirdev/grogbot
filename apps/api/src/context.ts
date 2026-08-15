@@ -9,4 +9,5 @@ export interface RpcContext {
   auth: Auth;
   wakeup: WakeupDriver;
   sandbox: SandboxProvider;
+  headers?: Headers;
 }

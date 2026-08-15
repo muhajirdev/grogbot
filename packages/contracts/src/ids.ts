@@ -34,3 +34,12 @@ export type MemoryScope = z.infer<typeof MemoryScope>;
 
 export const ControlHolder = z.enum(["bot", "user", "none"]);
 export type ControlHolder = z.infer<typeof ControlHolder>;
+
+export const AvatarShape = z.enum([
+  "circle",
+  "squircle",
+  "diamond",
+  "triangle",
+  "hex",
+]);
+export type AvatarShape = z.infer<typeof AvatarShape>;

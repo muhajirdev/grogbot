@@ -1,0 +1,552 @@
+import type {
+  Bot,
+  ComputerStatus,
+  ProductEvent,
+  ThreadMessage,
+} from "@grogbot/contracts";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AvatarMark } from "../components/Avatar";
+import { authClient } from "../lib/auth";
+import { AVATAR_COLORS, AVATAR_SHAPES, FIRST_TASK } from "../lib/jobs";
+import { client } from "../lib/rpc";
+import { applyTheme, readTheme, type Theme } from "../lib/theme";
+
+function asMessage(payload: Record<string, unknown>): ThreadMessage | null {
+  const id = String(payload.id ?? "");
+  const seq = Number(payload.seq);
+  const actorType = payload.actorType;
+  if (!id || !Number.isFinite(seq)) return null;
+  if (actorType !== "human" && actorType !== "bot" && actorType !== "system")
+    return null;
+  return {
+    id,
+    seq,
+    actorType,
+    actorId: payload.actorId ? String(payload.actorId) : null,
+    blocks: Array.isArray(payload.blocks)
+      ? (payload.blocks as ThreadMessage["blocks"])
+      : [],
+    runId: payload.runId ? String(payload.runId) : null,
+    createdAt: String(payload.createdAt ?? new Date().toISOString()),
+  };
+}
+
+function ModalShell(props: { onClose: () => void; children: React.ReactNode }) {
+  return (
+    <div className="modal-back">
+      <button
+        type="button"
+        className="modal-dismiss"
+        aria-label="Close"
+        onClick={props.onClose}
+      />
+      <div className="modal" role="dialog">
+        {props.children}
+      </div>
+    </div>
+  );
+}
+
+export function Office(props: { initialBotId?: string }) {
+  const [bots, setBots] = useState<Bot[]>([]);
+  const [botId, setBotId] = useState(props.initialBotId ?? "");
+  const [messages, setMessages] = useState<ThreadMessage[]>([]);
+  const [working, setWorking] = useState("");
+  const [computer, setComputer] = useState<ComputerStatus | null>(null);
+  const [draft, setDraft] = useState("");
+  const [error, setError] = useState("");
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [newOpen, setNewOpen] = useState(false);
+  const [theme, setTheme] = useState<Theme>(readTheme());
+  const scroller = useRef<HTMLDivElement>(null);
+  const bot = bots.find((item) => item.id === botId) ?? bots[0];
+  const activeId = bot?.id;
+
+  async function refreshBots(selectId?: string) {
+    const list = await client.bots.list();
+    setBots(list);
+    const next = selectId ?? botId ?? list[0]?.id ?? "";
+    if (next) {
+      setBotId(next);
+      window.location.hash = next;
+    }
+  }
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: load roster once on mount
+  useEffect(() => {
+    const startId = props.initialBotId;
+    void refreshBots(startId).catch((caught: unknown) => {
+      setError(
+        caught instanceof Error ? caught.message : "Could not load teammates",
+      );
+    });
+  }, []);
+
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "n") {
+        event.preventDefault();
+        setNewOpen(true);
+      }
+      if ((event.metaKey || event.ctrlKey) && event.key === ",") {
+        event.preventDefault();
+        setSettingsOpen(true);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  useEffect(() => {
+    if (!activeId) return;
+    let cancelled = false;
+    let iterator: AsyncIterator<ProductEvent> | undefined;
+    setMessages([]);
+    setWorking("");
+    void client.computer
+      .status({ botId: activeId })
+      .then(setComputer)
+      .catch(() => setComputer(null));
+    void (async () => {
+      iterator = (await client.threads.subscribe({
+        botId: activeId,
+        cursor: -1,
+      })) as AsyncIterator<ProductEvent>;
+      for (;;) {
+        const next = await iterator.next();
+        if (cancelled || next.done) break;
+        const event = next.value;
+        if (event.type === "message.created") {
+          const message = asMessage(event.payload);
+          if (message) {
+            setMessages((current) => {
+              if (current.some((item) => item.id === message.id))
+                return current;
+              return [...current, message].sort((a, b) => a.seq - b.seq);
+            });
+          }
+        }
+        if (event.type === "run.updated") {
+          const status = String(event.payload.status ?? "");
+          const text = String(event.payload.text ?? "");
+          setWorking(
+            status === "running" || status === "queued"
+              ? text || "working…"
+              : "",
+          );
+        }
+        if (event.type === "computer.updated") {
+          setComputer(event.payload as unknown as ComputerStatus);
+        }
+      }
+    })().catch((caught: unknown) => {
+      if (!cancelled)
+        setError(caught instanceof Error ? caught.message : "Lost the thread");
+    });
+    return () => {
+      cancelled = true;
+      void iterator?.return?.();
+    };
+  }, [activeId]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: scroll when the transcript grows
+  useEffect(() => {
+    scroller.current?.scrollTo({ top: scroller.current.scrollHeight });
+  }, [messages.length, working]);
+
+  async function send(event: React.FormEvent) {
+    event.preventDefault();
+    if (!bot || !draft.trim()) return;
+    const text = draft.trim();
+    setDraft("");
+    setWorking("working…");
+    try {
+      await client.threads.send({ botId: bot.id, text });
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not send");
+    }
+  }
+
+  const statusLabel = useMemo(() => {
+    if (!computer) return "Idle";
+    if (computer.controlHolder === "user") return "You're in control";
+    if (computer.state === "running" || computer.state === "booting")
+      return "Working";
+    return "Idle";
+  }, [computer]);
+
+  return (
+    <div className="office">
+      <aside className="sidebar">
+        <div className="side-head">
+          <div>
+            <p className="kicker">Grogbot</p>
+            <span>Teammates</span>
+          </div>
+          <button
+            className="btn tiny"
+            type="button"
+            onClick={() => setNewOpen(true)}
+          >
+            New
+          </button>
+        </div>
+        <div className="bot-list">
+          {bots.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`bot-item${item.id === bot?.id ? " on" : ""}`}
+              onClick={() => {
+                setBotId(item.id);
+                window.location.hash = item.id;
+              }}
+            >
+              <AvatarMark
+                name={item.name}
+                color={item.avatarColor}
+                shape={item.avatarShape}
+              />
+              <span>
+                <div className="name">{item.name}</div>
+                <div className="title">{item.title || "Teammate"}</div>
+              </span>
+            </button>
+          ))}
+          {bots.length === 0 ? (
+            <p className="empty">No teammates yet.</p>
+          ) : null}
+        </div>
+      </aside>
+      <section className="thread">
+        <div className="thread-head">
+          <div>
+            <strong className="ui">{bot?.name ?? "—"}</strong>
+            <div className="title">{bot?.title}</div>
+          </div>
+          <div className="row">
+            {working ? (
+              <button
+                className="btn ghost tiny"
+                type="button"
+                onClick={() =>
+                  bot && void client.threads.stop({ botId: bot.id })
+                }
+              >
+                Stop now
+              </button>
+            ) : null}
+            <button
+              className="btn ghost tiny"
+              type="button"
+              onClick={() => setProfileOpen(true)}
+            >
+              Profile
+            </button>
+          </div>
+        </div>
+        <div className="transcript" ref={scroller}>
+          {messages.map((message) => {
+            const text = message.blocks
+              .filter((block) => block.kind === "text")
+              .map((block) => block.text)
+              .join("\n");
+            return (
+              <div
+                key={message.id}
+                className={`bubble ${message.actorType === "human" ? "human" : "bot"}`}
+              >
+                {text}
+              </div>
+            );
+          })}
+          {working ? (
+            <div className="meta-line">
+              {bot?.name} {working}
+            </div>
+          ) : null}
+          {!working && messages.length === 0 ? (
+            <p className="lede">
+              First message is a real task. A good handoff has an outcome,
+              sources, and when to stop.
+            </p>
+          ) : null}
+        </div>
+        <div className="composer">
+          {error ? <p className="error">{error}</p> : null}
+          <form onSubmit={(event) => void send(event)}>
+            <textarea
+              value={draft}
+              placeholder={bot ? `Message ${bot.name}` : "Message"}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
+                  event.currentTarget.form?.requestSubmit();
+                }
+              }}
+            />
+            <button className="btn tiny" type="submit" disabled={!bot}>
+              Send
+            </button>
+          </form>
+        </div>
+      </section>
+      <aside className="pane">
+        <div className="pane-head">
+          <strong className="ui">Computer</strong>
+          <span className="ui">{statusLabel}</span>
+        </div>
+        <div className="screen-box">
+          {computer?.controlHolder === "user"
+            ? "You're in control. Sign in, 2FA, or pay here — not in chat."
+            : working
+              ? `${bot?.name ?? "Bot"} is using this computer.\n${working}`
+              : "Idle. This pane is this bot’s machine, not a shared VM."}
+        </div>
+        <div className="profile">
+          {computer?.controlHolder === "user" ? (
+            <button
+              className="btn"
+              type="button"
+              onClick={() =>
+                bot && void client.computer.release({ botId: bot.id })
+              }
+            >
+              Continue
+            </button>
+          ) : (
+            <button
+              className="btn ghost"
+              type="button"
+              onClick={() =>
+                bot && void client.computer.takeover({ botId: bot.id })
+              }
+            >
+              Take over
+            </button>
+          )}
+          <p className="lede" style={{ fontSize: 14 }}>
+            Closing this pane does not stop work.
+          </p>
+        </div>
+      </aside>
+      {profileOpen && bot ? (
+        <ProfileModal
+          bot={bot}
+          onClose={() => setProfileOpen(false)}
+          onSaved={async () => {
+            await refreshBots(bot.id);
+            setProfileOpen(false);
+          }}
+        />
+      ) : null}
+      {newOpen ? (
+        <NewBotModal
+          onClose={() => setNewOpen(false)}
+          onCreated={async (id) => {
+            setNewOpen(false);
+            await refreshBots(id);
+          }}
+        />
+      ) : null}
+      {settingsOpen ? (
+        <SettingsModal
+          theme={theme}
+          onTheme={(value) => {
+            setTheme(value);
+            applyTheme(value);
+          }}
+          onClose={() => setSettingsOpen(false)}
+          onSignOut={() => void authClient.signOut()}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function ProfileModal(props: {
+  bot: Bot;
+  onClose: () => void;
+  onSaved: () => Promise<void>;
+}) {
+  const [name, setName] = useState(props.bot.name);
+  const [title, setTitle] = useState(props.bot.title);
+  const [description, setDescription] = useState(props.bot.description);
+  const [color, setColor] = useState(props.bot.avatarColor);
+  const [shape, setShape] = useState(props.bot.avatarShape);
+  const [busy, setBusy] = useState(false);
+  return (
+    <ModalShell onClose={props.onClose}>
+      <p className="kicker">Bot actions</p>
+      <h2>Edit profile</h2>
+      <div
+        style={{
+          display: "flex",
+          gap: 12,
+          alignItems: "center",
+          margin: "12px 0",
+        }}
+      >
+        <AvatarMark name={name} color={color} shape={shape} large />
+        <div className="swatches">
+          {AVATAR_COLORS.map((value) => (
+            <button
+              key={value}
+              type="button"
+              className={`swatch avatar circle${color === value ? " on" : ""}`}
+              style={{ background: value }}
+              onClick={() => setColor(value)}
+            />
+          ))}
+          {AVATAR_SHAPES.map((value) => (
+            <button
+              key={value}
+              type="button"
+              className={`chip${shape === value ? " on" : ""}`}
+              onClick={() => setShape(value)}
+            >
+              {value}
+            </button>
+          ))}
+        </div>
+      </div>
+      <label className="field">
+        <span>Name</span>
+        <input value={name} onChange={(e) => setName(e.target.value)} />
+      </label>
+      <label className="field">
+        <span>Job</span>
+        <input value={title} onChange={(e) => setTitle(e.target.value)} />
+      </label>
+      <label className="field">
+        <span>How it should work</span>
+        <textarea
+          rows={4}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+      </label>
+      <div className="row">
+        <button
+          className="btn"
+          type="button"
+          disabled={busy}
+          onClick={() => {
+            setBusy(true);
+            void client.bots
+              .update({
+                botId: props.bot.id,
+                name,
+                title,
+                description,
+                instructions: description,
+                avatarColor: color,
+                avatarShape: shape,
+              })
+              .then(props.onSaved)
+              .finally(() => setBusy(false));
+          }}
+        >
+          Save
+        </button>
+        <button className="btn ghost" type="button" onClick={props.onClose}>
+          Close
+        </button>
+      </div>
+    </ModalShell>
+  );
+}
+
+function NewBotModal(props: {
+  onClose: () => void;
+  onCreated: (id: string) => Promise<void>;
+}) {
+  const [name, setName] = useState("");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [busy, setBusy] = useState(false);
+  return (
+    <ModalShell onClose={props.onClose}>
+      <p className="kicker">New</p>
+      <h2>Create new agent</h2>
+      <label className="field">
+        <span>Name</span>
+        <input value={name} onChange={(e) => setName(e.target.value)} />
+      </label>
+      <label className="field">
+        <span>Job</span>
+        <input value={title} onChange={(e) => setTitle(e.target.value)} />
+      </label>
+      <label className="field">
+        <span>How it should work</span>
+        <textarea
+          rows={3}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+      </label>
+      <div className="row">
+        <button
+          className="btn"
+          type="button"
+          disabled={busy || !name.trim()}
+          onClick={() => {
+            setBusy(true);
+            void client.bots
+              .create({ name, title, description, instructions: description })
+              .then((bot) => props.onCreated(bot.id))
+              .finally(() => setBusy(false));
+          }}
+        >
+          Create
+        </button>
+        <button className="btn ghost" type="button" onClick={props.onClose}>
+          Close
+        </button>
+      </div>
+    </ModalShell>
+  );
+}
+
+function SettingsModal(props: {
+  theme: Theme;
+  onTheme: (theme: Theme) => void;
+  onClose: () => void;
+  onSignOut: () => void;
+}) {
+  return (
+    <ModalShell onClose={props.onClose}>
+      <p className="kicker">Appearance</p>
+      <h2>Settings</h2>
+      <div className="chips">
+        {(["system", "light", "dark"] as const).map((value) => (
+          <button
+            key={value}
+            type="button"
+            className={`chip${props.theme === value ? " on" : ""}`}
+            onClick={() => props.onTheme(value)}
+          >
+            {value}
+          </button>
+        ))}
+      </div>
+      <p className="lede" style={{ marginTop: 16 }}>
+        First-task recipe: {FIRST_TASK}
+      </p>
+      <div className="row">
+        <button className="btn ghost" type="button" onClick={props.onSignOut}>
+          Sign out
+        </button>
+        <button className="btn" type="button" onClick={props.onClose}>
+          Done
+        </button>
+      </div>
+    </ModalShell>
+  );
+}

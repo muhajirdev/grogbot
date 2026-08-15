@@ -3,7 +3,14 @@ import type { RunStatus } from "@grogbot/contracts";
 const allowed: Record<RunStatus, RunStatus[]> = {
   queued: ["leased", "cancelled"],
   leased: ["running", "queued", "cancelled"],
-  running: ["waiting_input", "waiting_takeover", "completed", "failed", "cancelled", "leased"],
+  running: [
+    "waiting_input",
+    "waiting_takeover",
+    "completed",
+    "failed",
+    "cancelled",
+    "leased",
+  ],
   waiting_input: ["queued", "leased", "cancelled"],
   waiting_takeover: ["queued", "leased", "cancelled"],
   completed: [],

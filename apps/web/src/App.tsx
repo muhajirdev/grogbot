@@ -1,45 +1,61 @@
-import { createGrogbotClient } from "@grogbot/rpc";
 import { useEffect, useState } from "react";
+import { authClient } from "./lib/auth";
+import { client } from "./lib/rpc";
+import { applyTheme, readTheme } from "./lib/theme";
+import { AuthScreen } from "./screens/AuthScreen";
+import { Office } from "./screens/Office";
+import { Onboarding } from "./screens/Onboarding";
+import { Welcome } from "./screens/Welcome";
 
-const client = createGrogbotClient({ baseUrl: "" });
+type Gate = "boot" | "welcome" | "auth" | "onboarding" | "office";
 
 export function App() {
-  const [health, setHealth] = useState("checking…");
+  const session = authClient.useSession();
+  const [gate, setGate] = useState<Gate>("boot");
+  const [botId, setBotId] = useState(window.location.hash.replace(/^#/, ""));
 
   useEffect(() => {
-    void client
-      .health()
-      .then((payload) => setHealth(`${payload.runtime} · ${payload.wakeup}`))
-      .catch((error: unknown) =>
-        setHealth(error instanceof Error ? error.message : "offline"),
-      );
+    applyTheme(readTheme());
   }, []);
 
-  return (
-    <main
-      style={{
-        fontFamily: "ui-sans-serif, system-ui",
-        padding: 48,
-        maxWidth: 640,
-      }}
-    >
-      <p
-        style={{
-          letterSpacing: 2,
-          textTransform: "uppercase",
-          color: "#6b6b70",
-          fontSize: 12,
+  useEffect(() => {
+    if (session.isPending) return;
+    if (!session.data) {
+      setGate((current) => (current === "auth" ? "auth" : "welcome"));
+      return;
+    }
+    void client
+      .me()
+      .then(async () => {
+        const bots = await client.bots.list();
+        if (bots.length === 0) setGate("onboarding");
+        else {
+          setBotId((current) => current || bots[0]?.id || "");
+          setGate("office");
+        }
+      })
+      .catch(() => setGate("welcome"));
+  }, [session.isPending, session.data]);
+
+  if (gate === "boot" || session.isPending) {
+    return (
+      <div className="screen">
+        <p className="kicker">Grogbot</p>
+      </div>
+    );
+  }
+  if (gate === "welcome") return <Welcome onStart={() => setGate("auth")} />;
+  if (gate === "auth") return <AuthScreen onBack={() => setGate("welcome")} />;
+  if (gate === "onboarding") {
+    return (
+      <Onboarding
+        onDone={(id) => {
+          setBotId(id);
+          window.location.hash = id;
+          setGate("office");
         }}
-      >
-        Grogbot
-      </p>
-      <h1 style={{ fontSize: 36, fontWeight: 560, margin: "8px 0 16px" }}>
-        AI teammates you host.
-      </h1>
-      <p style={{ color: "#444", lineHeight: 1.5 }}>
-        Web is the v1 surface. Desktop is this same app in a window. Mobile is
-        Expo later. API is oRPC — health: <code>{health}</code>
-      </p>
-    </main>
-  );
+      />
+    );
+  }
+  return <Office initialBotId={botId} />;
 }

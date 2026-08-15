@@ -7,6 +7,7 @@ import {
   MemoryDocumentSchema,
   MeSchema,
   RoutineSchema,
+  UpdateBotInput,
 } from "./domain.js";
 import { ProductEventSchema } from "./events.js";
 import { Id } from "./ids.js";
@@ -28,17 +29,21 @@ export const appContract = oc.router({
     list: oc.output(z.array(BotSchema)),
     get: oc.input(botId).output(BotSchema),
     create: oc.input(CreateBotInput).output(BotSchema),
+    update: oc.input(UpdateBotInput).output(BotSchema),
   },
   threads: {
     subscribe: oc
       .input(z.object({ botId: Id, cursor: z.number().int().min(-1) }))
       .output(eventIterator(ProductEventSchema)),
     send: oc
-      .input(z.object({ botId: Id, text: z.string().min(1) }))
+      .input(z.object({ botId: Id, text: z.string().min(1).max(8000) }))
       .output(z.object({ taskId: Id, runId: Id, seq: z.number().int() })),
+    stop: oc.input(botId).output(z.object({ ok: z.literal(true) })),
   },
   computer: {
     status: oc.input(botId).output(ComputerStatusSchema),
+    takeover: oc.input(botId).output(ComputerStatusSchema),
+    release: oc.input(botId).output(ComputerStatusSchema),
   },
   memory: {
     list: oc

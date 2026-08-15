@@ -1,7 +1,6 @@
-import type { SandboxProvider, WakeupDriver } from "@grogbot/adapter-kit";
 import { createSandboxProvider, createWakeupDriver } from "@grogbot/adapters";
-import { type Auth, createAuth } from "@grogbot/auth";
-import { createDb, type Database } from "@grogbot/db";
+import { createAuth } from "@grogbot/auth";
+import { createDb } from "@grogbot/db";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { RpcContext } from "./context.js";
@@ -9,12 +8,8 @@ import type { Env } from "./env.js";
 import { healthPayload } from "./health.js";
 import { mountRpc } from "./rpc.js";
 
-export interface AppHandles extends RpcContext {
+export interface AppHandles extends Omit<RpcContext, "headers"> {
   app: Hono;
-  db: Database;
-  auth: Auth;
-  wakeup: WakeupDriver;
-  sandbox: SandboxProvider;
 }
 
 export function createApp(env: Env): AppHandles {

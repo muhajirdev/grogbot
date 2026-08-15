@@ -16,7 +16,7 @@ export function createAuth(
     baseURL: opts.baseURL,
     trustedOrigins: opts.trustedOrigins,
     database: drizzleAdapter(db, { provider: "pg" }),
-    emailAndPassword: { enabled: true },
+    emailAndPassword: { enabled: true, requireEmailVerification: false },
     plugins: [organization()],
   });
 }

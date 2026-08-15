@@ -14,9 +14,11 @@
     "@grogbot/adapters": "workspace:*",
     "@grogbot/auth": "workspace:*",
     "@grogbot/contracts": "workspace:*",
+    "@grogbot/core": "workspace:*",
     "@grogbot/db": "workspace:*",
     "@orpc/server": "^1.10.0",
     "dotenv": "^17.2.1",
+    "drizzle-orm": "^0.44.5",
     "hono": "^4.9.6"
   },
   "devDependencies": {

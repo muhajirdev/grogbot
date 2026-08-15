@@ -3,6 +3,8 @@ import { createServer } from "node:http";
 import path from "node:path";
 import type { WakeupJob } from "@grogbot/adapter-kit";
 import { RivetWakeupDriver, ScriptedAgentRuntime } from "@grogbot/adapters";
+import { createWakeHandlers } from "@grogbot/core";
+import { createDb } from "@grogbot/db";
 import { config } from "dotenv";
 
 function loadRootEnv() {
@@ -39,25 +41,12 @@ function readJson(
 }
 
 async function main() {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) throw new Error("DATABASE_URL is required");
+  const { db } = createDb(databaseUrl);
   const runtime = new ScriptedAgentRuntime();
   const wakeup = new RivetWakeupDriver();
-
-  await wakeup.start({
-    "run.continue": async (payload) => {
-      console.log(
-        "run.continue",
-        payload.botId,
-        payload.runId,
-        runtime.constructor.name,
-      );
-    },
-    "routine.wakeup": async (payload) => {
-      console.log("routine.wakeup", payload.botId, payload.routineId);
-    },
-    "computer.sleep": async (payload) => {
-      console.log("computer.sleep", payload.botId);
-    },
-  });
+  await wakeup.start(createWakeHandlers({ db, runtime, wakeup }));
 
   const port = Number(process.env.WORKER_PORT ?? 3101);
   const server = createServer((req, res) => {

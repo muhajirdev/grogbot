@@ -40,7 +40,9 @@ pnpm dev
 - API: http://127.0.0.1:3100/health
 - oRPC: http://127.0.0.1:3100/rpc
 - Worker / actors: http://127.0.0.1:3101/health
-- Web: http://127.0.0.1:5173
+- Web: http://127.0.0.1:5173 — welcome, sign in, hire a Bot, message it
+
+The scripted runtime echoes so you can test the loop without model keys.
 
 Desktop (same web UI in a window):
 

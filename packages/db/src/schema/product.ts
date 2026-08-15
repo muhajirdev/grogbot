@@ -21,6 +21,8 @@ export const bots = pgTable("bots", {
   title: text("title").notNull().default(""),
   description: text("description").notNull().default(""),
   instructions: text("instructions").notNull().default(""),
+  avatarColor: text("avatar_color").notNull().default("#5b7cff"),
+  avatarShape: text("avatar_shape").notNull().default("circle"),
   parentBotId: text("parent_bot_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
