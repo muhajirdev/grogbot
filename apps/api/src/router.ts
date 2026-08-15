@@ -1,9 +1,16 @@
 import { appContract } from "@grogbot/contracts";
 import { listEventsAfter, sleep, toBotDto } from "@grogbot/core";
-import { userModelCredentials } from "@grogbot/db";
+import { guestConnectors, userModelCredentials } from "@grogbot/db";
 import { implement } from "@orpc/server";
 import { eq } from "drizzle-orm";
 import type { RpcContext } from "./context.js";
+import {
+  connectorOnline,
+  disableGuest,
+  enableGuest,
+  guestStatus,
+  rotateGuest,
+} from "./guests.js";
 import { healthPayload } from "./health.js";
 import {
   createOfficeBot,
@@ -45,7 +52,14 @@ export const appRouter = os.router({
     get: os.bots.get.handler(async ({ context, input }) => {
       const actor = await requireActor(context);
       const { bot, thread } = await getOffice(context, actor, input.botId);
-      return toBotDto(bot, thread.id);
+      const [connector] = await context.db
+        .select()
+        .from(guestConnectors)
+        .where(eq(guestConnectors.botId, bot.id))
+        .limit(1);
+      return toBotDto(bot, thread.id, {
+        online: connector ? connectorOnline(connector) : false,
+      });
     }),
     create: os.bots.create.handler(async ({ context, input }) => {
       const actor = await requireActor(context);
@@ -99,6 +113,24 @@ export const appRouter = os.router({
     release: os.computer.release.handler(async ({ context, input }) => {
       const actor = await requireActor(context);
       return setComputerControl(context, actor, input.botId, "bot");
+    }),
+  },
+  guests: {
+    status: os.guests.status.handler(async ({ context, input }) => {
+      const actor = await requireActor(context);
+      return guestStatus(context, actor, input.botId);
+    }),
+    enable: os.guests.enable.handler(async ({ context, input }) => {
+      const actor = await requireActor(context);
+      return enableGuest(context, actor, input.botId, input.kind);
+    }),
+    rotate: os.guests.rotate.handler(async ({ context, input }) => {
+      const actor = await requireActor(context);
+      return rotateGuest(context, actor, input.botId);
+    }),
+    disable: os.guests.disable.handler(async ({ context, input }) => {
+      const actor = await requireActor(context);
+      return disableGuest(context, actor, input.botId);
     }),
   },
   memory: {

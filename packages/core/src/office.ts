@@ -7,6 +7,7 @@ import type {
 import {
   AvatarShape,
   ControlHolder,
+  GuestKind,
   SandboxKind as SandboxKindSchema,
 } from "@grogbot/contracts";
 import {
@@ -27,8 +28,13 @@ export function sandboxKind(value: string): SandboxKind {
   return parsed.success ? parsed.data : "fake";
 }
 
-export function toBotDto(bot: typeof bots.$inferSelect, threadId: string): Bot {
+export function toBotDto(
+  bot: typeof bots.$inferSelect,
+  threadId: string,
+  guest?: { online?: boolean },
+): Bot {
   const shape = AvatarShape.safeParse(bot.avatarShape);
+  const guestKind = GuestKind.safeParse(bot.guestKind);
   return {
     id: bot.id,
     workspaceId: bot.workspaceId,
@@ -40,6 +46,8 @@ export function toBotDto(bot: typeof bots.$inferSelect, threadId: string): Bot {
     avatarShape: shape.success ? shape.data : "circle",
     parentBotId: bot.parentBotId,
     threadId,
+    guestKind: guestKind.success ? guestKind.data : "off",
+    guestOnline: guest?.online ?? false,
     createdAt: bot.createdAt.toISOString(),
     updatedAt: bot.updatedAt.toISOString(),
   };

@@ -19,6 +19,7 @@ async function main() {
         db: handles.db,
         runtime,
         wakeup: handles.wakeup,
+        guests: handles.guests,
       }),
     );
   }

@@ -51,6 +51,8 @@ Email/password still works with no OAuth keys.
 
 The scripted runtime echoes so you can test the loop without model keys.
 
+Advanced, off by default: a bot can let **Hermes** or **OpenClaw** connect outbound (`pnpm guest -- --url http://127.0.0.1:3101 --token … --kind hermes`). Enable it under Profile → Advanced. Default teammates still use the scripted/Pi runtime.
+
 Desktop (same web UI in a window):
 
 ```bash

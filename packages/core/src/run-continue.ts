@@ -10,6 +10,8 @@ import {
   threads,
 } from "@grogbot/db";
 import { and, asc, eq } from "drizzle-orm";
+import type { GuestHub } from "./guest-hub.js";
+import { GuestAgentRuntime } from "./guest-runtime.js";
 import { newId } from "./ids.js";
 import { appendEvent, nextSeq, toComputerStatus } from "./office.js";
 import { assertTransition } from "./run-state.js";
@@ -34,11 +36,36 @@ export async function continueRun(opts: {
   db: Database;
   runtime: AgentRuntime;
   runId: string;
+  guests?: GuestHub;
 }): Promise<void> {
-  const { db, runtime, runId } = opts;
+  const { db, runtime, runId, guests } = opts;
   const [run] = await db.select().from(runs).where(eq(runs.id, runId)).limit(1);
   if (!run) return;
   if (run.status !== "queued") return;
+
+  const [bot] = await db
+    .select()
+    .from(bots)
+    .where(eq(bots.id, run.botId))
+    .limit(1);
+  if (!bot) return;
+
+  const guestEnabled = bot.guestKind !== "off";
+  if (guestEnabled && !guests?.isOnline(bot.id)) {
+    await appendEvent(db, {
+      workspaceId: run.workspaceId,
+      threadId: run.threadId,
+      botId: run.botId,
+      type: "run.updated",
+      payload: {
+        runId,
+        status: "queued",
+        text: `waiting for ${bot.guestKind}…`,
+      },
+      runId,
+    });
+    return;
+  }
 
   let current = await setRunStatus(db, run, "leased", {
     leaseOwner: "worker",
@@ -54,17 +81,12 @@ export async function continueRun(opts: {
     .from(tasks)
     .where(eq(tasks.id, run.taskId))
     .limit(1);
-  const [bot] = await db
-    .select()
-    .from(bots)
-    .where(eq(bots.id, run.botId))
-    .limit(1);
   const [thread] = await db
     .select()
     .from(threads)
     .where(eq(threads.id, run.threadId))
     .limit(1);
-  if (!task || !bot || !thread) return;
+  if (!task || !thread) return;
 
   await db
     .update(computers)
@@ -126,8 +148,10 @@ export async function continueRun(opts: {
 
   const controller = new AbortController();
   let reply = "";
+  const runner =
+    guestEnabled && guests ? new GuestAgentRuntime(guests) : runtime;
   try {
-    for await (const event of runtime.run(
+    for await (const event of runner.run(
       {
         botId: bot.id,
         threadId: thread.id,
@@ -157,6 +181,7 @@ export async function continueRun(opts: {
       }
       if (event.type === "text" && event.text) reply = event.text;
       if (event.type === "done" && event.text && !reply) reply = event.text;
+      if (event.type === "error") throw new Error(event.text);
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Run failed";

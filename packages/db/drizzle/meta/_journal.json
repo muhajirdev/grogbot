@@ -15,6 +15,13 @@
       "when": 1786798851987,
       "tag": "0001_many_bromley",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786810303110,
+      "tag": "0002_chemical_stick",
+      "breakpoints": true
     }
   ]
 }

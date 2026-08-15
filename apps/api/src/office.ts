@@ -10,6 +10,7 @@ import {
 import {
   bots,
   computers,
+  guestConnectors,
   messages,
   runs,
   tasks,
@@ -17,9 +18,24 @@ import {
   threads,
 } from "@grogbot/db";
 import { ORPCError } from "@orpc/server";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import type { RpcContext } from "./context.js";
 import type { Actor } from "./session.js";
+
+const STALE_MS = 60_000;
+
+function connectorOnline(
+  row:
+    | {
+        online: boolean;
+        revokedAt: Date | null;
+        lastSeenAt: Date | null;
+      }
+    | undefined,
+): boolean {
+  if (!row || row.revokedAt || !row.online || !row.lastSeenAt) return false;
+  return Date.now() - row.lastSeenAt.getTime() < STALE_MS;
+}
 
 export async function getOffice(
   context: RpcContext,
@@ -56,9 +72,26 @@ export async function listBots(
     .from(threads)
     .where(eq(threads.workspaceId, actor.workspaceId));
   const threadByBot = new Map(offices.map((row) => [row.botId, row.id]));
+  const connectors =
+    rows.length === 0
+      ? []
+      : await context.db
+          .select()
+          .from(guestConnectors)
+          .where(
+            inArray(
+              guestConnectors.botId,
+              rows.map((row) => row.id),
+            ),
+          );
+  const onlineByBot = new Map(
+    connectors.map((row) => [row.botId, connectorOnline(row)]),
+  );
   return rows.flatMap((bot) => {
     const threadId = threadByBot.get(bot.id);
-    return threadId ? [toBotDto(bot, threadId)] : [];
+    return threadId
+      ? [toBotDto(bot, threadId, { online: onlineByBot.get(bot.id) })]
+      : [];
   });
 }
 
@@ -88,6 +121,7 @@ export async function createOfficeBot(
     instructions: input.instructions,
     avatarColor: input.avatarColor,
     avatarShape: input.avatarShape,
+    guestKind: "off",
     createdAt: now,
     updatedAt: now,
   });
@@ -330,4 +364,10 @@ export async function stopBotRuns(
       runId: run.id,
     });
   }
+  context.guests.abort(botId);
+  await context.wakeup.enqueue({
+    botId,
+    name: "run.abort",
+    payload: { botId },
+  });
 }
