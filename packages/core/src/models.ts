@@ -6,6 +6,7 @@ import type {
 } from "@grogbot/contracts";
 import {
   catalogForRuntime,
+  flueModelId,
   isOfflineRuntime,
   missingProviderMessage,
   modelIsRunnable,
@@ -40,6 +41,21 @@ export const PROVIDER_ENV: Record<
   openai: "OPENAI_API_KEY",
   openrouter: "OPENROUTER_API_KEY",
 };
+
+/** Cleared from process env on each run so only Settings → Models keys apply. */
+const PROCESS_MODEL_ENV = [
+  "GROGBOT_MODEL",
+  "ANTHROPIC_API_KEY",
+  "OPENAI_API_KEY",
+  "OPENROUTER_API_KEY",
+  "CLOUDFLARE_API_TOKEN",
+  "CLOUDFLARE_AUTH_TOKEN",
+  "CLOUDFLARE_API_KEY",
+  "CLOUDFLARE_AI_GATEWAY_ID",
+  "CLOUDFLARE_GATEWAY_ID",
+  "AI_GATEWAY_PROVIDER",
+  "AI_GATEWAY_MODEL",
+] as const;
 
 export interface ModelOverlay {
   env: NodeJS.ProcessEnv;
@@ -91,10 +107,20 @@ function envKeyConfigured(
   if (provider === "cloudflare") {
     return Boolean(
       env.CLOUDFLARE_ACCOUNT_ID?.trim() &&
-        (env.CLOUDFLARE_API_TOKEN?.trim() || env.CLOUDFLARE_AUTH_TOKEN?.trim()),
+        (env.CLOUDFLARE_API_KEY?.trim() || env.CLOUDFLARE_API_TOKEN?.trim()) &&
+        (env.CLOUDFLARE_GATEWAY_ID?.trim() ||
+          env.CLOUDFLARE_AI_GATEWAY_ID?.trim()),
     );
   }
   return Boolean(env[PROVIDER_ENV[provider]]?.trim());
+}
+
+function stripProcessModelEnv(env: NodeJS.ProcessEnv): void {
+  for (const key of PROCESS_MODEL_ENV) {
+    delete env[key];
+  }
+  // Account id is shared with email on the host; AI uses the workspace pack only.
+  delete env.CLOUDFLARE_ACCOUNT_ID;
 }
 
 function parseCloudflareSecret(raw: string): {
@@ -115,19 +141,8 @@ function parseCloudflareSecret(raw: string): {
   return { apiToken: raw };
 }
 
-function configuredProviders(
-  keys: ModelKeyStatus[],
-  runtime: string | undefined,
-): ModelProvider[] {
-  return keys
-    .filter((item) => item.configured)
-    .filter(
-      (item) =>
-        item.provider !== "cloudflare" ||
-        runtime === "gateway" ||
-        runtime === "cloudflare",
-    )
-    .map((item) => item.provider);
+function configuredProviders(keys: ModelKeyStatus[]): ModelProvider[] {
+  return keys.filter((item) => item.configured).map((item) => item.provider);
 }
 
 export async function loadModelSettings(
@@ -156,20 +171,13 @@ export async function loadModelSettings(
   const keys: ModelKeyStatus[] = PROVIDERS.map((provider) => {
     const row = byProvider.get(provider);
     if (!row) {
-      const fromEnv = envKeyConfigured(provider, env);
       return {
         provider,
-        configured: fromEnv,
-        source: fromEnv ? ("env" as const) : ("none" as const),
-        hint: fromEnv ? "on this machine" : null,
-        accountId:
-          provider === "cloudflare" && fromEnv
-            ? (env.CLOUDFLARE_ACCOUNT_ID?.trim() ?? null)
-            : null,
-        gatewayId:
-          provider === "cloudflare" && fromEnv
-            ? (env.CLOUDFLARE_AI_GATEWAY_ID?.trim() ?? "default")
-            : null,
+        configured: false,
+        source: "none" as const,
+        hint: null,
+        accountId: null,
+        gatewayId: null,
       };
     }
     const packed = secretById.get(row.secretId)?.ciphertext;
@@ -210,18 +218,17 @@ export async function loadModelSettings(
       legacyChoice = "";
     }
   }
-  const available = configuredProviders(keys, runtime);
+  const available = configuredProviders(keys);
   const stored =
     workspace?.defaultModel.trim() ||
     legacyChoice ||
     creds.find((row) => row.isDefault)?.defaultModel?.trim() ||
-    env.GROGBOT_MODEL?.trim() ||
     "";
   const fallback =
     catalogForRuntime(runtime).find((item) =>
       modelIsRunnable(item.id, available),
     )?.id ?? SUGGESTED_STARTER_MODEL;
-  const defaultModelId = stored || fallback;
+  const defaultModelId = flueModelId(stored || fallback);
   const listed = catalogForRuntime(runtime).some(
     (item) => item.id === defaultModelId,
   );
@@ -241,7 +248,7 @@ export async function loadModelSettings(
     defaultModel: listed ? defaultModelId : "custom",
     customModel: listed ? "" : defaultModelId,
     defaultModelId,
-    fromEnv: creds.length === 0 && keys.some((item) => item.source === "env"),
+    fromEnv: false,
     runtime,
     catalog,
     warning,
@@ -500,14 +507,13 @@ export async function resolveRunModel(
   secret: string,
 ): Promise<ModelOverlay> {
   const env: NodeJS.ProcessEnv = { ...baseEnv };
+  stripProcessModelEnv(env);
   const settings = await loadStoredEnv(db, bot.workspaceId, secret);
   Object.assign(env, settings.env);
   const botModel = bot.model?.trim();
-  const model =
-    botModel ||
-    settings.defaultModel ||
-    env.GROGBOT_MODEL?.trim() ||
-    defaultModelForEnv(env);
+  const model = flueModelId(
+    botModel || settings.defaultModel || SUGGESTED_STARTER_MODEL,
+  );
   if (model) env.GROGBOT_MODEL = model;
   const providers: ModelProvider[] = PROVIDERS.filter((provider) =>
     envKeyConfigured(provider, env),
@@ -561,8 +567,14 @@ async function loadStoredEnv(
     if (provider === "cloudflare") {
       const parsed = parseCloudflareSecret(plain);
       if (parsed.accountId) env.CLOUDFLARE_ACCOUNT_ID = parsed.accountId;
-      if (parsed.apiToken) env.CLOUDFLARE_API_TOKEN = parsed.apiToken;
-      if (parsed.gatewayId) env.CLOUDFLARE_AI_GATEWAY_ID = parsed.gatewayId;
+      if (parsed.apiToken) {
+        // Pi's cloudflare-ai-gateway provider reads CLOUDFLARE_API_KEY.
+        env.CLOUDFLARE_API_KEY = parsed.apiToken;
+        env.CLOUDFLARE_API_TOKEN = parsed.apiToken;
+      }
+      const gatewayId = parsed.gatewayId?.trim() || "default";
+      env.CLOUDFLARE_GATEWAY_ID = gatewayId;
+      env.CLOUDFLARE_AI_GATEWAY_ID = gatewayId;
     } else if (provider in PROVIDER_ENV) {
       env[PROVIDER_ENV[provider as Exclude<ModelProvider, "cloudflare">]] =
         plain;
@@ -572,22 +584,8 @@ async function loadStoredEnv(
   return { env, defaultModel };
 }
 
-function defaultModelForEnv(env: NodeJS.ProcessEnv): string {
-  if (env.ANTHROPIC_API_KEY) return "anthropic/claude-sonnet-4-6";
-  if (env.OPENAI_API_KEY) return "openai/gpt-4o-mini";
-  if (env.OPENROUTER_API_KEY) return SUGGESTED_STARTER_MODEL;
-  if (env.CLOUDFLARE_ACCOUNT_ID && env.CLOUDFLARE_API_TOKEN) {
-    return "@cf/deepseek-ai/deepseek-v4-flash-0731";
-  }
-  return SUGGESTED_STARTER_MODEL;
-}
-
-export function userHasModelCredentials(
-  count: number,
-  env: NodeJS.ProcessEnv,
-): boolean {
-  if (count > 0) return true;
-  return PROVIDERS.some((provider) => envKeyConfigured(provider, env));
+export function userHasModelCredentials(count: number): boolean {
+  return count > 0;
 }
 
 export function missingModelMessage(model: string): string {

@@ -59,7 +59,7 @@ Rivet, Agents SDK, Project Think, agentOS, and Cloudflare Sandbox stay out of **
 | Self-host | **Node + Postgres + Docker.** Same code. No Cloudflare account. |
 | ORM | **Drizzle** + Postgres |
 | Auth | **Better Auth** — magic-link email (Cloudflare Email Sending REST), Google, GitHub. Organizations = workspaces |
-| Models | **BYOK in the office** (Settings → Models). Workspace keys + default model; a bot may override. Encrypted at rest. **Flue + Pi** (`AGENT_RUNTIME=flue`) is the loop. **AI Gateway** remains a single-shot chat path (Cloudflare models only then). `scripted` / `flue-echo` stay offline for tests |
+| Models | **BYOK in the office** (Settings → Models). Workspace keys + default model only — not `.env`. A bot may override. Encrypted at rest. **Flue + Pi** (`AGENT_RUNTIME=flue`) is the loop for every provider, including **Cloudflare AI Gateway** (Pi `cloudflare-ai-gateway`). `scripted` / `flue-echo` stay offline for tests |
 | Sandbox | `docker` local · `e2b` hosted · `desktop` trusted machine only · `fake` tests |
 | Homes | Disk v1 · `HomeStore` → R2 later |
 | Realtime | oRPC event iterator now · actor WebSocket later if needed |

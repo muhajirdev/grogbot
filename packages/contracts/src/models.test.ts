@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   catalogForRuntime,
+  flueModelId,
   missingProviderMessage,
   modelIsRunnable,
   providerForModel,
@@ -16,15 +17,29 @@ describe("model catalog", () => {
     expect(providerForModel("openrouter/deepseek/deepseek-v4-flash-0731")).toBe(
       "openrouter",
     );
+    expect(
+      providerForModel(
+        "cloudflare-ai-gateway/workers-ai/@cf/moonshotai/kimi-k2.6",
+      ),
+    ).toBe("cloudflare");
     expect(providerForModel("@cf/deepseek-ai/deepseek-v4-flash-0731")).toBe(
       "cloudflare",
     );
   });
 
-  it("hides Cloudflare models on the Flue runtime", () => {
+  it("normalizes Cloudflare ids for Flue/Pi", () => {
+    expect(flueModelId("@cf/deepseek-ai/deepseek-v4-flash-0731")).toBe(
+      "cloudflare-ai-gateway/workers-ai/@cf/deepseek-ai/deepseek-v4-flash-0731",
+    );
+    expect(
+      flueModelId("cloudflare-ai-gateway/workers-ai/@cf/moonshotai/kimi-k2.6"),
+    ).toBe("cloudflare-ai-gateway/workers-ai/@cf/moonshotai/kimi-k2.6");
+  });
+
+  it("lists Cloudflare models for every runtime", () => {
     expect(
       catalogForRuntime("flue").some((item) => item.provider === "cloudflare"),
-    ).toBe(false);
+    ).toBe(true);
     expect(
       catalogForRuntime("gateway").some(
         (item) => item.provider === "cloudflare",
@@ -65,9 +80,12 @@ describe("model catalog", () => {
         customModel: "openrouter/foo",
       }),
     ).toBe("openrouter/foo");
-    expect(missingProviderMessage("anthropic/claude-sonnet-4-6")).toMatch(
-      /Anthropic/,
+    expect(missingProviderMessage("anthropic/claude-sonnet-4-6")).toBe(
+      "Claude Sonnet 4.6 needs an Anthropic key.",
     );
+    expect(
+      missingProviderMessage("openrouter/deepseek/deepseek-v4-flash-0731"),
+    ).toBe("DeepSeek V4 Flash needs an OpenRouter key.");
   });
 
   it("rejects keys pasted as model ids", () => {

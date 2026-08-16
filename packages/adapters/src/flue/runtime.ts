@@ -29,27 +29,15 @@ export function resolveFlueModel(
   if (echo) return ECHO_MODEL;
   const explicit = envValue(source, "GROGBOT_MODEL");
   if (explicit) return explicit;
-  if (envValue(source, "ANTHROPIC_API_KEY")) {
-    return "anthropic/claude-sonnet-4-6";
-  }
-  if (envValue(source, "OPENAI_API_KEY")) return "openai/gpt-4o-mini";
-  if (envValue(source, "OPENROUTER_API_KEY")) {
-    return "openrouter/deepseek/deepseek-v4-flash-0731";
-  }
   throw new Error(
-    "AGENT_RUNTIME=flue needs GROGBOT_MODEL or a provider API key. Use AGENT_RUNTIME=flue-echo or scripted offline.",
+    "AGENT_RUNTIME=flue needs a model from Settings → Models. Use AGENT_RUNTIME=flue-echo or scripted offline.",
   );
 }
 
 export function flueConfigured(
   source: NodeJS.ProcessEnv = process.env,
 ): boolean {
-  try {
-    resolveFlueModel(false, source);
-    return true;
-  } catch {
-    return false;
-  }
+  return Boolean(envValue(source, "GROGBOT_MODEL"));
 }
 
 function persistence(source: NodeJS.ProcessEnv) {
@@ -180,8 +168,8 @@ function envFingerprint(echo: boolean, env: NodeJS.ProcessEnv): string {
     env.OPENAI_API_KEY ?? "",
     env.OPENROUTER_API_KEY ?? "",
     env.CLOUDFLARE_ACCOUNT_ID ?? "",
-    env.CLOUDFLARE_API_TOKEN ?? "",
-    env.CLOUDFLARE_AI_GATEWAY_ID ?? "",
+    env.CLOUDFLARE_API_KEY ?? env.CLOUDFLARE_API_TOKEN ?? "",
+    env.CLOUDFLARE_GATEWAY_ID ?? env.CLOUDFLARE_AI_GATEWAY_ID ?? "",
   ].join("\0");
   return material;
 }

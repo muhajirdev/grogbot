@@ -1,5 +1,5 @@
 import type { Me, ModelCatalogItem, ModelProvider } from "@grogbot/contracts";
-import { isGatewayRuntime, PROVIDER_META } from "@grogbot/contracts";
+import { missingProviderMessage, PROVIDER_META } from "@grogbot/contracts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { userFacingError } from "../lib/errors";
@@ -17,7 +17,7 @@ import {
 } from "../lib/prefs";
 import { client } from "../lib/rpc";
 import type { Theme } from "../lib/theme";
-import { CloseIcon } from "./Icons";
+import { ChevronDownIcon, CloseIcon } from "./Icons";
 import { ModalShell } from "./Modal";
 
 type Tab = "general" | "models" | "billing" | "updates";
@@ -229,16 +229,16 @@ function ModelsTab() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
+  const [openKeys, setOpenKeys] = useState<
+    Partial<Record<ModelProvider, boolean>>
+  >({});
 
   const selectedModel = defaultModel ?? settings?.defaultModel ?? "";
   const custom = customModel ?? settings?.customModel ?? "";
   const cf = settings?.keys.find((item) => item.provider === "cloudflare");
   const cfAccount = accountId ?? cf?.accountId ?? "";
   const cfGateway = gatewayId ?? cf?.gatewayId ?? "";
-  const providers = PROVIDER_ORDER.filter(
-    (provider) =>
-      provider !== "cloudflare" || isGatewayRuntime(settings?.runtime),
-  );
+  const providers = PROVIDER_ORDER;
   const grouped = new Map<ModelProvider, ModelCatalogItem[]>();
   for (const item of settings?.catalog ?? []) {
     const list = grouped.get(item.provider) ?? [];
@@ -248,12 +248,28 @@ function ModelsTab() {
   const selectedMeta = settings?.catalog.find(
     (item) => item.id === selectedModel,
   );
+  const neededProvider =
+    selectedModel !== "custom" && selectedMeta && !selectedMeta.available
+      ? selectedMeta.provider
+      : undefined;
   const warning =
     selectedModel === "custom"
       ? settings?.warning
-      : selectedMeta && !selectedMeta.available
-        ? `${selectedMeta.label} needs a ${PROVIDER_META[selectedMeta.provider].label} key.`
+      : neededProvider
+        ? missingProviderMessage(selectedModel)
         : settings?.warning;
+
+  function keyExpanded(provider: ModelProvider) {
+    if (openKeys[provider] !== undefined) return Boolean(openKeys[provider]);
+    return neededProvider === provider;
+  }
+
+  function toggleKey(provider: ModelProvider) {
+    setOpenKeys((current) => ({
+      ...current,
+      [provider]: !keyExpanded(provider),
+    }));
+  }
 
   async function save() {
     if (!settings) return;
@@ -329,7 +345,17 @@ function ModelsTab() {
           <span>Model</span>
           <select
             value={selectedModel}
-            onChange={(e) => setDefaultModel(e.target.value)}
+            onChange={(e) => {
+              const next = e.target.value;
+              setDefaultModel(next);
+              const meta = settings.catalog.find((item) => item.id === next);
+              if (meta && !meta.available) {
+                setOpenKeys((current) => ({
+                  ...current,
+                  [meta.provider]: true,
+                }));
+              }
+            }}
           >
             {[...grouped.entries()].map(([provider, items]) => (
               <optgroup key={provider} label={PROVIDER_META[provider].label}>
@@ -357,89 +383,123 @@ function ModelsTab() {
           </label>
         ) : null}
         {warning ? <p className="model-warn">{warning}</p> : null}
-        {settings.fromEnv ? (
-          <p className="hint">
-            This machine also has keys in the environment. Saving here stores
-            office keys for everyone in the workspace.
-          </p>
-        ) : null}
       </section>
       <section className="set-block">
         <p className="group-label">Provider keys</p>
         <p className="hint">
           Bring your own keys. They are encrypted at rest and never shown again.
-          OpenRouter is enough to start.
+          OpenRouter is enough to start. Click a provider to paste a key.
         </p>
-        {providers.map((provider) => {
-          const meta = PROVIDER_META[provider];
-          const status = settings.keys.find(
-            (item) => item.provider === provider,
-          );
-          return (
-            <label key={provider} className="field">
-              <span>
-                {meta.label}
-                {meta.recommended ? (
-                  <em className="muted"> · recommended</em>
-                ) : null}
-                {status?.configured ? (
-                  <em className="muted"> · {status.hint}</em>
-                ) : null}
+        <div className="provider-keys">
+          <div className="provider-key soon">
+            <div className="provider-key-toggle" aria-disabled="true">
+              <span className="provider-name">
+                Grogbot
+                <em className="muted"> · hosted</em>
               </span>
-              <p className="hint">
-                {meta.hint}{" "}
-                <a href={meta.docsUrl} target="_blank" rel="noreferrer">
-                  Get a key
-                </a>
-              </p>
-              <input
-                type="password"
-                autoComplete="new-password"
-                spellCheck={false}
-                placeholder={
-                  status?.configured ? "Leave blank to keep" : meta.placeholder
-                }
-                value={drafts[provider] ?? ""}
-                onChange={(e) =>
-                  setDrafts((current) => ({
-                    ...current,
-                    [provider]: e.target.value,
-                  }))
-                }
-              />
-              {provider === "cloudflare" ? (
-                <>
-                  <input
-                    style={{ marginTop: 8 }}
-                    placeholder="Cloudflare account id"
-                    spellCheck={false}
-                    autoComplete="off"
-                    value={cfAccount}
-                    onChange={(e) => setAccountId(e.target.value)}
-                  />
-                  <input
-                    style={{ marginTop: 8 }}
-                    placeholder="AI Gateway id (optional)"
-                    spellCheck={false}
-                    autoComplete="off"
-                    value={cfGateway}
-                    onChange={(e) => setGatewayId(e.target.value)}
-                  />
-                </>
-              ) : null}
-              {status?.source === "workspace" ? (
+              <span className="provider-status soon">Coming soon</span>
+            </div>
+          </div>
+          {providers.map((provider) => {
+            const meta = PROVIDER_META[provider];
+            const status = settings.keys.find(
+              (item) => item.provider === provider,
+            );
+            const expanded = keyExpanded(provider);
+            const statusLabel = status?.configured
+              ? (status.hint ?? "on file")
+              : neededProvider === provider
+                ? "needs key"
+                : "no key";
+            return (
+              <div
+                key={provider}
+                className={`provider-key${expanded ? " open" : ""}`}
+              >
                 <button
-                  className="text-btn"
+                  className="provider-key-toggle"
                   type="button"
-                  disabled={busy}
-                  onClick={() => void clear(provider)}
+                  aria-expanded={expanded}
+                  onClick={() => toggleKey(provider)}
                 >
-                  Remove key
+                  <span className="provider-name">
+                    {meta.label}
+                    {meta.recommended ? (
+                      <em className="muted"> · recommended</em>
+                    ) : null}
+                  </span>
+                  <span
+                    className={`provider-status${status?.configured ? " ok" : neededProvider === provider ? " warn" : ""}`}
+                  >
+                    {statusLabel}
+                  </span>
+                  <ChevronDownIcon className="provider-chevron" />
                 </button>
-              ) : null}
-            </label>
-          );
-        })}
+                {expanded ? (
+                  <div className="provider-key-body">
+                    <p className="hint">
+                      {meta.hint}{" "}
+                      <a href={meta.docsUrl} target="_blank" rel="noreferrer">
+                        Get a key
+                      </a>
+                    </p>
+                    <label className="field">
+                      <span className="sr-only">
+                        {meta.label}{" "}
+                        {provider === "cloudflare" ? "API token" : "API key"}
+                      </span>
+                      <input
+                        type="password"
+                        autoComplete="new-password"
+                        spellCheck={false}
+                        placeholder={
+                          status?.configured
+                            ? "Leave blank to keep"
+                            : meta.placeholder
+                        }
+                        value={drafts[provider] ?? ""}
+                        onChange={(e) =>
+                          setDrafts((current) => ({
+                            ...current,
+                            [provider]: e.target.value,
+                          }))
+                        }
+                      />
+                    </label>
+                    {provider === "cloudflare" ? (
+                      <>
+                        <input
+                          placeholder="32-character account id"
+                          spellCheck={false}
+                          autoComplete="off"
+                          value={cfAccount}
+                          onChange={(e) => setAccountId(e.target.value)}
+                        />
+                        <input
+                          placeholder="AI Gateway id (default)"
+                          spellCheck={false}
+                          autoComplete="off"
+                          value={cfGateway}
+                          onChange={(e) => setGatewayId(e.target.value)}
+                        />
+                      </>
+                    ) : null}
+                    {status?.source === "workspace" ? (
+                      <button
+                        className="text-btn"
+                        type="button"
+                        disabled={busy}
+                        onClick={() => void clear(provider)}
+                      >
+                        Remove key
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
       </section>
       {error ? <p className="error">{error}</p> : null}
       {saved ? <p className="hint">Saved.</p> : null}

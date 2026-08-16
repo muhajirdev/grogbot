@@ -299,13 +299,15 @@ describe("createAgentRuntime", () => {
     expect(OFFLINE_AGENT_RUNTIME).toBe("scripted");
   });
 
-  it("needs a model key for live flue, not for offline stubs", () => {
+  it("needs a model id for live flue, not for offline stubs", () => {
     expect(agentRuntimeNeedsModel("scripted", {})).toBe(false);
     expect(agentRuntimeNeedsModel("flue-echo", {})).toBe(false);
     expect(agentRuntimeNeedsModel("flue", {})).toBe(true);
-    expect(agentRuntimeNeedsModel("flue", { OPENAI_API_KEY: "sk-test" })).toBe(
-      false,
-    );
+    expect(
+      agentRuntimeNeedsModel("flue", {
+        GROGBOT_MODEL: "openai/gpt-4o-mini",
+      }),
+    ).toBe(false);
   });
 
   it("keeps the scripted echo for offline tests", async () => {

@@ -37,15 +37,18 @@ describe("FlueAgentRuntime", () => {
     expect(resolveFlueModel(true, {})).toBe(ECHO_MODEL);
   });
 
-  it("treats a provider key as enough for live Pi", () => {
+  it("requires GROGBOT_MODEL for live Pi", () => {
     expect(flueConfigured({})).toBe(false);
-    expect(flueConfigured({ ANTHROPIC_API_KEY: "sk-ant-test" })).toBe(true);
-    expect(resolveFlueModel(false, { ANTHROPIC_API_KEY: "sk-ant-test" })).toBe(
-      "anthropic/claude-sonnet-4-6",
-    );
+    expect(flueConfigured({ ANTHROPIC_API_KEY: "sk-ant-test" })).toBe(false);
+    expect(
+      flueConfigured({ GROGBOT_MODEL: "anthropic/claude-sonnet-4-6" }),
+    ).toBe(true);
+    expect(
+      resolveFlueModel(false, { GROGBOT_MODEL: "anthropic/claude-sonnet-4-6" }),
+    ).toBe("anthropic/claude-sonnet-4-6");
   });
 
-  it("errors on the first turn when live flue has no keys", async () => {
+  it("errors on the first turn when live flue has no model", async () => {
     const runtime = new FlueAgentRuntime({ env: {} });
     const events = [];
     for await (const event of runtime.run(runRequest, adapterContext)) {
@@ -54,7 +57,7 @@ describe("FlueAgentRuntime", () => {
     expect(events.some((event) => event.type === "progress")).toBe(true);
     expect(events.at(-1)).toMatchObject({
       type: "error",
-      text: expect.stringMatching(/GROGBOT_MODEL|API key/),
+      text: expect.stringMatching(/Settings → Models|GROGBOT_MODEL/),
     });
     await runtime.stop();
   });

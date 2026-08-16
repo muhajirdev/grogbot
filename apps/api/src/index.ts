@@ -1,4 +1,4 @@
-import { createAgentRuntime } from "@grogbot/adapters";
+import { bindAgentRuntime, createAgentRuntime } from "@grogbot/adapters";
 import { createWakeHandlers } from "@grogbot/core";
 import { serve } from "@hono/node-server";
 import { loadRootEnv } from "./load-root-env.js";
@@ -23,8 +23,7 @@ async function main() {
         runtime,
         wakeup: handles.wakeup,
         guests: handles.guests,
-        bindRuntime: (overlay) =>
-          createAgentRuntime(env.agentRuntime, overlay.env),
+        bindRuntime: (overlay) => bindAgentRuntime(env.agentRuntime, overlay),
       }),
     );
   }

@@ -3,6 +3,7 @@ import { createServer } from "node:http";
 import path from "node:path";
 import type { WakeupJob } from "@grogbot/adapter-kit";
 import {
+  bindAgentRuntime,
   createAgentRuntime,
   InProcessWakeupDriver,
   resolveAgentRuntimeKind,
@@ -63,7 +64,7 @@ async function main() {
       runtime,
       wakeup,
       guests,
-      bindRuntime: (overlay) => createAgentRuntime(agentRuntime, overlay.env),
+      bindRuntime: (overlay) => bindAgentRuntime(agentRuntime, overlay),
     }),
   );
 

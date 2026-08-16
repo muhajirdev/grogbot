@@ -80,6 +80,14 @@ export function ChevronLeftIcon(props: IconProps) {
   );
 }
 
+export function ChevronDownIcon(props: IconProps) {
+  return (
+    <Svg className={props.className}>
+      <path d="M6 9l6 6 6-6" />
+    </Svg>
+  );
+}
+
 export function CollapseIcon(props: IconProps) {
   return (
     <Svg className={props.className}>
