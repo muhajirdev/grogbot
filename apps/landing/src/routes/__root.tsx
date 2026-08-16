@@ -5,11 +5,11 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { PAGE_DESCRIPTION, PAGE_TITLE } from "../lib/copy";
 import appCss from "../styles.css?url";
 
-const title = "Grogbot — AI teammates you host";
-const description =
-  "Create a Bot, message it, grant access as needed. No workflow builder. Open-source Grok Bot with a real computer, shared Desk, and bring-your-own keys.";
+const title = PAGE_TITLE;
+const description = PAGE_DESCRIPTION;
 
 export const Route = createRootRoute({
   head: () => ({

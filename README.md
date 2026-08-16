@@ -16,7 +16,7 @@ Early scaffold: contracts, Postgres (team data), Rivet-shaped **one actor per bo
 - Local Compose Postgres, then Fly or Railway
 - Computers: Docker locally, E2B hosted, desktop only on a trusted machine
 - Plugins: Composio (optional)
-- UI: **web first** (Grok Bot-simple) — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md). Desktop = Electron around web. Mobile = Expo later.
+- UI: **web first** (Grok Bot-simple) — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md). Marketing landing is TanStack Start. Desktop = Electron around web. Mobile = Expo later. Open-source chrome reference: [docs/openmausbot-inspiration.md](./docs/openmausbot-inspiration.md).
 - Cloudflare later: Rivet’s DO driver
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md).

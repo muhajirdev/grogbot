@@ -2,7 +2,7 @@
 
 **Grogbot** is open-core **Grok Bot**: named teammates with a real computer. Message them like people. Composio for Gmail/Slack/GitHub. Workspace-shared context and skills. BYOK models.
 
-UI: copy Grok Bot simplicity — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md). Rooms later: [docs/rooms-plan.md](./docs/rooms-plan.md).
+UI: copy Grok Bot simplicity — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md). Screenshotable clone for chrome: [docs/openmausbot-inspiration.md](./docs/openmausbot-inspiration.md). Rooms later: [docs/rooms-plan.md](./docs/rooms-plan.md).
 
 ## Product
 

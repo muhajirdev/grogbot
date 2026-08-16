@@ -1,3 +1,70 @@
+export const SOURCE_REPO = "https://github.com/muhajirdev/grogbot";
+
+export const HERO = {
+  kicker: "Open-source Grok Bot",
+  title: "Your own team of AI bots, in a chat app.",
+  lede: "Every bot is a named teammate — its own job, thread, and computer. Message them like contacts. Watch them work. Approve what matters. You host it.",
+} as const;
+
+export const HERO_TICKS = [
+  "Open source · bring your own model keys",
+  "Every bot can drive a real computer while you watch",
+  "Approvals in chat · optional Gmail, Slack, GitHub",
+] as const;
+
+export const STEPS = [
+  {
+    n: "1",
+    title: "Create a Bot",
+    body: "Name it, give it a job, pick the workspace Desk or a new computer. It shows up like a contact — no workflow builder.",
+  },
+  {
+    n: "2",
+    title: "Give it a real task",
+    body: "Outcome, sources, constraints, when to stop. First message can be a file summary with no connector at all.",
+  },
+  {
+    n: "3",
+    title: "Watch, then approve",
+    body: "Streaming replies, tool chips, a live computer pane. Risky work becomes Allow / Deny in the thread. Closing the pane does not stop the work.",
+  },
+] as const;
+
+export const FEATURES = [
+  {
+    id: "teammates",
+    title: "Bots as contacts",
+    body: "A roster, not a canvas. Search, pin, duplicate, hide. Each Bot has a name, title, description, and one office thread.",
+  },
+  {
+    id: "computer",
+    title: "A computer they can drive",
+    body: "Live preview while they work. Take over for a password, 2FA, or payment — on the computer, not in chat.",
+  },
+  {
+    id: "approvals",
+    title: "Approvals in chat",
+    body: "Shell, edits, and questions surface as inline cards. You decide; the Bot continues. Nothing risky runs silently.",
+  },
+  {
+    id: "apps",
+    title: "Connected apps",
+    body: "Optional Composio for Gmail, Slack, GitHub, Notion, Linear, and the rest. OAuth when they hit a wall.",
+  },
+  {
+    id: "desk",
+    title: "Desk by default",
+    body: "Teammates share files and logins on the workspace Desk, one mouse at a time. New computer = private logins.",
+  },
+  {
+    id: "host",
+    title: "You host it",
+    body: "Postgres for the team. One Rivet actor per Bot. Web first, same office in desktop. Bring your own keys.",
+  },
+] as const;
+
+export type FeatureId = (typeof FEATURES)[number]["id"];
+
 export const JOBS = [
   {
     title: "Sales Outbound",
@@ -41,9 +108,18 @@ export const JOBS = [
   },
 ] as const;
 
+export const APPS = [
+  "Gmail",
+  "Slack",
+  "GitHub",
+  "Notion",
+  "Linear",
+  "Calendar",
+] as const;
+
 export const FAQS = [
   {
-    q: "How is this different from a chatbot?",
+    q: "Is this a chatbot?",
     a: "Each Bot is a named teammate with a job, a thread, and a real computer. They work in your tools the way you would, then come back when they need approval.",
   },
   {
@@ -52,11 +128,15 @@ export const FAQS = [
   },
   {
     q: "Where does the computer live?",
-    a: "Workspace Desk is shared by default — files and logins, one mouse. Give a Bot a new computer when the logins should stay private. Closing the pane does not stop the work.",
+    a: "The workspace Desk is shared by default — files and logins, one mouse. Give a Bot a new computer when the logins should stay private. Closing the pane does not stop the work.",
   },
   {
-    q: "Who hosts it?",
-    a: "You do. Grogbot is open source. Bring your own model keys. Optional Composio for Gmail, Slack, and GitHub. First tasks can be a file summary with no connector at all.",
+    q: "Who hosts it? Is my data local-only?",
+    a: "You host it. Grogbot is open source: Postgres for the team, one actor per Bot. Bring your own model keys. It is not a local CLI harness on your laptop — the office is a web app you run.",
+  },
+  {
+    q: "Which models?",
+    a: "Bring your own keys. Pick a brain per Bot from the catalog. First tasks can be a file summary with no connector and no plugin.",
   },
   {
     q: "Where do I talk to a Bot?",
@@ -64,4 +144,6 @@ export const FAQS = [
   },
 ] as const;
 
-export const SOURCE_REPO = "https://github.com/muhajirdev/grogbot";
+export const PAGE_TITLE = "Grogbot — your own team of AI bots, in a chat app";
+export const PAGE_DESCRIPTION =
+  "Open-source Grok Bot. Named teammates with a real computer. Message them, watch them work, approve what matters. You host it. Bring your own keys.";

@@ -2,12 +2,13 @@
 
 Grogbot should **feel like Grok Bot**: a messaging app of named teammates, not a workflow builder, IDE, or Discord. This is the visual and onboarding spec. Product/architecture stays ours (workspace Desk shared by default, optional isolated computer, Postgres for team data, Rivet actor per bot, oRPC, Composio). **Implement on web first**; desktop reuses that UI; Expo gets the same contract later.
 
-We could not screenshot the live desktop app (paywalled: SuperGrok Heavy / Cursor Ultra). This brief is from official docs and marketing as of 11–15 Aug 2026.
+We could not screenshot the live desktop app (paywalled: SuperGrok Heavy / Cursor Ultra). This brief is from official docs and marketing as of 11–15 Aug 2026. For a screenshotable open-source clone of the same chrome, use [OpenMausBot](https://github.com/milind-soni/OpenMausBot) — take/leave in [openmausbot-inspiration.md](./openmausbot-inspiration.md).
 
 **Look at these while building:**
 
 | What | Where |
 | --- | --- |
+| Open-source Grok Bot clone (palette, context menus, approval cards, computer pane) | [OpenMausBot](https://github.com/milind-soni/OpenMausBot) · [screenshots](https://github.com/milind-soni/OpenMausBot/tree/main/docs/screenshots) |
 | Marketing, job chips, computer takeover line | [x.ai/bot](https://x.ai/bot) |
 | Launch post, quotes, use-case tabs | [x.ai/news/introducing-grok-bot](https://x.ai/news/introducing-grok-bot) |
 | First-run steps | [docs: get started](https://docs.x.ai/grok-bot/get-started) |
