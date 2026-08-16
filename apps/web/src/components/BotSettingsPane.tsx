@@ -1,9 +1,9 @@
 import type { Bot, ComputerStatus, GuestAgentKind } from "@grogbot/contracts";
 import { useEffect, useState } from "react";
-import { AVATAR_COLORS } from "../lib/jobs";
+import { AVATAR_COLORS, AVATAR_SHAPES } from "../lib/jobs";
 import { readNotify, writeNotify } from "../lib/prefs";
 import { client } from "../lib/rpc";
-import { AvatarMark } from "./Avatar";
+import { AvatarMark, ShapePicks } from "./Avatar";
 import { ChevronLeftIcon, CollapseIcon } from "./Icons";
 
 export function BotSettingsPane(props: {
@@ -87,7 +87,7 @@ export function BotSettingsPane(props: {
             <button
               key={value}
               type="button"
-              className={`swatch avatar circle${color === value ? " on" : ""}`}
+              className={`swatch${color === value ? " on" : ""}`}
               style={{ background: value }}
               onClick={() => {
                 setColor(value);
@@ -96,6 +96,15 @@ export function BotSettingsPane(props: {
             />
           ))}
         </div>
+        <ShapePicks
+          color={color}
+          value={shape}
+          shapes={AVATAR_SHAPES}
+          onChange={(next) => {
+            setShape(next);
+            void save({ avatarShape: next });
+          }}
+        />
         <label className="field">
           <span>Name</span>
           <input
