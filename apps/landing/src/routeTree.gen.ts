@@ -23,14 +23,21 @@ import { Route as LlmsDothtmlRouteImport } from './routes/llms[.]html'
 import { Route as LlmsDottxtRouteImport } from './routes/llms[.]txt'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as McpDotjsonRouteImport } from './routes/mcp[.]json'
+import { Route as PressKitRouteImport } from './routes/press-kit'
+import { Route as PressDotmdRouteImport } from './routes/press[.]md'
 import { Route as RobotsAiDottxtRouteImport } from './routes/robots-ai[.]txt'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as IntegrationsIndexRouteImport } from './routes/integrations/index'
 import { Route as IntegrationsSlugRouteImport } from './routes/integrations/$slug'
+import { Route as PressIndexRouteImport } from './routes/press/index'
+import { Route as PressFileRouteImport } from './routes/press/$file'
 import { Route as UseCasesIndexRouteImport } from './routes/use-cases/index'
 import { Route as UseCasesSlugRouteImport } from './routes/use-cases/$slug'
 import { Route as IntegrationsCategoryCategoryRouteImport } from './routes/integrations/category/$category'
+import { Route as WellKnownApiCatalogRouteImport } from './routes/.well-known/api-catalog'
+import { Route as WellKnownMcpDotjsonRouteImport } from './routes/.well-known/mcp[.]json'
+import { Route as WellKnownMcpServerCardDotjsonRouteImport } from './routes/.well-known/mcp/server-card[.]json'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -102,6 +109,16 @@ const McpDotjsonRoute = McpDotjsonRouteImport.update({
   path: '/mcp.json',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PressKitRoute = PressKitRouteImport.update({
+  id: '/press-kit',
+  path: '/press-kit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PressDotmdRoute = PressDotmdRouteImport.update({
+  id: '/press.md',
+  path: '/press.md',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RobotsAiDottxtRoute = RobotsAiDottxtRouteImport.update({
   id: '/robots-ai.txt',
   path: '/robots-ai.txt',
@@ -127,6 +144,16 @@ const IntegrationsSlugRoute = IntegrationsSlugRouteImport.update({
   path: '/integrations/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PressIndexRoute = PressIndexRouteImport.update({
+  id: '/press/',
+  path: '/press/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PressFileRoute = PressFileRouteImport.update({
+  id: '/press/$file',
+  path: '/press/$file',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UseCasesIndexRoute = UseCasesIndexRouteImport.update({
   id: '/use-cases/',
   path: '/use-cases/',
@@ -141,6 +168,22 @@ const IntegrationsCategoryCategoryRoute =
   IntegrationsCategoryCategoryRouteImport.update({
     id: '/integrations/category/$category',
     path: '/integrations/category/$category',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const WellKnownApiCatalogRoute = WellKnownApiCatalogRouteImport.update({
+  id: '/.well-known/api-catalog',
+  path: '/.well-known/api-catalog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WellKnownMcpDotjsonRoute = WellKnownMcpDotjsonRouteImport.update({
+  id: '/.well-known/mcp.json',
+  path: '/.well-known/mcp.json',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WellKnownMcpServerCardDotjsonRoute =
+  WellKnownMcpServerCardDotjsonRouteImport.update({
+    id: '/.well-known/mcp/server-card.json',
+    path: '/.well-known/mcp/server-card.json',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -159,14 +202,21 @@ export interface FileRoutesByFullPath {
   '/llms.txt': typeof LlmsDottxtRoute
   '/mcp': typeof McpRoute
   '/mcp.json': typeof McpDotjsonRoute
+  '/press-kit': typeof PressKitRoute
+  '/press.md': typeof PressDotmdRoute
   '/robots-ai.txt': typeof RobotsAiDottxtRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/integrations/$slug': typeof IntegrationsSlugRoute
+  '/press/$file': typeof PressFileRoute
   '/use-cases/$slug': typeof UseCasesSlugRoute
   '/integrations/': typeof IntegrationsIndexRoute
+  '/press/': typeof PressIndexRoute
   '/use-cases/': typeof UseCasesIndexRoute
   '/integrations/category/$category': typeof IntegrationsCategoryCategoryRoute
+  '/.well-known/api-catalog': typeof WellKnownApiCatalogRoute
+  '/.well-known/mcp.json': typeof WellKnownMcpDotjsonRoute
+  '/.well-known/mcp/server-card.json': typeof WellKnownMcpServerCardDotjsonRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -183,14 +233,21 @@ export interface FileRoutesByTo {
   '/llms.txt': typeof LlmsDottxtRoute
   '/mcp': typeof McpRoute
   '/mcp.json': typeof McpDotjsonRoute
+  '/press-kit': typeof PressKitRoute
+  '/press.md': typeof PressDotmdRoute
   '/robots-ai.txt': typeof RobotsAiDottxtRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/integrations/$slug': typeof IntegrationsSlugRoute
+  '/press/$file': typeof PressFileRoute
   '/use-cases/$slug': typeof UseCasesSlugRoute
   '/integrations': typeof IntegrationsIndexRoute
+  '/press': typeof PressIndexRoute
   '/use-cases': typeof UseCasesIndexRoute
   '/integrations/category/$category': typeof IntegrationsCategoryCategoryRoute
+  '/.well-known/api-catalog': typeof WellKnownApiCatalogRoute
+  '/.well-known/mcp.json': typeof WellKnownMcpDotjsonRoute
+  '/.well-known/mcp/server-card.json': typeof WellKnownMcpServerCardDotjsonRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -208,14 +265,21 @@ export interface FileRoutesById {
   '/llms.txt': typeof LlmsDottxtRoute
   '/mcp': typeof McpRoute
   '/mcp.json': typeof McpDotjsonRoute
+  '/press-kit': typeof PressKitRoute
+  '/press.md': typeof PressDotmdRoute
   '/robots-ai.txt': typeof RobotsAiDottxtRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/integrations/$slug': typeof IntegrationsSlugRoute
+  '/press/$file': typeof PressFileRoute
   '/use-cases/$slug': typeof UseCasesSlugRoute
   '/integrations/': typeof IntegrationsIndexRoute
+  '/press/': typeof PressIndexRoute
   '/use-cases/': typeof UseCasesIndexRoute
   '/integrations/category/$category': typeof IntegrationsCategoryCategoryRoute
+  '/.well-known/api-catalog': typeof WellKnownApiCatalogRoute
+  '/.well-known/mcp.json': typeof WellKnownMcpDotjsonRoute
+  '/.well-known/mcp/server-card.json': typeof WellKnownMcpServerCardDotjsonRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -234,14 +298,21 @@ export interface FileRouteTypes {
     | '/llms.txt'
     | '/mcp'
     | '/mcp.json'
+    | '/press-kit'
+    | '/press.md'
     | '/robots-ai.txt'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/integrations/$slug'
+    | '/press/$file'
     | '/use-cases/$slug'
     | '/integrations/'
+    | '/press/'
     | '/use-cases/'
     | '/integrations/category/$category'
+    | '/.well-known/api-catalog'
+    | '/.well-known/mcp.json'
+    | '/.well-known/mcp/server-card.json'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -258,14 +329,21 @@ export interface FileRouteTypes {
     | '/llms.txt'
     | '/mcp'
     | '/mcp.json'
+    | '/press-kit'
+    | '/press.md'
     | '/robots-ai.txt'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/integrations/$slug'
+    | '/press/$file'
     | '/use-cases/$slug'
     | '/integrations'
+    | '/press'
     | '/use-cases'
     | '/integrations/category/$category'
+    | '/.well-known/api-catalog'
+    | '/.well-known/mcp.json'
+    | '/.well-known/mcp/server-card.json'
   id:
     | '__root__'
     | '/'
@@ -282,14 +360,21 @@ export interface FileRouteTypes {
     | '/llms.txt'
     | '/mcp'
     | '/mcp.json'
+    | '/press-kit'
+    | '/press.md'
     | '/robots-ai.txt'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/integrations/$slug'
+    | '/press/$file'
     | '/use-cases/$slug'
     | '/integrations/'
+    | '/press/'
     | '/use-cases/'
     | '/integrations/category/$category'
+    | '/.well-known/api-catalog'
+    | '/.well-known/mcp.json'
+    | '/.well-known/mcp/server-card.json'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -307,14 +392,21 @@ export interface RootRouteChildren {
   LlmsDottxtRoute: typeof LlmsDottxtRoute
   McpRoute: typeof McpRoute
   McpDotjsonRoute: typeof McpDotjsonRoute
+  PressKitRoute: typeof PressKitRoute
+  PressDotmdRoute: typeof PressDotmdRoute
   RobotsAiDottxtRoute: typeof RobotsAiDottxtRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   IntegrationsSlugRoute: typeof IntegrationsSlugRoute
+  PressFileRoute: typeof PressFileRoute
   UseCasesSlugRoute: typeof UseCasesSlugRoute
   IntegrationsIndexRoute: typeof IntegrationsIndexRoute
+  PressIndexRoute: typeof PressIndexRoute
   UseCasesIndexRoute: typeof UseCasesIndexRoute
   IntegrationsCategoryCategoryRoute: typeof IntegrationsCategoryCategoryRoute
+  WellKnownApiCatalogRoute: typeof WellKnownApiCatalogRoute
+  WellKnownMcpDotjsonRoute: typeof WellKnownMcpDotjsonRoute
+  WellKnownMcpServerCardDotjsonRoute: typeof WellKnownMcpServerCardDotjsonRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -417,6 +509,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof McpDotjsonRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/press-kit': {
+      id: '/press-kit'
+      path: '/press-kit'
+      fullPath: '/press-kit'
+      preLoaderRoute: typeof PressKitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/press.md': {
+      id: '/press.md'
+      path: '/press.md'
+      fullPath: '/press.md'
+      preLoaderRoute: typeof PressDotmdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/robots-ai.txt': {
       id: '/robots-ai.txt'
       path: '/robots-ai.txt'
@@ -452,6 +558,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IntegrationsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/press/': {
+      id: '/press/'
+      path: '/press'
+      fullPath: '/press/'
+      preLoaderRoute: typeof PressIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/press/$file': {
+      id: '/press/$file'
+      path: '/press/$file'
+      fullPath: '/press/$file'
+      preLoaderRoute: typeof PressFileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/use-cases/': {
       id: '/use-cases/'
       path: '/use-cases'
@@ -473,6 +593,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IntegrationsCategoryCategoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.well-known/api-catalog': {
+      id: '/.well-known/api-catalog'
+      path: '/.well-known/api-catalog'
+      fullPath: '/.well-known/api-catalog'
+      preLoaderRoute: typeof WellKnownApiCatalogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/mcp.json': {
+      id: '/.well-known/mcp.json'
+      path: '/.well-known/mcp.json'
+      fullPath: '/.well-known/mcp.json'
+      preLoaderRoute: typeof WellKnownMcpDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/mcp/server-card.json': {
+      id: '/.well-known/mcp/server-card.json'
+      path: '/.well-known/mcp/server-card.json'
+      fullPath: '/.well-known/mcp/server-card.json'
+      preLoaderRoute: typeof WellKnownMcpServerCardDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -491,24 +632,31 @@ const rootRouteChildren: RootRouteChildren = {
   LlmsDottxtRoute: LlmsDottxtRoute,
   McpRoute: McpRoute,
   McpDotjsonRoute: McpDotjsonRoute,
+  PressKitRoute: PressKitRoute,
+  PressDotmdRoute: PressDotmdRoute,
   RobotsAiDottxtRoute: RobotsAiDottxtRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   IntegrationsSlugRoute: IntegrationsSlugRoute,
+  PressFileRoute: PressFileRoute,
   UseCasesSlugRoute: UseCasesSlugRoute,
   IntegrationsIndexRoute: IntegrationsIndexRoute,
+  PressIndexRoute: PressIndexRoute,
   UseCasesIndexRoute: UseCasesIndexRoute,
   IntegrationsCategoryCategoryRoute: IntegrationsCategoryCategoryRoute,
+  WellKnownApiCatalogRoute: WellKnownApiCatalogRoute,
+  WellKnownMcpDotjsonRoute: WellKnownMcpDotjsonRoute,
+  WellKnownMcpServerCardDotjsonRoute: WellKnownMcpServerCardDotjsonRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
 
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
+import type { getRouter } from "./router.tsx";
+import type { createStart } from "@tanstack/react-start";
+declare module "@tanstack/react-start" {
   interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
+    ssr: true;
+    router: Awaited<ReturnType<typeof getRouter>>;
   }
 }

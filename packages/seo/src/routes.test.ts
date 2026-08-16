@@ -16,6 +16,9 @@ describe("discovery routes", () => {
       expect(doc, path).toBeDefined();
     }
     expect(lookupDiscovery("/llm.txt", origins)?.redirectTo).toBe("/llms.txt");
+    expect(lookupDiscovery("/press.md", origins)?.body).toContain(
+      "Grogbot press kit",
+    );
     expect(lookupDiscovery("/llms.txt", origins)?.body).toContain("# Grogbot");
   });
 

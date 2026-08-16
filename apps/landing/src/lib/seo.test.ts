@@ -113,6 +113,8 @@ describe("sitemap", () => {
     expect(paths).toContain("/");
     expect(paths).toContain("/integrations");
     expect(paths).toContain("/use-cases");
+    expect(paths).toContain("/press");
+    expect(paths).toContain("/press.md");
     expect(paths).toContain("/integrations/gmail");
     expect(paths).toContain("/integrations/datafast");
     expect(paths).toContain("/use-cases/indie-stack");
@@ -122,7 +124,7 @@ describe("sitemap", () => {
     expect(paths).toContain("/llms.txt");
     expect(paths).toContain("/mcp");
     expect(paths.length).toBe(
-      3 +
+      4 +
         DISCOVERY_SITEMAP_PATHS.length +
         integrationCategories().length +
         INTEGRATIONS.length +
@@ -144,5 +146,6 @@ describe("llms discovery", () => {
     expect(txt).toContain("/mcp");
     expect(txt).toContain("/identity.json");
     expect(txt).toContain("/use-cases/");
+    expect(txt).toContain("/press");
   });
 });
