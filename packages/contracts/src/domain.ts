@@ -25,6 +25,8 @@ export const BotSchema = z.object({
   computerName: z.string(),
   guestKind: GuestKind,
   guestOnline: z.boolean(),
+  lastPreview: z.string(),
+  lastAt: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

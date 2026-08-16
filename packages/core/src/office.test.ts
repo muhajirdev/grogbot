@@ -1,0 +1,19 @@
+import { describe, expect, it } from "vitest";
+import { previewFromBlocks } from "./office.js";
+
+describe("previewFromBlocks", () => {
+  it("joins text blocks and ignores meta", () => {
+    expect(
+      previewFromBlocks([
+        { kind: "text", text: "  Sign in  " },
+        { kind: "meta", text: "tool" },
+        { kind: "text", text: "to LinkedIn" },
+      ]),
+    ).toBe("Sign in to LinkedIn");
+  });
+
+  it("returns empty for junk", () => {
+    expect(previewFromBlocks(null)).toBe("");
+    expect(previewFromBlocks([{ kind: "meta", text: "x" }])).toBe("");
+  });
+});

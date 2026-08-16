@@ -11,6 +11,7 @@ import {
   getBotComputer,
   newId,
   nextSeq,
+  previewFromBlocks,
   sandboxKind,
   toBotDto,
   toComputerListItem,
@@ -108,16 +109,38 @@ export async function listBots(
   const onlineByBot = new Map(
     connectors.map((row) => [row.botId, connectorOnline(row)]),
   );
+  const threadIds = [...threadByBot.values()];
+  const lastByThread = new Map<string, { preview: string; at: Date }>();
+  if (threadIds.length > 0) {
+    const recent = await context.db
+      .select({
+        threadId: messages.threadId,
+        blocks: messages.blocks,
+        createdAt: messages.createdAt,
+      })
+      .from(messages)
+      .where(inArray(messages.threadId, threadIds))
+      .orderBy(desc(messages.createdAt));
+    for (const row of recent) {
+      if (lastByThread.has(row.threadId)) continue;
+      lastByThread.set(row.threadId, {
+        preview: previewFromBlocks(row.blocks),
+        at: row.createdAt,
+      });
+    }
+  }
   return rows.flatMap((bot) => {
     const threadId = threadByBot.get(bot.id);
-    return threadId
-      ? [
-          toBotDto(bot, threadId, {
-            online: onlineByBot.get(bot.id),
-            computerName: nameByComputer.get(bot.computerId),
-          }),
-        ]
-      : [];
+    if (!threadId) return [];
+    const last = lastByThread.get(threadId);
+    return [
+      toBotDto(bot, threadId, {
+        online: onlineByBot.get(bot.id),
+        computerName: nameByComputer.get(bot.computerId),
+        lastPreview: last?.preview,
+        lastAt: last?.at,
+      }),
+    ];
   });
 }
 

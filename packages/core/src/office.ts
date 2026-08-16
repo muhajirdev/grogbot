@@ -29,13 +29,36 @@ export function sandboxKind(value: string): SandboxKind {
   return parsed.success ? parsed.data : "fake";
 }
 
+export function previewFromBlocks(blocks: unknown): string {
+  if (!Array.isArray(blocks)) return "";
+  return blocks
+    .flatMap((block) => {
+      if (!block || typeof block !== "object") return [];
+      const row = block as { kind?: unknown; text?: unknown };
+      if (row.kind !== "text" || typeof row.text !== "string") return [];
+      return [row.text];
+    })
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function toBotDto(
   bot: typeof bots.$inferSelect,
   threadId: string,
-  extras?: { online?: boolean; computerName?: string },
+  extras?: {
+    online?: boolean;
+    computerName?: string;
+    lastPreview?: string;
+    lastAt?: Date | string | null;
+  },
 ): Bot {
   const shape = AvatarShape.safeParse(bot.avatarShape);
   const guestKind = GuestKind.safeParse(bot.guestKind);
+  const lastAt =
+    extras?.lastAt instanceof Date
+      ? extras.lastAt.toISOString()
+      : (extras?.lastAt ?? bot.updatedAt.toISOString());
   return {
     id: bot.id,
     workspaceId: bot.workspaceId,
@@ -51,6 +74,8 @@ export function toBotDto(
     computerName: extras?.computerName ?? DEFAULT_COMPUTER_NAME,
     guestKind: guestKind.success ? guestKind.data : "off",
     guestOnline: extras?.online ?? false,
+    lastPreview: extras?.lastPreview ?? "",
+    lastAt,
     createdAt: bot.createdAt.toISOString(),
     updatedAt: bot.updatedAt.toISOString(),
   };

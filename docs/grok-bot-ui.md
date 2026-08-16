@@ -46,29 +46,25 @@ Do not copy:
 
 ## Layout (desktop)
 
-Three regions. Looks like iMessage + a remote desktop, not Linear.
+Three regions. Looks like iMessage, not Linear. Computer lives in the thread; profile is the right pane.
 
 ```
 +------------------+---------------------------+------------------+
-| SIDEBAR          | THREAD                    | DETAILS / COMPUTER
+| SIDEBAR          | THREAD                    | SETTINGS
+| [Search]     [+] |  Lookout                  | <  Settings  >>
 |                  |                           |
-| Grok Bot         |  Piper                    | Agent Computer
-| [New]  Cmd+N     |  Product performance      | [Working]
-|                  |                           | +--------------+
-| o Inbox Manager  |  You: summarize this PDF  | |  browser /   |
-| o Talent Scout   |                           | |  desktop     |
-| o Expense Mgr    |  Piper: working…          | |  clicks      |
-| o Piper      *   |  [tool: browser]          | +--------------+
-|                  |  [file: summary.md]       | Take over
-| ---- hidden ---- |                           |
-| Plugins          |  [  Message Piper     ]   | Profile
-|                  |   @  /  attach            | name, title,
-+------------------+---------------------------+ desc, avatar
+| o New Bot  8:16  |  Today 8:16 AM            |   (avatar)
+| o Lookout  11:47 |  You: tell me what…       |   Name
+| o Reja     10:58 |  Lookout: I can…          |   Title
+|                  |  [Computer • Done]        |   Description
+| Plugins          |   Open computer           |   Notifications
+| You              |  [  Message Lookout   ]   |
++------------------+---------------------------+------------------+
 ```
 
-- **Left:** roster of Bots (and later groups). Pin at top. Hide without deleting. Unread / needs-attention / working.
-- **Center:** one conversation with that Bot. Transcript is the audit log (tools, computer, files, approvals inline).
-- **Right or overlay:** **Agent Computer** preview + **Bot actions → Edit Profile**.
+- **Left:** roster of Bots. Search. `+` → Create new agent. Plugins and you at the bottom.
+- **Center:** one conversation. Transcript is the audit log. Computer is an in-thread card (`Open computer`), not a permanent third column.
+- **Right:** **Settings** for this Bot (name, title, description, notify). Collapse it. Takeover happens on the computer stage, not in chat.
 
 Composer:
 
