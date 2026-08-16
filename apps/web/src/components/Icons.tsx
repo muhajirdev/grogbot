@@ -96,6 +96,23 @@ export function FilterIcon(props: IconProps) {
   );
 }
 
+export function GearIcon(props: IconProps) {
+  return (
+    <Svg className={props.className}>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1" />
+    </Svg>
+  );
+}
+
+export function DoubleChevronIcon(props: IconProps) {
+  return (
+    <Svg className={props.className}>
+      <path d="M8 6l5 6-5 6M13 6l5 6-5 6" />
+    </Svg>
+  );
+}
+
 export function CheckIcon(props: IconProps) {
   return (
     <Svg className={props.className}>

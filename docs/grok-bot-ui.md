@@ -46,25 +46,25 @@ Do not copy:
 
 ## Layout (desktop)
 
-Three regions. Looks like iMessage, not Linear. Computer lives in the thread; profile is the right pane.
+Three regions. Looks like iMessage, not Linear. The computer icon in the thread header opens the right pane.
 
 ```
 +------------------+---------------------------+------------------+
-| SIDEBAR          | THREAD                    | SETTINGS
-| [Search]     [+] |  Lookout                  | <  Settings  >>
-|                  |                           |
-| o New Bot  8:16  |  Today 8:16 AM            |   (avatar)
-| o Lookout  11:47 |  You: tell me what…       |   Name
-| o Reja     10:58 |  Lookout: I can…          |   Title
-|                  |  [Computer • Done]        |   Description
-| Plugins          |   Open computer           |   Notifications
-| You              |  [  Message Lookout   ]   |
+| SIDEBAR          | THREAD                    | COMPUTER
+| [Search]     [+] |  Reja            🖥 ⚙ >> | Starting desktop
+|                  |                           |  [progress]
+| o New Bot  8:16  |  Yesterday 9:56 AM        |
+| o Lookout  11:47 |  You: …                   | Reja's screen
+| o Reja     9:56  |  Reja: …                  | [  desktop   ]
+|                  |  [Computer • Done]        |
+| Plugins          |  [  Message Reja      ]   | Routines
+| You              |                           | [Create Routine]
 +------------------+---------------------------+------------------+
 ```
 
 - **Left:** roster of Bots. Search. `+` → Create new agent. Plugins and you at the bottom.
-- **Center:** one conversation. Transcript is the audit log. Computer is an in-thread card (`Open computer`), not a permanent third column.
-- **Right:** **Settings** for this Bot (name, title, description, notify). Collapse it. Takeover happens on the computer stage, not in chat.
+- **Center:** one conversation. Transcript is the audit log. In-thread **Computer** cards still **Open computer**. Header: computer icon, gear (profile), collapse.
+- **Right:** computer icon → **Starting desktop** / `{Bot}'s screen` + **Routines**. Gear → Bot settings (name, title, description, notify). Collapse hides the pane. Takeover is on the computer pane, not in chat.
 
 Composer:
 

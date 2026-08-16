@@ -16,8 +16,17 @@ import {
 import { AppSettings } from "../components/AppSettings";
 import { AvatarMark } from "../components/Avatar";
 import { BotSettingsPane } from "../components/BotSettingsPane";
-import { ComputerCard, ComputerStage } from "../components/ComputerCard";
-import { MicIcon, PlugIcon, PlusIcon, SearchIcon } from "../components/Icons";
+import { ComputerCard } from "../components/ComputerCard";
+import { ComputerPane } from "../components/ComputerPane";
+import {
+  DoubleChevronIcon,
+  GearIcon,
+  MicIcon,
+  MonitorIcon,
+  PlugIcon,
+  PlusIcon,
+  SearchIcon,
+} from "../components/Icons";
 import { PluginsModal } from "../components/PluginsModal";
 import { authClient } from "../lib/auth";
 import { AVATAR_COLORS, FIRST_TASK } from "../lib/jobs";
@@ -85,8 +94,9 @@ export function Office(props: { botId: string }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [pluginsOpen, setPluginsOpen] = useState(false);
   const [newOpen, setNewOpen] = useState(false);
-  const [paneOpen, setPaneOpen] = useState(true);
-  const [computerOpen, setComputerOpen] = useState(false);
+  const [paneMode, setPaneMode] = useState<"computer" | "settings" | null>(
+    null,
+  );
   const [theme, setTheme] = useState<Theme>(readTheme());
   const scroller = useRef<HTMLDivElement>(null);
   const bot = bots.find((item) => item.id === props.botId) ?? bots[0];
@@ -124,7 +134,7 @@ export function Office(props: { botId: string }) {
         });
         await queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
         await navigate({ to: "/$botId", params: { botId: created.id } });
-        setPaneOpen(true);
+        setPaneMode("settings");
       } catch (caught) {
         setError(caught instanceof Error ? caught.message : "Could not create");
       }
@@ -259,7 +269,7 @@ export function Office(props: { botId: string }) {
   }, [bot, computer, working]);
 
   return (
-    <div className={`office${paneOpen ? "" : " collapsed"}`}>
+    <div className={`office${paneMode ? "" : " collapsed"}`}>
       <aside className="sidebar">
         <div className="side-head">
           <label className="search-field">
@@ -348,7 +358,7 @@ export function Office(props: { botId: string }) {
           <button
             className="thread-who"
             type="button"
-            onClick={() => setPaneOpen(true)}
+            onClick={() => setPaneMode("settings")}
           >
             {bot ? (
               <AvatarMark
@@ -359,15 +369,52 @@ export function Office(props: { botId: string }) {
             ) : null}
             <strong>{bot?.name ?? "—"}</strong>
           </button>
-          {working ? (
+          <div className="row tight">
+            {working ? (
+              <button
+                className="mini"
+                type="button"
+                onClick={() =>
+                  bot && void client.threads.stop({ botId: bot.id })
+                }
+              >
+                Stop now
+              </button>
+            ) : null}
             <button
-              className="mini"
+              className={`icon-btn${paneMode === "computer" ? " on" : ""}`}
               type="button"
-              onClick={() => bot && void client.threads.stop({ botId: bot.id })}
+              aria-label="Computer"
+              title="Computer"
+              onClick={() =>
+                setPaneMode(paneMode === "computer" ? null : "computer")
+              }
             >
-              Stop now
+              <MonitorIcon />
             </button>
-          ) : null}
+            <button
+              className={`icon-btn${paneMode === "settings" ? " on" : ""}`}
+              type="button"
+              aria-label="Settings"
+              title="Settings"
+              onClick={() =>
+                setPaneMode(paneMode === "settings" ? null : "settings")
+              }
+            >
+              <GearIcon />
+            </button>
+            {paneMode ? (
+              <button
+                className="icon-btn"
+                type="button"
+                aria-label="Collapse pane"
+                title="Collapse"
+                onClick={() => setPaneMode(null)}
+              >
+                <DoubleChevronIcon />
+              </button>
+            ) : null}
+          </div>
         </div>
         <div className="transcript" ref={scroller}>
           {messages.map((message, index) => {
@@ -417,7 +464,7 @@ export function Office(props: { botId: string }) {
                         ? computerBody
                         : undefined
                     }
-                    onOpen={() => setComputerOpen(true)}
+                    onOpen={() => setPaneMode("computer")}
                   />
                 ) : null}
               </div>
@@ -436,7 +483,7 @@ export function Office(props: { botId: string }) {
               title={draft || lastHumanBefore(messages, messages.length)}
               status="Working"
               preview={computerBody}
-              onOpen={() => setComputerOpen(true)}
+              onOpen={() => setPaneMode("computer")}
             />
           ) : null}
           {!working && messages.length === 0 ? (
@@ -489,22 +536,13 @@ export function Office(props: { botId: string }) {
           </form>
         </div>
       </section>
-      {paneOpen && bot ? (
-        <BotSettingsPane
+      {paneMode === "computer" && bot ? (
+        <ComputerPane
           bot={bot}
-          computer={computer}
-          onCollapse={() => setPaneOpen(false)}
-          onSaved={async () => {
-            await refreshBots(bot.id);
-          }}
-        />
-      ) : null}
-      {computerOpen ? (
-        <ComputerStage
           computer={computer}
           statusLabel={statusLabel}
           body={computerBody}
-          onClose={() => setComputerOpen(false)}
+          working={Boolean(working)}
           onTakeover={() => {
             if (!bot) return;
             void client.computer
@@ -530,6 +568,16 @@ export function Office(props: { botId: string }) {
                     : "Could not continue",
                 ),
               );
+          }}
+        />
+      ) : null}
+      {paneMode === "settings" && bot ? (
+        <BotSettingsPane
+          bot={bot}
+          computer={computer}
+          onCollapse={() => setPaneMode(null)}
+          onSaved={async () => {
+            await refreshBots(bot.id);
           }}
         />
       ) : null}

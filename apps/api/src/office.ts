@@ -3,6 +3,7 @@ import {
   type ComputerListItem,
   type ComputerStatus,
   DEFAULT_COMPUTER_NAME,
+  type Routine,
 } from "@grogbot/contracts";
 import {
   appendEvent,
@@ -15,6 +16,7 @@ import {
   sandboxKind,
   toBotDto,
   toComputerListItem,
+  toRoutineDto,
   tryClaimComputer,
 } from "@grogbot/core";
 import {
@@ -22,6 +24,7 @@ import {
   computers,
   guestConnectors,
   messages,
+  routines,
   runs,
   tasks,
   threadMembers,
@@ -501,4 +504,59 @@ export async function stopBotRuns(
     name: "run.abort",
     payload: { botId },
   });
+}
+
+export async function listRoutines(
+  context: RpcContext,
+  actor: Actor,
+  botId: string,
+): Promise<Routine[]> {
+  await getOffice(context, actor, botId);
+  const rows = await context.db
+    .select()
+    .from(routines)
+    .where(
+      and(
+        eq(routines.botId, botId),
+        eq(routines.workspaceId, actor.workspaceId),
+      ),
+    )
+    .orderBy(desc(routines.createdAt));
+  return rows.map(toRoutineDto);
+}
+
+export async function createRoutine(
+  context: RpcContext,
+  actor: Actor,
+  input: {
+    botId: string;
+    name: string;
+    prompt: string;
+    cron: string;
+    timezone?: string;
+  },
+): Promise<Routine> {
+  await getOffice(context, actor, input.botId);
+  const now = new Date();
+  const [row] = await context.db
+    .insert(routines)
+    .values({
+      id: newId(),
+      workspaceId: actor.workspaceId,
+      botId: input.botId,
+      userId: actor.userId,
+      name: input.name.trim(),
+      prompt: input.prompt.trim(),
+      cron: input.cron.trim(),
+      timezone: input.timezone?.trim() || "UTC",
+      active: true,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .returning();
+  if (!row)
+    throw new ORPCError("INTERNAL_SERVER_ERROR", {
+      message: "Routine create failed",
+    });
+  return toRoutineDto(row);
 }

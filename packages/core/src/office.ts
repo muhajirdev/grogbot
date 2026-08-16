@@ -2,6 +2,7 @@ import type {
   Bot,
   ComputerStatus,
   ProductEvent,
+  Routine,
   SandboxKind,
 } from "@grogbot/contracts";
 import {
@@ -17,11 +18,25 @@ import {
   type Database,
   events,
   type messages,
+  type routines,
 } from "@grogbot/db";
 import { and, asc, desc, eq, gt } from "drizzle-orm";
 
 export function iso(value: Date | null | undefined): string | null {
   return value ? value.toISOString() : null;
+}
+
+export function toRoutineDto(row: typeof routines.$inferSelect): Routine {
+  return {
+    id: row.id,
+    botId: row.botId,
+    name: row.name,
+    prompt: row.prompt,
+    cron: row.cron,
+    timezone: row.timezone,
+    active: row.active,
+    nextRunAt: iso(row.nextRunAt),
+  };
 }
 
 export function sandboxKind(value: string): SandboxKind {
