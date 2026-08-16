@@ -59,9 +59,7 @@ Google / GitHub need client IDs in `.env`. Use **127.0.0.1**, not localhost:
 
 Email sign-in sends a magic link through **Cloudflare Email Sending** (REST). There is no `wrangler.toml` — this API is Node, not a Worker. Set `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_EMAIL_API_TOKEN`, and `EMAIL_FROM`. Without those, local dev prints the link in the API terminal.
 
-The scripted runtime echoes so you can test the loop without model keys.
-
-The teammate **harness** is Flue (Pi). Set `AGENT_RUNTIME=flue` and `GROGBOT_MODEL` (or `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `OPENROUTER_API_KEY`). Offline Flue: `AGENT_RUNTIME=flue-echo`. Tests stay on `scripted`.
+Office chats run **Flue + Pi** (`AGENT_RUNTIME=flue`). Flue is the Node bootstrap; Pi is the agent loop (`useModel`, providers, compaction). Set `GROGBOT_MODEL` or `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `OPENROUTER_API_KEY`. Offline Flue: `AGENT_RUNTIME=flue-echo`. Tests stay on `scripted`.
 
 For a single-shot chat-completions path (no Pi loop), set `AGENT_RUNTIME=gateway`. That uses an OpenAI-compatible **AI Gateway**: **Cloudflare AI Gateway** by default (`@cf/deepseek-ai/deepseek-v4-flash-0731` on Workers AI), or **OpenRouter** (`AI_GATEWAY_PROVIDER=openrouter`, `deepseek/deepseek-v4-flash-0731`). Put `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` (and optional `CLOUDFLARE_AI_GATEWAY_ID`, default `default`) or `OPENROUTER_API_KEY` in `.env`.
 

@@ -4,7 +4,7 @@ import type {
   AgentRuntime,
   AgentRuntimeEvent,
 } from "@grogbot/adapter-kit";
-import { getFlueAgentRuntime } from "./flue/runtime.js";
+import { flueConfigured, getFlueAgentRuntime } from "./flue/runtime.js";
 import {
   chatMessages,
   deltaText,
@@ -14,6 +14,7 @@ import {
   gatewayChatUrl,
   gatewayErrorMessage,
   gatewayHeaders,
+  gatewayConfigured,
   isGatewayProvider,
   loadGatewayConfig,
   readSseData,
@@ -178,12 +179,39 @@ function isAbortError(error: unknown): boolean {
   );
 }
 
+/** Product default: Flue bootstraps Pi (`useModel` + providers). */
+export const DEFAULT_AGENT_RUNTIME = "flue";
+
+/** Offline stub for tests and CI. */
+export const OFFLINE_AGENT_RUNTIME = "scripted";
+
+export function resolveAgentRuntimeKind(kind?: string | null): string {
+  const runtime = kind?.trim();
+  return runtime || DEFAULT_AGENT_RUNTIME;
+}
+
+export function isOfflineAgentRuntime(kind: string): boolean {
+  return kind === "scripted" || kind === "flue-echo";
+}
+
+export function agentRuntimeNeedsModel(
+  kind: string,
+  source: GatewayEnv | NodeJS.ProcessEnv = process.env,
+): boolean {
+  const runtime = resolveAgentRuntimeKind(kind);
+  if (isOfflineAgentRuntime(runtime)) return false;
+  if (runtime === "flue") {
+    return !flueConfigured(source as NodeJS.ProcessEnv);
+  }
+  return !gatewayConfigured(source);
+}
+
 export function createAgentRuntime(
-  kind = "scripted",
-  source: GatewayEnv = process.env,
+  kind = OFFLINE_AGENT_RUNTIME,
+  source: GatewayEnv | NodeJS.ProcessEnv = process.env,
   fetchImpl?: typeof fetch,
 ): AgentRuntime {
-  const runtime = kind.trim() || "scripted";
+  const runtime = kind.trim() || OFFLINE_AGENT_RUNTIME;
   if (runtime === "scripted") return new ScriptedAgentRuntime();
   if (runtime === "flue" || runtime === "flue-echo") {
     return getFlueAgentRuntime(runtime === "flue-echo", {

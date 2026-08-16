@@ -1,4 +1,4 @@
-import { gatewayConfigured } from "@grogbot/adapters";
+import { agentRuntimeNeedsModel } from "@grogbot/adapters";
 import { appContract } from "@grogbot/contracts";
 import {
   getBotComputer,
@@ -10,7 +10,7 @@ import { guestConnectors, userModelCredentials } from "@grogbot/db";
 import { implement } from "@orpc/server";
 import { eq } from "drizzle-orm";
 import type { RpcContext } from "./context.js";
-import { gatewaySource } from "./env.js";
+import { agentRuntimeSource } from "./env.js";
 import {
   connectorOnline,
   disableGuest,
@@ -52,9 +52,10 @@ export const appRouter = os.router({
       workspaceId: actor.workspaceId,
       isDeploymentOwner: actor.isDeploymentOwner,
       needsModel:
-        context.env.agentRuntime !== "scripted" &&
-        !gatewayConfigured(gatewaySource(context.env)) &&
-        creds.length === 0,
+        agentRuntimeNeedsModel(
+          context.env.agentRuntime,
+          agentRuntimeSource(context.env),
+        ) && creds.length === 0,
     };
   }),
   bots: {

@@ -1,7 +1,12 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { createAgentRuntime } from "../runtime.js";
 import { ECHO_MODEL } from "./echo.js";
-import { resolveFlueModel, stopFlueAgentRuntime } from "./runtime.js";
+import {
+  FlueAgentRuntime,
+  flueConfigured,
+  resolveFlueModel,
+  stopFlueAgentRuntime,
+} from "./runtime.js";
 
 const runRequest = {
   botId: "bot-flue",
@@ -28,6 +33,28 @@ describe("FlueAgentRuntime", () => {
 
   it("resolves the echo model without provider keys", () => {
     expect(resolveFlueModel(true, {})).toBe(ECHO_MODEL);
+  });
+
+  it("treats a provider key as enough for live Pi", () => {
+    expect(flueConfigured({})).toBe(false);
+    expect(flueConfigured({ ANTHROPIC_API_KEY: "sk-ant-test" })).toBe(true);
+    expect(resolveFlueModel(false, { ANTHROPIC_API_KEY: "sk-ant-test" })).toBe(
+      "anthropic/claude-sonnet-4-6",
+    );
+  });
+
+  it("errors on the first turn when live flue has no keys", async () => {
+    const runtime = new FlueAgentRuntime({ env: {} });
+    const events = [];
+    for await (const event of runtime.run(runRequest, adapterContext)) {
+      events.push(event);
+    }
+    expect(events.some((event) => event.type === "progress")).toBe(true);
+    expect(events.at(-1)).toMatchObject({
+      type: "error",
+      text: expect.stringMatching(/GROGBOT_MODEL|API key/),
+    });
+    await runtime.stop();
   });
 
   it("echoes through the Pi harness offline", async () => {

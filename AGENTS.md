@@ -6,7 +6,7 @@
 - The Pi/executor must not import `fs`, `dockerode`, or cloud vendor SDKs. The worker (actor host) may import Rivet.
 - Auth, secrets, sandbox, and host commands are security-sensitive.
 - Tests stay offline: `AGENT_RUNTIME=scripted` (or `flue-echo` for the Pi harness), `SANDBOX_PROVIDER=fake`, in-process Rivet wakeup — no live OpenRouter/E2B/Rivet Cloud.
-- Teammate loop: Flue + Pi (`AGENT_RUNTIME=flue`). One `Teammate` function; hires are `botId`, not new agent modules. Gateway remains a simpler chat-completions path.
+- Teammate loop: Flue + Pi (`AGENT_RUNTIME=flue`, product default). Flue boots the process; Pi is `useModel`, providers, and the tool loop. One `Teammate` function; hires are `botId`, not new agent modules. Gateway remains a simpler chat-completions path.
 - Guest runtimes (Hermes/OpenClaw) are opt-in per bot, off by default. They dial out to Grogbot; tests use a fake guest, not live Hermes/OpenClaw.
 - v1 surface is **web** (Vite + TanStack Router). Desktop is Electron around web. Mobile is Expo later. All three call **oRPC** via `@grogbot/rpc`.
 - See `docs/grok-bot-ui.md`.

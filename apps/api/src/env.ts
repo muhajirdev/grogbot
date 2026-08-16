@@ -1,4 +1,7 @@
-import type { GatewayEnv } from "@grogbot/adapters";
+import {
+  type GatewayEnv,
+  resolveAgentRuntimeKind,
+} from "@grogbot/adapters";
 import {
   CLOUD_API_ORIGIN,
   CLOUD_LANDING_ORIGIN,
@@ -28,6 +31,9 @@ export interface Env {
   cloudflareApiToken?: string;
   cloudflareAiGatewayId?: string;
   openrouterApiKey?: string;
+  grogbotModel?: string;
+  anthropicApiKey?: string;
+  openaiApiKey?: string;
   emailFrom?: string;
   cloudflareEmailToken?: string;
   production: boolean;
@@ -103,7 +109,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
       "http://localhost:8081",
     ]),
     sandboxProvider: source.SANDBOX_PROVIDER ?? "fake",
-    agentRuntime: source.AGENT_RUNTIME ?? "scripted",
+    agentRuntime: resolveAgentRuntimeKind(source.AGENT_RUNTIME),
     workerUrl: source.WORKER_URL,
     apiUrl: source.API_URL ?? "http://127.0.0.1:3100",
     guestUrl: source.GUEST_URL,
@@ -118,6 +124,9 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
       source.CLOUDFLARE_API_TOKEN ?? source.CLOUDFLARE_AUTH_TOKEN,
     cloudflareAiGatewayId: source.CLOUDFLARE_AI_GATEWAY_ID,
     openrouterApiKey: source.OPENROUTER_API_KEY,
+    grogbotModel: source.GROGBOT_MODEL,
+    anthropicApiKey: source.ANTHROPIC_API_KEY,
+    openaiApiKey: source.OPENAI_API_KEY,
     emailFrom: source.EMAIL_FROM,
     cloudflareEmailToken: source.CLOUDFLARE_EMAIL_API_TOKEN,
     production: source.NODE_ENV === "production",
@@ -133,5 +142,14 @@ export function gatewaySource(env: Env): GatewayEnv {
     CLOUDFLARE_AI_GATEWAY_ID: env.cloudflareAiGatewayId,
     OPENROUTER_API_KEY: env.openrouterApiKey,
     WEB_ORIGIN: env.webOrigin,
+  };
+}
+
+export function agentRuntimeSource(env: Env): NodeJS.ProcessEnv {
+  return {
+    ...gatewaySource(env),
+    GROGBOT_MODEL: env.grogbotModel,
+    ANTHROPIC_API_KEY: env.anthropicApiKey,
+    OPENAI_API_KEY: env.openaiApiKey,
   };
 }
