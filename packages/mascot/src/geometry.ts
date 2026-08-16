@@ -22,11 +22,17 @@ export type MascotBody =
 
 export type Eye = { cx: number; cy: number; rx: number; ry: number };
 
+export type Brow = { d: string; width: number };
+
 export type MascotFace = {
   left: Eye;
   right: Eye;
-  mouth: { d: string; width: number };
+  pupils: [Eye, Eye];
+  sparks: [Eye, Eye];
+  brows: [Brow, Brow];
+  mouth: { d: string; width: number; fill: boolean };
   blush: [Eye, Eye];
+  blushOpacity: number;
 };
 
 export type MascotColors = {
@@ -34,6 +40,7 @@ export type MascotColors = {
   light: string;
   dark: string;
   eye: string;
+  pupil: string;
   mouth: string;
   blush: string;
 };
@@ -77,9 +84,14 @@ export function mascotColors(hex: string): MascotColors {
     light: mixHex(mid, "#fff6ea", 0.32),
     dark: mixHex(mid, "#1a120c", 0.26),
     eye: "#fffaf3",
-    mouth: "#fffaf3",
+    pupil: "#241510",
+    mouth: "#241510",
     blush: mixHex(mid, "#ff8aa8", 0.42),
   };
+}
+
+export function mascotShine(): Eye {
+  return { cx: 22, cy: 17, rx: 7.5, ry: 4.5 };
 }
 
 export function mascotAnchor(shape: MascotShape): MascotAnchor {
@@ -124,40 +136,112 @@ export function mascotBody(shape: MascotShape): MascotBody {
   }
 }
 
+function sparksOn(pupils: [Eye, Eye]): [Eye, Eye] {
+  return [
+    {
+      cx: pupils[0].cx - pupils[0].rx * 0.38,
+      cy: pupils[0].cy - pupils[0].ry * 0.44,
+      rx: 1.55,
+      ry: 1.85,
+    },
+    {
+      cx: pupils[1].cx - pupils[1].rx * 0.38,
+      cy: pupils[1].cy - pupils[1].ry * 0.44,
+      rx: 1.55,
+      ry: 1.85,
+    },
+  ];
+}
+
 export function mascotFace(mood: MascotMood): MascotFace {
   const blush: [Eye, Eye] = [
-    { cx: 32, cy: 62, rx: 6.4, ry: 3.4 },
-    { cx: 68, cy: 62, rx: 6.4, ry: 3.4 },
+    { cx: 30, cy: 63, rx: 7.2, ry: 3.8 },
+    { cx: 70, cy: 63, rx: 7.2, ry: 3.8 },
   ];
   switch (mood) {
-    case "thinking":
+    case "thinking": {
+      const pupils: [Eye, Eye] = [
+        { cx: 38.2, cy: 40.4, rx: 3.4, ry: 5.2 },
+        { cx: 67.4, cy: 39.6, rx: 3.4, ry: 5.4 },
+      ];
       return {
-        left: { cx: 37, cy: 40, rx: 6.6, ry: 12.2 },
-        right: { cx: 63, cy: 38, rx: 6.6, ry: 12.6 },
-        mouth: { d: "M44 68 Q50 70 56 67", width: 4.8 },
+        left: { cx: 36, cy: 44, rx: 7.4, ry: 12.6 },
+        right: { cx: 65, cy: 43, rx: 7.4, ry: 12.8 },
+        pupils,
+        sparks: sparksOn(pupils),
+        brows: [
+          { d: "M27 31 Q35 29 43 32", width: 3.1 },
+          { d: "M57 24 Q65 20 74 26", width: 3.2 },
+        ],
+        mouth: { d: "M47 67.5 a 3.6 3.1 0 1 1 0.08 0", width: 2.2, fill: true },
         blush,
+        blushOpacity: 0.28,
       };
-    case "working":
+    }
+    case "working": {
+      const pupils: [Eye, Eye] = [
+        { cx: 37, cy: 47.2, rx: 3.3, ry: 4.6 },
+        { cx: 63, cy: 47.2, rx: 3.3, ry: 4.6 },
+      ];
       return {
-        left: { cx: 39, cy: 46, rx: 6.2, ry: 11.2 },
-        right: { cx: 61, cy: 46, rx: 6.2, ry: 11.2 },
-        mouth: { d: "M43 68 Q50 69 57 68", width: 4.6 },
+        left: { cx: 37, cy: 45, rx: 7, ry: 10.6 },
+        right: { cx: 63, cy: 45, rx: 7, ry: 10.6 },
+        pupils,
+        sparks: sparksOn(pupils),
+        brows: [
+          { d: "M28 33 Q36 36 44 33", width: 3.3 },
+          { d: "M56 33 Q64 36 72 33", width: 3.3 },
+        ],
+        mouth: { d: "M43 70 Q50 71 57 70", width: 4.4, fill: false },
         blush,
+        blushOpacity: 0.3,
       };
-    case "happy":
+    }
+    case "happy": {
+      const pupils: [Eye, Eye] = [
+        { cx: 34, cy: 45.2, rx: 4.4, ry: 6.6 },
+        { cx: 66, cy: 45.2, rx: 4.4, ry: 6.6 },
+      ];
       return {
-        left: { cx: 35, cy: 44, rx: 7.4, ry: 13.2 },
-        right: { cx: 65, cy: 44, rx: 7.4, ry: 13.2 },
-        mouth: { d: "M38 64 Q50 76 62 64", width: 5.6 },
-        blush,
+        left: { cx: 34, cy: 43, rx: 8.4, ry: 13.4 },
+        right: { cx: 66, cy: 43, rx: 8.4, ry: 13.4 },
+        pupils,
+        sparks: sparksOn(pupils),
+        brows: [
+          { d: "M24 27 Q34 20 44 26", width: 3.3 },
+          { d: "M56 26 Q66 20 76 27", width: 3.3 },
+        ],
+        mouth: {
+          d: "M32 61 Q50 61 68 61 Q50 88 32 61 Z",
+          width: 2.4,
+          fill: true,
+        },
+        blush: [
+          { cx: 26, cy: 61, rx: 9, ry: 5 },
+          { cx: 74, cy: 61, rx: 9, ry: 5 },
+        ],
+        blushOpacity: 0.56,
       };
-    default:
+    }
+    default: {
+      const pupils: [Eye, Eye] = [
+        { cx: 35, cy: 45.2, rx: 3.8, ry: 6 },
+        { cx: 65, cy: 45.2, rx: 3.8, ry: 6 },
+      ];
       return {
-        left: { cx: 36, cy: 44, rx: 7.2, ry: 12.8 },
-        right: { cx: 64, cy: 44, rx: 7.2, ry: 12.8 },
-        mouth: { d: "M40 66 Q50 73 60 66", width: 5.2 },
+        left: { cx: 35, cy: 44, rx: 7.6, ry: 13 },
+        right: { cx: 65, cy: 44, rx: 7.6, ry: 13 },
+        pupils,
+        sparks: sparksOn(pupils),
+        brows: [
+          { d: "M26 29 Q35 25 44 30", width: 3 },
+          { d: "M56 30 Q65 25 74 29", width: 3 },
+        ],
+        mouth: { d: "M38 65 Q50 76 62 65", width: 5.2, fill: false },
         blush,
+        blushOpacity: 0.36,
       };
+    }
   }
 }
 
@@ -187,5 +271,14 @@ export function eyeInsideCircle(
   ];
   return points.every(
     ([x, y]) => (x - body.cx) ** 2 + (y - body.cy) ** 2 <= limit * limit,
+  );
+}
+
+export function ellipseContains(outer: Eye, inner: Eye, pad = 0.35): boolean {
+  return (
+    inner.cx - inner.rx >= outer.cx - outer.rx + pad &&
+    inner.cx + inner.rx <= outer.cx + outer.rx - pad &&
+    inner.cy - inner.ry >= outer.cy - outer.ry + pad &&
+    inner.cy + inner.ry <= outer.cy + outer.ry - pad
   );
 }

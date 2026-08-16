@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  ellipseContains,
   eyeInsideCircle,
   MASCOT_MOODS,
   MASCOT_SHAPES,
@@ -7,6 +8,7 @@ import {
   mascotBody,
   mascotColors,
   mascotFace,
+  mascotShine,
   mixHex,
   moodFromActivity,
   normalizeHex,
@@ -44,6 +46,39 @@ describe("mascot geometry", () => {
     }
   });
 
+  it("keeps the body gloss above the eyes so it is not a smear on the left eye", () => {
+    const shine = mascotShine();
+    const shineBottom = shine.cy + shine.ry;
+    expect(shine.cx).toBeLessThan(40);
+    for (const mood of MASCOT_MOODS) {
+      const face = mascotFace(mood);
+      expect(shineBottom).toBeLessThan(face.left.cy - face.left.ry);
+      expect(shineBottom).toBeLessThan(face.right.cy - face.right.ry);
+    }
+  });
+
+  it("puts pupils and catchlights inside both eyes", () => {
+    for (const mood of MASCOT_MOODS) {
+      const face = mascotFace(mood);
+      expect(ellipseContains(face.left, face.pupils[0])).toBe(true);
+      expect(ellipseContains(face.right, face.pupils[1])).toBe(true);
+      expect(ellipseContains(face.pupils[0], face.sparks[0], 0)).toBe(true);
+      expect(ellipseContains(face.pupils[1], face.sparks[1], 0)).toBe(true);
+    }
+  });
+
+  it("gives each mood its own brows and mouth", () => {
+    const faces = MASCOT_MOODS.map((mood) => mascotFace(mood));
+    const mouths = new Set(faces.map((face) => face.mouth.d));
+    const leftBrows = new Set(faces.map((face) => face.brows[0].d));
+    expect(mouths.size).toBe(MASCOT_MOODS.length);
+    expect(leftBrows.size).toBe(MASCOT_MOODS.length);
+    expect(mascotFace("happy").mouth.fill).toBe(true);
+    expect(mascotFace("happy").blushOpacity).toBeGreaterThan(
+      mascotFace("idle").blushOpacity,
+    );
+  });
+
   it("anchors every rounded silhouette in the face box", () => {
     for (const shape of MASCOT_SHAPES) {
       const anchor = mascotAnchor(shape);
@@ -70,5 +105,7 @@ describe("mascot geometry", () => {
     expect(colors.mid).toBe("#5b7cff");
     expect(colors.light).not.toBe(colors.mid);
     expect(colors.dark).not.toBe(colors.mid);
+    expect(colors.pupil).toBe("#241510");
+    expect(colors.eye).not.toBe(colors.pupil);
   });
 });
