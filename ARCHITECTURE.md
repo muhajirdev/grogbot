@@ -39,7 +39,7 @@ Same product, same Node apps. grogbot.com is hosted on Cloudflare; a private com
 | Computer | E2B | Docker / fake; desktop only on a trusted machine |
 | Auth email | Cloudflare Email Sending | Log the magic link, or their SMTP later |
 
-Rivet, Agents SDK, Project Think, agentOS, and Cloudflare Sandbox stay out. Flue’s Cloudflare target stays out of v1.
+Rivet, Agents SDK, Project Think, agentOS, and Cloudflare Sandbox stay out of **v1**. Flue’s Cloudflare target stays out of v1. The actor port (`WakeupDriver`, key = `botId`) is how hosted can move to Agents SDK later without a rewrite.
 
 ## Locked decisions
 
@@ -85,6 +85,20 @@ In-process cron misses fires while the worker is down. `next_run_at` is already 
 
 v1 code: `InProcessWakeupDriver` (serial queue + `setTimeout` per `jobKey`). The worker hosts it. The API enqueues over HTTP (`WORKER_URL`).
 
+## Later — Cloudflare Agents SDK (hosted only)
+
+v1 is already the actor model: **one mailbox per `botId`**. Agents SDK later is a new `WakeupDriver` body, not a new product.
+
+| v1 (Node) | Later (grogbot.com) |
+| --- | --- |
+| `InProcessWakeupDriver` keyed by `botId` | `class BotAgent extends Agent`, instance name = `botId` |
+| `enqueue` immediate | `onRequest` / DO invocation (serial) |
+| `setTimeout` + `jobKey` | `this.schedule(...)`; cancel+replace for `computer.sleep` |
+| croner → `routine.wakeup` | `this.schedule("0 9 * * *", ...)` then the same handler |
+| Flue Node inside the worker | Flue **Cloudflare target** inside that Agent (Agents SDK under the hood) |
+
+Self-host keeps the in-process driver. Do not import `agents` from `packages/core` or the Pi loop. Do not key the Agent on `threadId` (`teammateInstanceId` may stay `botId:threadId` for Flue session state). Do not put threads/messages in DO SQLite — Postgres stays truth. Do not `dispatch()` Flue from cron; always enqueue on the bot actor.
+
 agentOS is **not** the v1 computer — Docker / E2B / desktop are.
 
 ## Processes (v1)
@@ -117,7 +131,7 @@ Wake a bot with:
 
 | Port | v1 | Later |
 | --- | --- | --- |
-| `WakeupDriver` | In-process on the worker; HTTP from API | still Node; durable poller if we outgrow in-process |
+| `WakeupDriver` | In-process on the worker; HTTP from API | Cloudflare Agents SDK `Agent` per `botId` (hosted). Self-host stays in-process. |
 | Product API | **oRPC** `POST /rpc/*` (Hono). `GET /health` for probes | same contract |
 | `RealtimeFanout` | oRPC event iterator (`threads.subscribe`) | actor WebSocket or DO |
 | `HomeStore` | filesystem | R2 |
