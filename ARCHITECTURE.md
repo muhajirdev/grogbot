@@ -41,7 +41,7 @@ The **workspace** (Better Auth org) also has:
 | Cloudflare later | **Rivet’s Durable Object driver** |
 | ORM | **Drizzle** + Postgres |
 | Auth | **Better Auth** — magic-link email (Cloudflare Email Sending REST), Google, GitHub. Organizations = workspaces |
-| Models | **AI Gateway** (Cloudflare + OpenRouter), default DeepSeek v4 Flash. Pi catalog + BYOK later |
+| Models | **Flue + Pi** (`AGENT_RUNTIME=flue`) is the teammate harness. **AI Gateway** (`gateway` / `cloudflare` / `openrouter`) remains a single-shot chat loop. Default DeepSeek v4 Flash on Cloudflare. `scripted` / `flue-echo` stay offline for tests |
 | Sandbox | `docker` local · `e2b` hosted · `desktop` trusted machine only · `fake` tests |
 | Homes | Disk v1 · `HomeStore` → R2 later |
 | Realtime | oRPC event iterator now · actor WebSocket later if needed |
@@ -77,9 +77,8 @@ Mobile (Expo) ────┘          │
                              │
            ┌─────────────────┼─────────────────┐
            ▼                 ▼                 ▼
-           ▼                 ▼                 ▼
-      AI Gateway        Sandbox            Composio
-      CF / OpenRouter   docker/e2b         (if key set)
+      Flue + Pi         Sandbox            Composio
+      (or gateway)      docker/e2b         (if key set)
 
 Landing (Start :5174) ──► CTAs to the web office (no oRPC)
 ```
@@ -108,7 +107,7 @@ Executor must not import `fs`, `dockerode`, or Cloudflare bindings. The **actor 
 
 ## Advanced — guest agents (off by default)
 
-Grogbot is the **host**. A bot can optionally allow Hermes or OpenClaw to connect **outbound** to this deployment (Multica-style daemon, not ACP-on-the-wire). Default remains scripted/Pi.
+Grogbot is the **host**. A bot can optionally allow Hermes or OpenClaw to connect **outbound** to this deployment (Multica-style daemon, not ACP-on-the-wire). Default remains scripted / Flue+Pi.
 
 1. Profile → Advanced → Hermes or OpenClaw. A one-time token is minted.
 2. On the machine that already has that CLI: `pnpm guest -- --url $GUEST_URL --token … --kind hermes`.
@@ -123,6 +122,7 @@ The Rivet actor is still the bot. If the guest is offline, the run stays queued 
 2. `threads.send` → bot actor → scripted runtime
 3. Docker computer
 4. AI Gateway (Cloudflare / OpenRouter) + DeepSeek v4 Flash
+4b. Flue + Pi harness (`AGENT_RUNTIME=flue`) — one `Teammate` agent, instances keyed by `botId:threadId`
 5. Thin **web** shell — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md)
 6. Workspace context + skills in the system prompt
 7. Composio plugins UI
@@ -133,6 +133,6 @@ The Rivet actor is still the bot. If the guest is offline, the run stays queued 
 
 ## Out of v1
 
-Gadgets, Gatekeepers, Cloudflare Workers as the host, D1, Turso, Prisma, PGlite as product DB, store signing / Electron-builder / EAS submit, Pi subscription OAuth, Discord UI, agentOS as the default computer, multi-bot rooms, Polar hosted billing.
+Gadgets, Gatekeepers, Cloudflare Workers as the Flue/Agents SDK host, D1, Turso, Prisma, PGlite as product DB, store signing / Electron-builder / EAS submit, Pi subscription OAuth, Discord UI, agentOS as the default computer, Project Think, multi-bot rooms, Polar hosted billing.
 
 Hosted grogbot.com billing research (Polar as MoR, workspace as Polar customer, not v1): [docs/polar-integration.md](./docs/polar-integration.md).

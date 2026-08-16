@@ -4,6 +4,7 @@ import type {
   AgentRuntime,
   AgentRuntimeEvent,
 } from "@grogbot/adapter-kit";
+import { getFlueAgentRuntime } from "./flue/runtime.js";
 import {
   chatMessages,
   deltaText,
@@ -184,6 +185,12 @@ export function createAgentRuntime(
 ): AgentRuntime {
   const runtime = kind.trim() || "scripted";
   if (runtime === "scripted") return new ScriptedAgentRuntime();
+  if (runtime === "flue" || runtime === "flue-echo") {
+    return getFlueAgentRuntime(runtime === "flue-echo", {
+      ...process.env,
+      ...(source as NodeJS.ProcessEnv),
+    });
+  }
   if (
     runtime === "gateway" ||
     runtime === "openrouter" ||
@@ -197,6 +204,6 @@ export function createAgentRuntime(
     );
   }
   throw new Error(
-    `Unknown AGENT_RUNTIME "${kind}". Use scripted, gateway, openrouter, or cloudflare.`,
+    `Unknown AGENT_RUNTIME "${kind}". Use scripted, flue, flue-echo, gateway, openrouter, or cloudflare.`,
   );
 }
