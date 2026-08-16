@@ -259,6 +259,21 @@ export function validateProviderSecret(
   return undefined;
 }
 
+export function validateModelId(model: string): string | undefined {
+  const value = model.trim();
+  if (!value) return "Enter a model id.";
+  if (value.length > 200) return "That model id is too long.";
+  if (/\s/.test(value)) return "Model ids cannot contain spaces.";
+  if (
+    value.includes("•") ||
+    value.startsWith("sk-") ||
+    value.startsWith("sk_")
+  ) {
+    return "That looks like an API key, not a model id.";
+  }
+  return undefined;
+}
+
 export function validateCloudflareAccountId(
   accountId: string,
 ): string | undefined {

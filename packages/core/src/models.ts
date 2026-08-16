@@ -14,6 +14,7 @@ import {
   resolveStoredModelId,
   SUGGESTED_STARTER_MODEL,
   validateCloudflareAccountId,
+  validateModelId,
   validateProviderSecret,
 } from "@grogbot/contracts";
 import type { Database } from "@grogbot/db";
@@ -261,6 +262,8 @@ export async function saveModelSettings(
   if (input.defaultModel === "custom" && !input.customModel?.trim()) {
     throw new ModelSettingsError("Enter a custom model id.");
   }
+  const modelProblem = validateModelId(defaultModel);
+  if (modelProblem) throw new ModelSettingsError(modelProblem);
 
   for (const item of input.keys) {
     if (item.clear) continue;

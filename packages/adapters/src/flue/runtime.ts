@@ -186,6 +186,12 @@ function envFingerprint(echo: boolean, env: NodeJS.ProcessEnv): string {
   return material;
 }
 
+const MAX_POOL = 4;
+
+export function flueRuntimePoolSize(): number {
+  return pool.size;
+}
+
 export function getFlueAgentRuntime(
   echo: boolean,
   env: NodeJS.ProcessEnv = process.env,
@@ -193,6 +199,14 @@ export function getFlueAgentRuntime(
   const key = envFingerprint(echo, env);
   const cached = pool.get(key);
   if (cached) return cached;
+  while (pool.size >= MAX_POOL) {
+    const oldest = pool.keys().next().value;
+    if (!oldest) break;
+    const evicted = pool.get(oldest);
+    pool.delete(oldest);
+    if (evicted === shared) shared = undefined;
+    void evicted?.stop();
+  }
   const created = new FlueAgentRuntime({ echo, env });
   pool.set(key, created);
   shared ??= created;

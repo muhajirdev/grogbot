@@ -5,6 +5,7 @@ import {
   type ComputerStatus,
   DEFAULT_COMPUTER_NAME,
   type Routine,
+  validateModelId,
 } from "@grogbot/contracts";
 import {
   appendEvent,
@@ -329,6 +330,11 @@ export async function updateOfficeBot(
   },
 ): Promise<Bot> {
   const { bot, thread } = await getOffice(context, actor, input.botId);
+  const model = input.model !== undefined ? input.model.trim() : bot.model;
+  if (input.model !== undefined && model) {
+    const problem = validateModelId(model);
+    if (problem) throw new ORPCError("BAD_REQUEST", { message: problem });
+  }
   await context.db
     .update(bots)
     .set({
@@ -338,7 +344,7 @@ export async function updateOfficeBot(
       instructions: input.instructions ?? bot.instructions,
       avatarColor: input.avatarColor ?? bot.avatarColor,
       avatarShape: input.avatarShape ?? bot.avatarShape,
-      model: input.model !== undefined ? input.model.trim() : bot.model,
+      model,
       updatedAt: new Date(),
     })
     .where(eq(bots.id, bot.id));

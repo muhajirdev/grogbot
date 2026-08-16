@@ -6,6 +6,7 @@ import {
   providerForModel,
   resolveStoredModelId,
   validateCloudflareAccountId,
+  validateModelId,
   validateProviderSecret,
 } from "./models.js";
 
@@ -67,5 +68,12 @@ describe("model catalog", () => {
     expect(missingProviderMessage("anthropic/claude-sonnet-4-6")).toMatch(
       /Anthropic/,
     );
+  });
+
+  it("rejects keys pasted as model ids", () => {
+    expect(validateModelId("sk-ant-abcdefghijklmnopqrstuvwxyz")).toMatch(
+      /API key/,
+    );
+    expect(validateModelId("openrouter/foo")).toBe(undefined);
   });
 });

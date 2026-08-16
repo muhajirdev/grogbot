@@ -166,5 +166,6 @@ export const MeSchema = z.object({
   needsModel: z.boolean(),
   defaultModel: z.string(),
   defaultModelLabel: z.string(),
+  modelWarning: z.string().nullable(),
 });
 export type Me = z.infer<typeof MeSchema>;

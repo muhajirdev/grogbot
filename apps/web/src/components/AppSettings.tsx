@@ -2,6 +2,7 @@ import type { Me, ModelCatalogItem, ModelProvider } from "@grogbot/contracts";
 import { isGatewayRuntime, PROVIDER_META } from "@grogbot/contracts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { userFacingError } from "../lib/errors";
 import { orpc } from "../lib/orpc";
 import {
   type LocalComputerPref,
@@ -281,7 +282,7 @@ function ModelsTab() {
       setDrafts({});
       setSaved(true);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not save");
+      setError(userFacingError(caught, "Could not save"));
     } finally {
       setBusy(false);
     }
@@ -305,7 +306,7 @@ function ModelsTab() {
         setGatewayId("");
       }
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not clear");
+      setError(userFacingError(caught, "Could not clear"));
     } finally {
       setBusy(false);
     }

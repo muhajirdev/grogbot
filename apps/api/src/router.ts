@@ -70,6 +70,7 @@ export const appRouter = os.router({
         !userHasModelCredentials(creds.length, source),
       defaultModel: settings.defaultModelId,
       defaultModelLabel: labelForModel(settings.defaultModelId),
+      modelWarning: settings.warning,
     };
   }),
   models: {

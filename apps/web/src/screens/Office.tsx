@@ -29,6 +29,7 @@ import {
 } from "../components/Icons";
 import { PluginsModal } from "../components/PluginsModal";
 import { authClient } from "../lib/auth";
+import { isModelSetupError, userFacingError } from "../lib/errors";
 import { AVATAR_COLORS, FIRST_TASK } from "../lib/jobs";
 import { orpc } from "../lib/orpc";
 import { client } from "../lib/rpc";
@@ -240,10 +241,18 @@ export function Office(props: { botId: string }) {
     const text = draft.trim();
     setDraft("");
     setWorking("working…");
+    setError("");
     try {
       await client.threads.send({ botId: bot.id, text });
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not send");
+      setDraft(text);
+      setWorking("");
+      const message = userFacingError(caught, "Could not send");
+      setError(message);
+      if (isModelSetupError(message)) {
+        setSettingsTab("models");
+        setSettingsOpen(true);
+      }
     }
   }
 
@@ -433,9 +442,13 @@ export function Office(props: { botId: string }) {
             ) : null}
           </div>
         </div>
-        {me?.needsModel ? (
+        {me?.needsModel || me?.modelWarning ? (
           <div className="model-banner">
-            <span>Add a model key to talk to teammates.</span>
+            <span>
+              {me?.needsModel
+                ? "Add a model key to talk to teammates."
+                : me?.modelWarning}
+            </span>
             <button
               className="text-btn"
               type="button"
