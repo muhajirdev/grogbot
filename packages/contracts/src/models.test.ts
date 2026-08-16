@@ -14,7 +14,7 @@ import {
 describe("model catalog", () => {
   it("maps ids to providers", () => {
     expect(providerForModel("anthropic/claude-sonnet-4-6")).toBe("anthropic");
-    expect(providerForModel("openrouter/deepseek/deepseek-v4-flash-0731")).toBe(
+    expect(providerForModel("openrouter/deepseek/deepseek-v4-flash")).toBe(
       "openrouter",
     );
     expect(
@@ -34,6 +34,9 @@ describe("model catalog", () => {
     expect(
       flueModelId("cloudflare-ai-gateway/workers-ai/@cf/moonshotai/kimi-k2.6"),
     ).toBe("cloudflare-ai-gateway/workers-ai/@cf/moonshotai/kimi-k2.6");
+    expect(flueModelId("openrouter/deepseek/deepseek-v4-flash-0731")).toBe(
+      "openrouter/deepseek/deepseek-v4-flash",
+    );
   });
 
   it("lists Cloudflare models for every runtime", () => {
@@ -52,7 +55,7 @@ describe("model catalog", () => {
       false,
     );
     expect(
-      modelIsRunnable("openrouter/deepseek/deepseek-v4-flash-0731", [
+      modelIsRunnable("openrouter/deepseek/deepseek-v4-flash", [
         "openrouter",
       ]),
     ).toBe(true);
@@ -84,7 +87,7 @@ describe("model catalog", () => {
       "Claude Sonnet 4.6 needs an Anthropic key.",
     );
     expect(
-      missingProviderMessage("openrouter/deepseek/deepseek-v4-flash-0731"),
+      missingProviderMessage("openrouter/deepseek/deepseek-v4-flash"),
     ).toBe("DeepSeek V4 Flash needs an OpenRouter key.");
   });
 

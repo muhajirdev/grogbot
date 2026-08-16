@@ -2,7 +2,8 @@ import type { Bot, ComputerStatus, Routine } from "@grogbot/contracts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { client } from "../lib/rpc";
-import { ModalShell } from "./Modal";
+import { CloseIcon, GearIcon } from "./Icons";
+import { ModalShell } from "../ui";
 
 const CRONS = [
   { label: "Every day at 9:00", value: "0 9 * * *" },
@@ -16,6 +17,8 @@ export function ComputerPane(props: {
   statusLabel: string;
   body: string;
   working: boolean;
+  onSettings: () => void;
+  onCollapse: () => void;
   onTakeover: () => void;
   onRelease: () => void;
 }) {
@@ -53,6 +56,29 @@ export function ComputerPane(props: {
 
   return (
     <aside className="pane computer-pane">
+      <div className="pane-head drag">
+        <span className="pane-title">{props.bot.name}'s computer</span>
+        <div className="row tight no-drag">
+          <button
+            className="icon-btn"
+            type="button"
+            aria-label="Bot settings"
+            title="Settings"
+            onClick={props.onSettings}
+          >
+            <GearIcon />
+          </button>
+          <button
+            className="icon-btn"
+            type="button"
+            aria-label="Close computer"
+            title="Close"
+            onClick={props.onCollapse}
+          >
+            <CloseIcon />
+          </button>
+        </div>
+      </div>
       <div className="pane-scroll">
         <div className="boot-card">
           {booting && !live ? (

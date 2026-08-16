@@ -18,7 +18,7 @@ import {
 import { client } from "../lib/rpc";
 import type { Theme } from "../lib/theme";
 import { ChevronDownIcon, CloseIcon } from "./Icons";
-import { ModalShell } from "./Modal";
+import { ModalShell } from "../ui";
 
 type Tab = "general" | "models" | "billing" | "updates";
 
@@ -375,7 +375,7 @@ function ModelsTab() {
             <span>Model id</span>
             <input
               value={custom}
-              placeholder="openrouter/deepseek/deepseek-v4-flash-0731"
+              placeholder="openrouter/deepseek/deepseek-v4-flash"
               spellCheck={false}
               autoComplete="off"
               onChange={(e) => setCustomModel(e.target.value)}

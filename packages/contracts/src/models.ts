@@ -13,7 +13,7 @@ export type ModelKeySource = z.infer<typeof ModelKeySource>;
 
 /** One-key starter. Native Anthropic/OpenAI stay available when those keys exist. */
 export const SUGGESTED_STARTER_MODEL =
-  "openrouter/deepseek/deepseek-v4-flash-0731";
+  "openrouter/deepseek/deepseek-v4-flash";
 
 export const PROVIDER_META: Record<
   ModelProvider,
@@ -55,7 +55,7 @@ export const PROVIDER_META: Record<
 
 export const MODEL_CATALOG = [
   {
-    id: "openrouter/deepseek/deepseek-v4-flash-0731",
+    id: "openrouter/deepseek/deepseek-v4-flash",
     label: "DeepSeek V4 Flash",
     provider: "openrouter" as const,
   },
@@ -174,6 +174,13 @@ export function providerForModel(model: string): ModelProvider | undefined {
 /** Map legacy / short Cloudflare ids onto Pi's cloudflare-ai-gateway provider. */
 export function flueModelId(model: string): string {
   const trimmed = model.trim();
+  // Pi OpenRouter catalog uses deepseek/deepseek-v4-flash (no date suffix).
+  if (
+    trimmed === "openrouter/deepseek/deepseek-v4-flash-0731" ||
+    trimmed === "deepseek/deepseek-v4-flash-0731"
+  ) {
+    return "openrouter/deepseek/deepseek-v4-flash";
+  }
   if (trimmed.startsWith("@cf/")) {
     return `cloudflare-ai-gateway/workers-ai/${trimmed}`;
   }

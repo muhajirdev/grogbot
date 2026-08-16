@@ -1,5 +1,7 @@
-import { CLOUD_WEB_ORIGIN } from "@grogbot/contracts";
 import { app, BrowserWindow } from "electron";
+
+/** Same value as CLOUD_WEB_ORIGIN in `@grogbot/contracts`. */
+const CLOUD_WEB_ORIGIN = "https://app.grogbot.com";
 
 /**
  * Packaged desktop is a thin client of the hosted office (app.grogbot.com,
@@ -18,7 +20,18 @@ function createWindow(): void {
     minWidth: 880,
     minHeight: 600,
     title: "Grogbot",
-    backgroundColor: "#f6f5f2",
+    backgroundColor: "#000000",
+    titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "hidden",
+    trafficLightPosition: { x: 16, y: 18 },
+    ...(process.platform !== "darwin"
+      ? {
+          titleBarOverlay: {
+            color: "#000000",
+            symbolColor: "#f4f4f4",
+            height: 44,
+          },
+        }
+      : {}),
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
