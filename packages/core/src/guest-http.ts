@@ -141,6 +141,9 @@ async function hello(
   if (!bot || bot.guestKind === "off") {
     return json(403, { error: "guest runtime is not enabled on this bot" });
   }
+  if (bot.archivedAt) {
+    return json(403, { error: "this bot is archived" });
+  }
   if (bot.guestKind !== kind) {
     return json(403, {
       error: `this bot expects ${bot.guestKind}, not ${kind}`,

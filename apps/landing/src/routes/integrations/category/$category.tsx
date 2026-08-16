@@ -22,7 +22,7 @@ export const Route = createFileRoute("/integrations/category/$category")({
     const { category, items } = loaderData;
     return seoHead({
       title: `${category.name} integrations`,
-      description: `Grogbot teammates for ${category.name}: ${category.count} tools via Composio or a real computer. No workflow builder.`,
+      description: `Grogbot teammates for ${category.name}: ${category.count} tools, plus a computer when a connector isn’t there.`,
       path: `/integrations/category/${category.slug}`,
       jsonLd: [
         breadcrumbJsonLd([
@@ -67,8 +67,8 @@ function CategoryPage() {
           <p className="kicker">{category.count} tools</p>
           <h1>{category.name} integrations</h1>
           <p className="lede">
-            Composio connectors when they exist. A real computer when they
-            don&apos;t. The Bot still asks before anything goes live.
+            Connect the tool when you can. Use the computer when you
+            can&apos;t. The Bot still asks before anything goes live.
           </p>
         </section>
         <section className="band">

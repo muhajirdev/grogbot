@@ -36,7 +36,7 @@ export const INDIE_INTEGRATIONS: IndieIntegration[] = [
       "From DataFast, which channels made paying customers this week? Cite the source. Do not change dashboards.",
     faqs: [
       {
-        q: "Does Composio include DataFast?",
+        q: "Is there a DataFast plugin?",
         a: "Not today. Grogbot still works: the Bot uses the computer, logs into datafa.st the way you would, and brings numbers back to the thread. Marc Lou also ships a DataFast API and MCP — connect those when you want API-level reads.",
       },
       {
@@ -100,7 +100,7 @@ export const INDIE_INTEGRATIONS: IndieIntegration[] = [
       "Load these posts into Post Bridge for the week. Do not publish. Ask if a network is missing.",
     faqs: [
       {
-        q: "Is Post Bridge in Composio?",
+        q: "Does Post Bridge need a plugin?",
         a: "No. This is a computer integration: the Bot uses post-bridge.com like a coworker with a monitor. Fine for indie stacks that Zapier never bothered to list.",
       },
       {
@@ -260,8 +260,8 @@ export const INDIE_INTEGRATIONS: IndieIntegration[] = [
       "Pull this week's Polar orders. Cite the org. Do not change products.",
     faqs: [
       {
-        q: "Is Polar in Composio?",
-        a: "Not in the public toolkit list we snapshot. The Bot uses the Polar dashboard on the computer, or Polar's API if you hand it a scoped key. Live price changes still wait for you.",
+        q: "Is Polar a plugin?",
+        a: "Not as a listed plugin. The Bot uses the Polar dashboard on the computer, or Polar's API if you hand it a scoped key. Live price changes still wait for you.",
       },
     ],
   },

@@ -1,0 +1,139 @@
+import type { Bot, ThreadMessage } from "@grogbot/contracts";
+import type { QueryClient } from "@tanstack/react-query";
+import {
+  messagesCollection,
+  threadMetaCollection,
+  type CachedMessage,
+  type ThreadMeta,
+} from "./collections";
+import { orpc } from "./orpc";
+import { client as rpcClient } from "./rpc";
+
+export const THREAD_GC_MS = 30 * 60_000;
+
+export function computerKey(botId: string) {
+  return ["computer", botId] as const;
+}
+
+export function peekMessages(botId: string): CachedMessage[] {
+  const rows: CachedMessage[] = [];
+  messagesCollection.forEach((item) => {
+    if (item.botId === botId) rows.push(item);
+  });
+  rows.sort((a, b) => a.seq - b.seq);
+  return rows;
+}
+
+export function readCursor(botId: string): number {
+  return threadMetaCollection.get(botId)?.cursor ?? -1;
+}
+
+export function ensureThreadMeta(botId: string): void {
+  if (threadMetaCollection.has(botId)) return;
+  threadMetaCollection.insert({
+    botId,
+    cursor: -1,
+    working: "",
+    error: "",
+  });
+}
+
+export function patchThreadMeta(
+  botId: string,
+  patch: Partial<Omit<ThreadMeta, "botId">>,
+): void {
+  ensureThreadMeta(botId);
+  threadMetaCollection.update(botId, (draft) => {
+    if (patch.cursor !== undefined) draft.cursor = patch.cursor;
+    if (patch.working !== undefined) draft.working = patch.working;
+    if (patch.error !== undefined) draft.error = patch.error;
+  });
+}
+
+export function upsertCachedMessage(
+  botId: string,
+  incoming: ThreadMessage,
+): void {
+  if (messagesCollection.has(incoming.id)) return;
+  if (incoming.actorType === "human") {
+    const incomingText = textOf(incoming);
+    let pendingId: string | undefined;
+    messagesCollection.forEach((item) => {
+      if (
+        pendingId === undefined &&
+        item.botId === botId &&
+        item.id.startsWith("pending:") &&
+        textOf(item) === incomingText
+      ) {
+        pendingId = item.id;
+      }
+    });
+    if (pendingId) messagesCollection.delete(pendingId);
+  }
+  messagesCollection.insert({ ...incoming, botId });
+}
+
+export function appendOptimisticMessage(
+  client: QueryClient,
+  botId: string,
+  text: string,
+): CachedMessage {
+  let lastSeq = 0;
+  messagesCollection.forEach((item) => {
+    if (item.botId === botId && item.seq > lastSeq) lastSeq = item.seq;
+  });
+  const optimistic: CachedMessage = {
+    id: `pending:${crypto.randomUUID()}`,
+    seq: lastSeq + 1,
+    botId,
+    actorType: "human",
+    actorId: null,
+    blocks: [{ kind: "text", text }],
+    runId: null,
+    createdAt: new Date().toISOString(),
+  };
+  messagesCollection.insert(optimistic);
+  patchThreadMeta(botId, { working: "working…", error: "" });
+  touchBotPreview(client, botId, text);
+  return optimistic;
+}
+
+export function failOptimisticSend(
+  botId: string,
+  id: string,
+  error: string,
+): void {
+  if (messagesCollection.has(id)) messagesCollection.delete(id);
+  patchThreadMeta(botId, { working: "", error });
+}
+
+export function prefetchComputer(client: QueryClient, botId: string): void {
+  void client.prefetchQuery({
+    queryKey: computerKey(botId),
+    queryFn: () => rpcClient.computer.status({ botId }),
+    staleTime: 10_000,
+  });
+}
+
+export function touchBotPreview(
+  client: QueryClient,
+  botId: string,
+  preview: string,
+): void {
+  const now = new Date().toISOString();
+  client.setQueryData<Bot[]>(orpc.bots.list.queryOptions().queryKey, (list) => {
+    if (!list) return list;
+    return list.map((bot) =>
+      bot.id === botId
+        ? { ...bot, lastPreview: preview.slice(0, 140), lastAt: now }
+        : bot,
+    );
+  });
+}
+
+function textOf(message: ThreadMessage): string {
+  return message.blocks
+    .filter((block) => block.kind === "text")
+    .map((block) => block.text)
+    .join("\n");
+}

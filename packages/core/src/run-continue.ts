@@ -65,6 +65,25 @@ export async function continueRun(opts: {
     .where(eq(bots.id, run.botId))
     .limit(1);
   if (!bot) return;
+  if (bot.archivedAt) {
+    await setRunStatus(db, run, "cancelled", {
+      completedAt: new Date(),
+      error: "archived",
+    });
+    await db
+      .update(tasks)
+      .set({ status: "cancelled", updatedAt: new Date() })
+      .where(eq(tasks.id, run.taskId));
+    await appendEvent(db, {
+      workspaceId: run.workspaceId,
+      threadId: run.threadId,
+      botId: run.botId,
+      type: "run.updated",
+      payload: { runId, status: "cancelled", text: "archived" },
+      runId,
+    });
+    return;
+  }
 
   const guestEnabled = bot.guestKind !== "off";
   if (guestEnabled && !guests?.isOnline(bot.id)) {

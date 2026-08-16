@@ -42,6 +42,8 @@ const FEATURED_COMPOSIO = new Set([
   "notion",
   "googlecalendar",
   "googlesheets",
+  "googledocs",
+  "googledrive",
   "linear",
   "stripe",
   "twitter",
@@ -50,6 +52,7 @@ const FEATURED_COMPOSIO = new Set([
   "dub",
   "hubspot",
   "linkedin",
+  "instagram",
 ]);
 
 const catalog = composioToolkits as ComposioToolkit[];

@@ -10,6 +10,7 @@ export const router = createRouter({
     session: null,
   },
   defaultPreload: "intent",
+  defaultPreloadDelay: 0,
   scrollRestoration: true,
 });
 

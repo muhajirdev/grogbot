@@ -75,7 +75,7 @@ export function landingLlmsHtml(): string {
     origins: LANDING_ORIGINS,
     title: "Grogbot for language models",
     description:
-      "Self-hostable Grok Bot: named teammates with a real computer. Bring your own keys.",
+      "Like Grok Bot, for the team. Named teammates with a real computer. If OpenClaw is for personal use, Grogbot is the office.",
     canonicalPath: "/llms.html",
     body: `<h1>Grogbot</h1>
 <pre>${escapeHtml(landingLlmsTxt())}</pre>`,

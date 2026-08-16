@@ -12,7 +12,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { AvatarMark, ShapePicks } from "../components/Avatar";
+import { GateAnywhere, GateMark, GateShell, GateSteps } from "../components/Gate";
 import { userFacingError } from "../lib/errors";
+import { runGateTransition } from "../lib/gate-transition";
 import { AVATAR_COLORS, AVATAR_SHAPES, SUGGESTED_JOBS } from "../lib/jobs";
 import { orpc } from "../lib/orpc";
 import { client } from "../lib/rpc";
@@ -23,9 +25,19 @@ const TOOLS = [
   { name: "Gmail", logo: "https://logos.composio.dev/api/gmail" },
   { name: "Slack", logo: "https://logos.composio.dev/api/slack" },
   { name: "GitHub", logo: "https://logos.composio.dev/api/github" },
-  { name: "Calendar", logo: "https://logos.composio.dev/api/googlecalendar" },
+  { name: "LinkedIn", logo: "https://logos.composio.dev/api/linkedin" },
+  { name: "Notion", logo: "https://logos.composio.dev/api/notion" },
   { name: "Drive", logo: "https://logos.composio.dev/api/googledrive" },
+  { name: "Calendar", logo: "https://logos.composio.dev/api/googlecalendar" },
   { name: "Linear", logo: "https://logos.composio.dev/api/linear" },
+] as const;
+
+const MODEL_MARKS = [
+  { name: "Claude", src: "/models/claude.svg", tone: "light" },
+  { name: "GPT", src: "/models/openai.svg", tone: "light" },
+  { name: "Grok", src: "/models/grok.svg", tone: "light" },
+  { name: "Kimi", src: "/models/kimi.svg", tone: "dark" },
+  { name: "DeepSeek", src: "/models/deepseek.svg", tone: "light" },
 ] as const;
 
 const PROVIDER_ORDER: ModelProvider[] = [
@@ -115,17 +127,27 @@ export function Onboarding() {
     Boolean(keyDraft.trim()) ||
     Boolean(providerStatus?.configured && selectedMeta?.available);
 
-  function pickJob(job: (typeof SUGGESTED_JOBS)[number]) {
-    setTitle(job.title);
-    setDescription(job.description);
-    setName(job.title.split(" ")[0] ?? "Piper");
-    setStep(5);
+  function go(next: number) {
+    setError("");
+    runGateTransition(() => setStep(next));
   }
+
+  function pickJob(job: (typeof SUGGESTED_JOBS)[number]) {
+    runGateTransition(() => {
+      setTitle(job.title);
+      setDescription(job.description);
+      setName(job.title.split(" ")[0] ?? "Piper");
+      setStep(5);
+    });
+  }
+
+  const heroMood =
+    step === 0 || step === 4 ? "happy" : step === 2 ? "thinking" : "idle";
 
   async function saveModels() {
     if (!settings) return;
     if (modelsReady) {
-      setStep(4);
+      go(4);
       return;
     }
     setBusy(true);
@@ -184,7 +206,8 @@ export function Onboarding() {
       setAnthropicKey("");
       setOpenaiKey("");
       setCloudflareToken("");
-      setStep(4);
+      setBusy(false);
+      go(4);
     } catch (caught) {
       setError(userFacingError(caught, "Could not save models"));
     } finally {
@@ -206,8 +229,12 @@ export function Onboarding() {
       });
       localStorage.setItem("grogbot.onboarded", "1");
       cacheCreatedBot(queryClient, bot);
-      await queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
-      await navigate({ to: "/$botId", params: { botId: bot.id } });
+      void queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
+      await navigate({
+        to: "/$botId",
+        params: { botId: bot.id },
+        viewTransition: true,
+      });
     } catch (caught) {
       setError(
         caught instanceof Error ? caught.message : "Could not create teammate",
@@ -218,133 +245,223 @@ export function Onboarding() {
   }
 
   return (
-    <div className="grid min-h-screen place-items-center p-8">
-      <div className="w-full max-w-[520px]">
-        <p className="mb-2 text-[13px] text-muted">Meet a teammate</p>
-        {step === 0 ? (
-          <>
-            <div className="mb-3 flex justify-center">
-              <AvatarMark
-                name="Piper"
-                color="#e45c9a"
-                shape="circle"
-                large
-                mood="happy"
+    <GateShell>
+      <p className="kicker">Hire your first Bot</p>
+      <GateSteps current={step} total={6} />
+      {step !== 1 && step !== 5 ? (
+        <GateMark hero size={step === 0 ? "lg" : "md"} mood={heroMood} />
+      ) : null}
+      {step === 0 ? (
+        <div className="gate-stage" key="tour">
+          <h1>Bots are teammates.</h1>
+          <p className="lede">
+            Give work the way you would a coworker. Each Bot is a contact —
+            name, optional job, one thread. They share the default computer
+            unless you give one its own.
+          </p>
+          <Button type="button" onClick={() => go(1)}>
+            Continue
+          </Button>
+        </div>
+      ) : null}
+      {step === 1 ? (
+        <div className="gate-stage" key="computer">
+          <h1>A computer you can ignore.</h1>
+          <p className="lede">
+            Shut the laptop. Open the thread on your phone. The computer lives
+            in the cloud — take over only for a password, 2FA, or payment.
+          </p>
+          <GateAnywhere hero />
+          <div className="gate-nav">
+            <Button variant="ghost" type="button" onClick={() => go(0)}>
+              Back
+            </Button>
+            <Button type="button" onClick={() => go(2)}>
+              Continue
+            </Button>
+          </div>
+        </div>
+      ) : null}
+      {step === 2 ? (
+        <div className="gate-stage" key="tools">
+          <h1>Which tools do you use?</h1>
+          <p className="lede">
+            This only shapes suggestions. Nothing connects yet. We’ll ask when
+            the Bot hits a wall.
+          </p>
+          <div className="gate-tools">
+            {TOOLS.map(({ name, logo }) => (
+              <Chip
+                key={name}
+                selected={tools.includes(name)}
+                onClick={() =>
+                  setTools(
+                    tools.includes(name)
+                      ? tools.filter((item) => item !== name)
+                      : [...tools, name],
+                  )
+                }
+              >
+                <img
+                  src={logo}
+                  alt=""
+                  width={14}
+                  height={14}
+                  decoding="async"
+                  className="size-3.5 shrink-0"
+                />
+                {name}
+              </Chip>
+            ))}
+          </div>
+          <div className="gate-nav">
+            <Button variant="ghost" type="button" onClick={() => go(1)}>
+              Back
+            </Button>
+            <Button type="button" onClick={() => go(3)}>
+              Continue
+            </Button>
+          </div>
+        </div>
+      ) : null}
+      {step === 3 ? (
+        <div className="gate-stage" key="models">
+          <h1>Any model. Not locked in.</h1>
+          <p className="lede">
+            {modelsReady
+              ? "This workspace already has a model key. Continue to hire your first teammate."
+              : "Paste an OpenRouter key to start — one key covers Claude, GPT, Grok, Kimi, DeepSeek. Add Anthropic, OpenAI, or Cloudflare later."}
+          </p>
+          <div className="model-strip" aria-hidden>
+            {MODEL_MARKS.map((mark) => (
+              <img
+                key={mark.name}
+                className={`model-icon ${mark.tone}`}
+                src={mark.src}
+                alt=""
+                width={22}
+                height={22}
+                title={mark.name}
               />
-            </div>
-            <h1 className="mb-4 text-[clamp(28px,5vw,40px)] font-semibold tracking-tight">
-              Bots are coworkers.
-            </h1>
-            <p className="mb-6 text-base leading-normal text-muted">
-              Each Bot is a named person in the sidebar. You talk to them. They
-              share the default computer — files and logins — unless you give
-              one its own.
+            ))}
+          </div>
+          {!settings ? (
+            <p className="lede">
+              {modelsQuery.error ? "Could not load models." : "Loading…"}
             </p>
-            <Button type="button" onClick={() => setStep(1)}>
-              Next
-            </Button>
-          </>
-        ) : null}
-        {step === 1 ? (
-          <>
-            <h1 className="mb-4 text-[clamp(28px,5vw,40px)] font-semibold tracking-tight">
-              The computer is a pane you can ignore.
-            </h1>
-            <p className="mb-6 text-base leading-normal text-muted">
-              Teammates on the same computer take turns with the mouse. Work
-              continues if you close the pane. Take over only when a password,
-              2FA, or payment shows up — on the computer, not in chat.
+          ) : modelsReady ? (
+            <p className="ok">
+              Ready · {selectedMeta?.label ?? settings.defaultModelId}
             </p>
-            <Button type="button" onClick={() => setStep(2)}>
-              Next
-            </Button>
-          </>
-        ) : null}
-        {step === 2 ? (
-          <>
-            <h1 className="mb-4 text-[clamp(28px,5vw,40px)] font-semibold tracking-tight">
-              Which tools do you use?
-            </h1>
-            <p className="mb-6 text-base leading-normal text-muted">
-              This only shapes suggestions. Nothing connects yet. We’ll ask when
-              the Bot hits a wall.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {TOOLS.map(({ name, logo }) => (
-                <Chip
-                  key={name}
-                  selected={tools.includes(name)}
-                  onClick={() =>
-                    setTools(
-                      tools.includes(name)
-                        ? tools.filter((item) => item !== name)
-                        : [...tools, name],
-                    )
+          ) : (
+            <>
+              <Field label="Default model">
+                <Select
+                  aria-label="Default model"
+                  value={selectedModel}
+                  onValueChange={setDefaultModel}
+                  groups={modelGroups}
+                />
+              </Field>
+              {selectedProvider === "openrouter" ? (
+                <Field
+                  label={
+                    <>
+                      OpenRouter key
+                      <em className="font-normal text-muted">
+                        {" "}
+                        · recommended
+                      </em>
+                    </>
+                  }
+                  hint={
+                    <>
+                      {PROVIDER_META.openrouter.hint}{" "}
+                      <a
+                        href={PROVIDER_META.openrouter.docsUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Get a key
+                      </a>
+                    </>
                   }
                 >
-                  <img
-                    src={logo}
-                    alt=""
-                    width={14}
-                    height={14}
-                    decoding="async"
-                    className="size-3.5 shrink-0"
-                  />
-                  {name}
-                </Chip>
-              ))}
-            </div>
-            <div className="mt-5 flex flex-wrap items-center gap-2.5">
-              <Button type="button" onClick={() => setStep(3)}>
-                Continue
-              </Button>
-            </div>
-          </>
-        ) : null}
-        {step === 3 ? (
-          <>
-            <h1 className="mb-4 text-[clamp(28px,5vw,40px)] font-semibold tracking-tight">
-              Pick a model.
-            </h1>
-            <p className="mb-6 text-base leading-normal text-muted">
-              {modelsReady
-                ? "This office already has a model key. Continue to hire your first teammate."
-                : "Paste an OpenRouter key to start — one key covers many models. You can add Anthropic, OpenAI, or Cloudflare later in Settings."}
-            </p>
-            {!settings ? (
-              <p className="text-muted">
-                {modelsQuery.error ? "Could not load models." : "Loading…"}
-              </p>
-            ) : modelsReady ? (
-              <p className="text-[13px] text-ok">
-                Ready · {selectedMeta?.label ?? settings.defaultModelId}
-              </p>
-            ) : (
-              <>
-                <Field label="Default model">
-                  <Select
-                    aria-label="Default model"
-                    value={selectedModel}
-                    onValueChange={setDefaultModel}
-                    groups={modelGroups}
+                  <Input
+                    type="password"
+                    autoComplete="new-password"
+                    spellCheck={false}
+                    placeholder={
+                      providerStatus?.configured
+                        ? "Leave blank to keep"
+                        : PROVIDER_META.openrouter.placeholder
+                    }
+                    value={openrouterKey}
+                    onValueChange={setOpenrouterKey}
                   />
                 </Field>
-                {selectedProvider === "openrouter" ? (
+              ) : null}
+              {selectedProvider === "anthropic" ? (
+                <Field
+                  label="Anthropic key"
+                  hint={
+                    <>
+                      {PROVIDER_META.anthropic.hint}{" "}
+                      <a
+                        href={PROVIDER_META.anthropic.docsUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Get a key
+                      </a>
+                    </>
+                  }
+                >
+                  <Input
+                    type="password"
+                    autoComplete="new-password"
+                    spellCheck={false}
+                    placeholder={PROVIDER_META.anthropic.placeholder}
+                    value={anthropicKey}
+                    onValueChange={setAnthropicKey}
+                  />
+                </Field>
+              ) : null}
+              {selectedProvider === "openai" ? (
+                <Field
+                  label="OpenAI key"
+                  hint={
+                    <>
+                      {PROVIDER_META.openai.hint}{" "}
+                      <a
+                        href={PROVIDER_META.openai.docsUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Get a key
+                      </a>
+                    </>
+                  }
+                >
+                  <Input
+                    type="password"
+                    autoComplete="new-password"
+                    spellCheck={false}
+                    placeholder={PROVIDER_META.openai.placeholder}
+                    value={openaiKey}
+                    onValueChange={setOpenaiKey}
+                  />
+                </Field>
+              ) : null}
+              {selectedProvider === "cloudflare" ? (
+                <>
                   <Field
-                    label={
-                      <>
-                        OpenRouter key
-                        <em className="font-normal text-muted">
-                          {" "}
-                          · recommended
-                        </em>
-                      </>
-                    }
+                    label="Cloudflare API token"
                     hint={
                       <>
-                        {PROVIDER_META.openrouter.hint}{" "}
+                        {PROVIDER_META.cloudflare.hint}{" "}
                         <a
-                          href={PROVIDER_META.openrouter.docsUrl}
+                          href={PROVIDER_META.cloudflare.docsUrl}
                           target="_blank"
                           rel="noreferrer"
                         >
@@ -357,205 +474,124 @@ export function Onboarding() {
                       type="password"
                       autoComplete="new-password"
                       spellCheck={false}
-                      placeholder={
-                        providerStatus?.configured
-                          ? "Leave blank to keep"
-                          : PROVIDER_META.openrouter.placeholder
-                      }
-                      value={openrouterKey}
-                      onValueChange={setOpenrouterKey}
+                      placeholder={PROVIDER_META.cloudflare.placeholder}
+                      value={cloudflareToken}
+                      onValueChange={setCloudflareToken}
                     />
                   </Field>
-                ) : null}
-                {selectedProvider === "anthropic" ? (
-                  <Field
-                    label="Anthropic key"
-                    hint={
-                      <>
-                        {PROVIDER_META.anthropic.hint}{" "}
-                        <a
-                          href={PROVIDER_META.anthropic.docsUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Get a key
-                        </a>
-                      </>
-                    }
-                  >
+                  <Field label="Account id">
                     <Input
-                      type="password"
-                      autoComplete="new-password"
+                      placeholder="32-character account id"
                       spellCheck={false}
-                      placeholder={PROVIDER_META.anthropic.placeholder}
-                      value={anthropicKey}
-                      onValueChange={setAnthropicKey}
+                      autoComplete="off"
+                      value={cfAccount}
+                      onValueChange={setCfAccount}
                     />
                   </Field>
-                ) : null}
-                {selectedProvider === "openai" ? (
-                  <Field
-                    label="OpenAI key"
-                    hint={
-                      <>
-                        {PROVIDER_META.openai.hint}{" "}
-                        <a
-                          href={PROVIDER_META.openai.docsUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Get a key
-                        </a>
-                      </>
-                    }
-                  >
+                  <Field label="AI Gateway id">
                     <Input
-                      type="password"
-                      autoComplete="new-password"
+                      placeholder="default"
                       spellCheck={false}
-                      placeholder={PROVIDER_META.openai.placeholder}
-                      value={openaiKey}
-                      onValueChange={setOpenaiKey}
+                      autoComplete="off"
+                      value={cfGateway}
+                      onValueChange={setCfGateway}
                     />
                   </Field>
-                ) : null}
-                {selectedProvider === "cloudflare" ? (
-                  <>
-                    <Field
-                      label="Cloudflare API token"
-                      hint={
-                        <>
-                          {PROVIDER_META.cloudflare.hint}{" "}
-                          <a
-                            href={PROVIDER_META.cloudflare.docsUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            Get a key
-                          </a>
-                        </>
-                      }
-                    >
-                      <Input
-                        type="password"
-                        autoComplete="new-password"
-                        spellCheck={false}
-                        placeholder={PROVIDER_META.cloudflare.placeholder}
-                        value={cloudflareToken}
-                        onValueChange={setCloudflareToken}
-                      />
-                    </Field>
-                    <Field label="Account id">
-                      <Input
-                        placeholder="32-character account id"
-                        spellCheck={false}
-                        autoComplete="off"
-                        value={cfAccount}
-                        onValueChange={setCfAccount}
-                      />
-                    </Field>
-                    <Field label="AI Gateway id">
-                      <Input
-                        placeholder="default"
-                        spellCheck={false}
-                        autoComplete="off"
-                        value={cfGateway}
-                        onValueChange={setCfGateway}
-                      />
-                    </Field>
-                  </>
-                ) : null}
-              </>
-            )}
-            {error ? <p className="text-[13px] text-danger">{error}</p> : null}
-            <div className="mt-5 flex flex-wrap items-center gap-2.5">
-              <Button
-                type="button"
-                disabled={
-                  busy || !settings || (!modelsReady && !canContinueModels)
-                }
-                onClick={() => void saveModels()}
-              >
-                {busy ? "Saving…" : "Continue"}
-              </Button>
-            </div>
-          </>
-        ) : null}
-        {step === 4 ? (
-          <>
-            <h1 className="mb-4 text-[clamp(28px,5vw,40px)] font-semibold tracking-tight">
-              Who should we hire first?
-            </h1>
-            <p className="mb-6 text-base leading-normal text-muted">
-              Pick a job, or write your own.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {SUGGESTED_JOBS.map((job) => (
-                <Chip key={job.title} onClick={() => pickJob(job)}>
-                  {job.title}
-                </Chip>
-              ))}
-            </div>
-            <div className="mt-5 flex flex-wrap items-center gap-2.5">
-              <Button
-                variant="ghost"
-                type="button"
-                onClick={() => setStep(5)}
-              >
-                Create your own
-              </Button>
-            </div>
-          </>
-        ) : null}
-        {step === 5 ? (
-          <>
-            <h1 className="mb-4 text-[clamp(28px,5vw,40px)] font-semibold tracking-tight">
-              Name + how it should work.
-            </h1>
-            <div className="my-3 mb-5 flex items-center gap-4">
-              <AvatarMark name={name} color={color} shape={shape} large />
-              <div>
-                <div className="swatches">
-                  {AVATAR_COLORS.map((value) => (
-                    <button
-                      key={value}
-                      type="button"
-                      className={`swatch${color === value ? " on" : ""}`}
-                      style={{ background: value }}
-                      onClick={() => setColor(value)}
-                    />
-                  ))}
-                </div>
-                <ShapePicks
-                  color={color}
-                  value={shape}
-                  shapes={AVATAR_SHAPES}
-                  onChange={setShape}
-                />
+                </>
+              ) : null}
+            </>
+          )}
+          {error ? <p className="error">{error}</p> : null}
+          <div className="gate-nav">
+            <Button variant="ghost" type="button" onClick={() => go(2)}>
+              Back
+            </Button>
+            <Button
+              type="button"
+              disabled={
+                busy || !settings || (!modelsReady && !canContinueModels)
+              }
+              onClick={() => void saveModels()}
+            >
+              {busy ? "Saving…" : "Continue"}
+            </Button>
+          </div>
+        </div>
+      ) : null}
+      {step === 4 ? (
+        <div className="gate-stage" key="hire">
+          <h1>Who should we hire first?</h1>
+          <p className="lede">
+            Pick a job — or write your own. Chief of Staff is a good first hire.
+          </p>
+          <div className="gate-tools">
+            {SUGGESTED_JOBS.map((job) => (
+              <Chip key={job.title} onClick={() => pickJob(job)}>
+                {job.title}
+              </Chip>
+            ))}
+          </div>
+          <div className="gate-nav">
+            <Button variant="ghost" type="button" onClick={() => go(3)}>
+              Back
+            </Button>
+            <Button variant="ghost" type="button" onClick={() => go(5)}>
+              Create your own
+            </Button>
+          </div>
+        </div>
+      ) : null}
+      {step === 5 ? (
+        <div className="gate-stage" key="profile">
+          <h1>Name + how it should work.</h1>
+          <p className="lede">
+            A Bot is a contact: name, optional job, and the rules it should
+            follow.
+          </p>
+          <div className="my-3 mb-5 flex items-center gap-4">
+            <AvatarMark name={name} color={color} shape={shape} large hero />
+            <div>
+              <div className="swatches">
+                {AVATAR_COLORS.map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`swatch${color === value ? " on" : ""}`}
+                    style={{ background: value }}
+                    onClick={() => setColor(value)}
+                  />
+                ))}
               </div>
+              <ShapePicks
+                color={color}
+                value={shape}
+                shapes={AVATAR_SHAPES}
+                onChange={setShape}
+              />
             </div>
-            <Field label="Name">
-              <Input
-                value={name}
-                onValueChange={setName}
-                required
-              />
-            </Field>
-            <Field label="Job (optional)">
-              <Input
-                value={title}
-                placeholder="Talent Scout"
-                onValueChange={setTitle}
-              />
-            </Field>
-            <Field label="How it should work">
-              <Textarea
-                rows={4}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </Field>
-            {error ? <p className="text-[13px] text-danger">{error}</p> : null}
+          </div>
+          <Field label="Name">
+            <Input value={name} onValueChange={setName} required />
+          </Field>
+          <Field label="Job (optional)">
+            <Input
+              value={title}
+              placeholder="Chief of Staff"
+              onValueChange={setTitle}
+            />
+          </Field>
+          <Field label="How it should work">
+            <Textarea
+              rows={4}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </Field>
+          {error ? <p className="error">{error}</p> : null}
+          <div className="gate-nav">
+            <Button variant="ghost" type="button" onClick={() => go(4)}>
+              Back
+            </Button>
             <Button
               type="button"
               disabled={busy || !name.trim()}
@@ -563,9 +599,9 @@ export function Onboarding() {
             >
               {busy ? "Hiring…" : "Open the thread"}
             </Button>
-          </>
-        ) : null}
-      </div>
-    </div>
+          </div>
+        </div>
+      ) : null}
+    </GateShell>
   );
 }

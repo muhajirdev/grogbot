@@ -2,9 +2,9 @@ import { CLOUD_LANDING_ORIGIN } from "@grogbot/contracts";
 
 export const SITE_NAME = "Grogbot";
 export const DEFAULT_TITLE =
-  "Grogbot — Create a Bot, message it, grant access as needed.";
+  "Grogbot — Like Grok Bot, for the team.";
 export const DEFAULT_DESCRIPTION =
-  "No workflow builder. Self-hostable Grok Bot with a real computer, a shared default computer, and bring-your-own keys.";
+  "If OpenClaw is for your personal use, Grogbot is for the office. Named teammates, a shared computer, open source. Self-host for your team.";
 
 export function landingOrigin(): string {
   return CLOUD_LANDING_ORIGIN;

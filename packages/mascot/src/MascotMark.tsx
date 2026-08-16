@@ -2,14 +2,60 @@ import { type CSSProperties, useId } from "react";
 import {
   type MascotMood,
   type MascotShape,
-  mascotAnchor,
-  mascotBody,
+  mascotBlush,
   mascotColors,
-  mascotFace,
   mascotShine,
+  mascotSpark,
   seedFromName,
 } from "./geometry.js";
+import { useMascotMorph } from "./spring.js";
 import "./mascot.css";
+
+function OvalMark(props: {
+  cx: number;
+  cy: number;
+  rx: number;
+  ry: number;
+  fill: string;
+  opacity?: number;
+  className?: string;
+  clipPath?: string;
+}) {
+  return (
+    <ellipse
+      className={props.className}
+      cx={props.cx}
+      cy={props.cy}
+      rx={props.rx}
+      ry={props.ry}
+      fill={props.fill}
+      opacity={props.opacity}
+      clipPath={props.clipPath}
+    />
+  );
+}
+
+function SlitMark(props: {
+  cx: number;
+  cy: number;
+  w: number;
+  h: number;
+  rot: number;
+  fill: string;
+}) {
+  const rx = Math.min(props.w, props.h) / 2;
+  return (
+    <rect
+      x={props.cx - props.w / 2}
+      y={props.cy - props.h / 2}
+      width={props.w}
+      height={props.h}
+      rx={rx}
+      fill={props.fill}
+      transform={`rotate(${props.rot} ${props.cx} ${props.cy})`}
+    />
+  );
+}
 
 export function MascotMark(props: {
   name: string;
@@ -17,140 +63,85 @@ export function MascotMark(props: {
   shape?: MascotShape;
   mood?: MascotMood;
   size?: "xs" | "sm" | "md" | "lg";
+  className?: string;
 }) {
   const shape = props.shape ?? "circle";
   const mood = props.mood ?? "idle";
   const size = props.size ?? "md";
   const colors = mascotColors(props.color);
-  const body = mascotBody(shape);
-  const face = mascotFace(mood);
+  const { d, slits } = useMascotMorph(shape, mood);
+  const blush = mascotBlush(slits);
   const shine = mascotShine();
-  const anchor = mascotAnchor(shape);
   const rawId = useId().replace(/[^a-zA-Z0-9]/g, "");
   const paint = `mascot-${rawId}`;
-  const delay = `${(seedFromName(props.name) % 2600) / 1000}s`;
+  const sheen = `${paint}-sheen`;
+  const clip = `${paint}-clip`;
+  const delay = `${(seedFromName(props.name) % 2800) / 1000}s`;
+  const className = ["mascot", `mascot-${size}`, `mood-${mood}`, props.className]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <span
-      className={`mascot mascot-${size} mood-${mood}`}
+      className={className}
       style={{ "--mascot-delay": delay } as CSSProperties}
       aria-hidden
     >
       <svg viewBox="0 0 100 100" focusable="false" aria-hidden>
         <title>{props.name}</title>
         <defs>
-          <linearGradient id={paint} x1="28%" y1="6%" x2="78%" y2="96%">
+          <linearGradient id={paint} x1="28%" y1="8%" x2="78%" y2="96%">
             <stop offset="0%" stopColor={colors.light} />
-            <stop offset="52%" stopColor={colors.mid} />
+            <stop offset="46%" stopColor={colors.mid} />
             <stop offset="100%" stopColor={colors.dark} />
           </linearGradient>
+          <radialGradient id={sheen} cx="34%" cy="30%" r="54%">
+            <stop offset="0%" stopColor="#fff" stopOpacity="0.3" />
+            <stop offset="62%" stopColor="#fff" stopOpacity="0" />
+          </radialGradient>
+          <clipPath id={clip}>
+            <path d={d} />
+          </clipPath>
         </defs>
         <g className="mascot-body">
-          {body.kind === "circle" ? (
-            <circle
-              cx={body.cx}
-              cy={body.cy}
-              r={body.r}
-              fill={`url(#${paint})`}
-            />
-          ) : (
-            <path d={body.d} fill={`url(#${paint})`} />
-          )}
-          <ellipse
+          <path d={d} fill={`url(#${paint})`} />
+          <path d={d} fill={`url(#${sheen})`} />
+          <OvalMark
             className="mascot-shine"
-            cx={shine.cx}
-            cy={shine.cy}
-            rx={shine.rx}
-            ry={shine.ry}
+            {...shine}
             fill="#fff"
+            clipPath={`url(#${clip})`}
           />
         </g>
-        <g
-          className="mascot-face"
-          transform={`translate(${anchor.x} ${anchor.y}) scale(${anchor.scale}) translate(-50 -51)`}
-        >
-          <ellipse
-            cx={face.blush[0].cx}
-            cy={face.blush[0].cy}
-            rx={face.blush[0].rx}
-            ry={face.blush[0].ry}
+        <g className="mascot-face">
+          <OvalMark
+            className="mascot-blush"
+            {...blush[0]}
             fill={colors.blush}
-            opacity={face.blushOpacity}
+            opacity={0.34}
           />
-          <ellipse
-            cx={face.blush[1].cx}
-            cy={face.blush[1].cy}
-            rx={face.blush[1].rx}
-            ry={face.blush[1].ry}
+          <OvalMark
+            className="mascot-blush"
+            {...blush[1]}
             fill={colors.blush}
-            opacity={face.blushOpacity}
+            opacity={0.34}
           />
-          <path
-            d={face.brows[0].d}
-            fill="none"
-            stroke={colors.mouth}
-            strokeWidth={face.brows[0].width}
-            strokeLinecap="round"
-          />
-          <path
-            d={face.brows[1].d}
-            fill="none"
-            stroke={colors.mouth}
-            strokeWidth={face.brows[1].width}
-            strokeLinecap="round"
-          />
-          <g className="mascot-eyes">
-            <ellipse
-              cx={face.left.cx}
-              cy={face.left.cy}
-              rx={face.left.rx}
-              ry={face.left.ry}
-              fill={colors.eye}
-            />
-            <ellipse
-              cx={face.right.cx}
-              cy={face.right.cy}
-              rx={face.right.rx}
-              ry={face.right.ry}
-              fill={colors.eye}
-            />
-            <ellipse
-              cx={face.pupils[0].cx}
-              cy={face.pupils[0].cy}
-              rx={face.pupils[0].rx}
-              ry={face.pupils[0].ry}
-              fill={colors.pupil}
-            />
-            <ellipse
-              cx={face.pupils[1].cx}
-              cy={face.pupils[1].cy}
-              rx={face.pupils[1].rx}
-              ry={face.pupils[1].ry}
-              fill={colors.pupil}
-            />
-            <ellipse
-              cx={face.sparks[0].cx}
-              cy={face.sparks[0].cy}
-              rx={face.sparks[0].rx}
-              ry={face.sparks[0].ry}
+          <g className="mascot-slits">
+            <SlitMark {...slits[0]} fill={colors.slit} />
+            <SlitMark {...slits[1]} fill={colors.slit} />
+            <OvalMark
+              className="mascot-spark"
+              {...mascotSpark(slits[0])}
               fill="#fff"
+              opacity={0.55}
             />
-            <ellipse
-              cx={face.sparks[1].cx}
-              cy={face.sparks[1].cy}
-              rx={face.sparks[1].rx}
-              ry={face.sparks[1].ry}
+            <OvalMark
+              className="mascot-spark"
+              {...mascotSpark(slits[1])}
               fill="#fff"
+              opacity={0.55}
             />
           </g>
-          <path
-            d={face.mouth.d}
-            fill={face.mouth.fill ? colors.mouth : "none"}
-            stroke={colors.mouth}
-            strokeWidth={face.mouth.width}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
         </g>
       </svg>
     </span>

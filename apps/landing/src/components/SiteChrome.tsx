@@ -1,7 +1,7 @@
 import { MascotMark } from "@grogbot/mascot";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { SOURCE_REPO } from "../lib/copy";
+import { FOOTER_BLURB, MAC_DOWNLOAD_URL, SOURCE_REPO } from "../lib/copy";
 
 export function SiteHeader(props: { startUrl: string }) {
   return (
@@ -11,9 +11,15 @@ export function SiteHeader(props: { startUrl: string }) {
         Grogbot
       </Link>
       <nav className="nav-links" aria-label="Site">
-        <Link to="/integrations">Integrations</Link>
-        <Link to="/use-cases">Use cases</Link>
-        <Link to="/press">Press</Link>
+        <Link className="nav-hide-sm" to="/integrations">
+          Integrations
+        </Link>
+        <Link className="nav-hide-sm" to="/use-cases">
+          Use cases
+        </Link>
+        <Link className="nav-hide-sm" to="/press">
+          Press
+        </Link>
         <a href={SOURCE_REPO} target="_blank" rel="noreferrer">
           GitHub
         </a>
@@ -28,7 +34,7 @@ export function SiteHeader(props: { startUrl: string }) {
 export function SiteFooter() {
   return (
     <footer className="foot">
-      <span>Grogbot — Grok, then grog. Fair-code.</span>
+      <span>{FOOTER_BLURB}</span>
       <nav className="foot-links" aria-label="Footer">
         <Link to="/integrations">Integrations</Link>
         <Link to="/use-cases">Use cases</Link>
@@ -36,6 +42,13 @@ export function SiteFooter() {
         <a href={SOURCE_REPO} target="_blank" rel="noreferrer">
           GitHub
         </a>
+        <a href={MAC_DOWNLOAD_URL} target="_blank" rel="noreferrer">
+          Download Mac app
+        </a>
+        <span className="foot-soon">
+          App Store
+          <span className="foot-soon-label">Coming soon</span>
+        </span>
       </nav>
     </footer>
   );

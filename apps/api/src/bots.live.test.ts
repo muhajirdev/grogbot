@@ -372,4 +372,72 @@ describe.skipIf(!dbUp)("bot thread loop", () => {
     const after = await rpc.bots.get({ botId: bot.id });
     expect(after.guestKind).toBe("off");
   }, 20_000);
+
+  it("archives a bot, hides it from the desk, and restores it", async () => {
+    cookie = "";
+    const email = `archive-${Date.now()}@example.com`;
+    const signUp = await handles.app.request(
+      new Request(`${origin}/api/auth/sign-up/email`, {
+        method: "POST",
+        headers: {
+          origin,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          name: "Archive Tester",
+          email,
+          password: "password1",
+        }),
+      }),
+    );
+    cookie = cookieHeader(signUp, cookie);
+    expect(signUp.status, await signUp.text()).toBe(200);
+
+    const rpc = client();
+    const piper = await rpc.bots.create({
+      name: "Piper",
+      title: "Product",
+      description: "Stays live.",
+      instructions: "Stays live.",
+    });
+    const scout = await rpc.bots.create({
+      name: "Scout",
+      title: "Talent",
+      description: "Goes to archive.",
+      instructions: "Goes to archive.",
+    });
+    expect(scout.archivedAt).toBeNull();
+
+    const archived = await rpc.bots.archive({ botId: scout.id });
+    expect(archived.archivedAt).toBeTruthy();
+    expect(archived.id).toBe(scout.id);
+
+    const listed = await rpc.bots.list();
+    expect(listed.find((item) => item.id === scout.id)?.archivedAt).toBeTruthy();
+    expect(listed.find((item) => item.id === piper.id)?.archivedAt).toBeNull();
+
+    await expect(
+      rpc.threads.send({ botId: scout.id, text: "still there?" }),
+    ).rejects.toMatchObject({ code: "PRECONDITION_FAILED" });
+
+    const desks = await rpc.computers.list();
+    expect(desks.some((item) => item.isDefault && item.agentCount === 1)).toBe(
+      true,
+    );
+    const piperDesk = await rpc.computer.status({ botId: piper.id });
+    expect(piperDesk.teammates.map((item) => item.name)).toEqual(["Piper"]);
+
+    const restored = await rpc.bots.unarchive({ botId: scout.id });
+    expect(restored.archivedAt).toBeNull();
+    const sent = await rpc.threads.send({
+      botId: scout.id,
+      text: "back to work",
+    });
+    expect(sent.seq).toBeGreaterThan(0);
+
+    const after = await rpc.computers.list();
+    expect(after.some((item) => item.isDefault && item.agentCount === 2)).toBe(
+      true,
+    );
+  }, 15_000);
 });

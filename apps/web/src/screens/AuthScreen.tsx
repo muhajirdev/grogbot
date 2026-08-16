@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { GateMark, GateShell } from "../components/Gate";
+import { GitHubIcon, GoogleIcon } from "../components/Icons";
 import { authClient } from "../lib/auth";
 import { orpc } from "../lib/orpc";
 
@@ -26,8 +28,7 @@ export function AuthScreen(props: { errorFromUrl?: string }) {
     if (emailOpen && !sentTo) emailRef.current?.focus();
   }, [emailOpen, sentTo]);
 
-  async function submit(event: React.FormEvent) {
-    event.preventDefault();
+  async function sendLink() {
     setBusy(true);
     setError("");
     const result = await authClient.signIn.magicLink({
@@ -43,6 +44,11 @@ export function AuthScreen(props: { errorFromUrl?: string }) {
       return;
     }
     setSentTo(email);
+  }
+
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
+    await sendLink();
   }
 
   async function social(provider: OAuthId) {
@@ -67,90 +73,97 @@ export function AuthScreen(props: { errorFromUrl?: string }) {
   }
 
   return (
-    <div className="screen">
-      <form className="stack" onSubmit={submit}>
-        <p className="kicker">Grogbot</p>
-        <h1>{mode === "up" ? "Create your workspace" : "Welcome back"}</h1>
-        <p className="lede">
-          Google, GitHub, or a link we email you.
-        </p>
-        <div className="oauth">
-          <button
-            className="btn ghost"
-            type="button"
-            disabled={busy}
-            onClick={() => void social("google")}
-          >
-            Continue with Google
-          </button>
-          <button
-            className="btn ghost"
-            type="button"
-            disabled={busy}
-            onClick={() => void social("github")}
-          >
-            Continue with GitHub
-          </button>
-          <button
-            className="btn ghost"
-            type="button"
-            disabled={busy}
-            onClick={() => {
-              setEmailOpen(true);
-              setSentTo("");
-            }}
-          >
-            Continue with email
-          </button>
-        </div>
-        {emailOpen && sentTo ? (
-          <p className="lede" style={{ marginTop: 16 }}>
-            Check {sentTo}. The sign-in link expires in 15 minutes.
-            {mail === "log"
-              ? " No Cloudflare mailer in .env — the link is in the API terminal."
-              : ""}
-          </p>
-        ) : null}
-        {emailOpen && !sentTo ? (
-          <label className="field">
-            <span>Email</span>
-            <input
-              ref={emailRef}
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-            />
-          </label>
-        ) : null}
-        {error ? <p className="error">{error}</p> : null}
-        <div className="row auth-actions">
-          {emailOpen ? (
-            <button className="btn" type="submit" disabled={busy || !email.trim()}>
-              {busy
-                ? "Sending…"
-                : sentTo
-                  ? "Send again"
-                  : "Email me a link"}
+    <GateShell>
+      <div className="gate-auth">
+        <GateMark hero mood={mode === "up" ? "happy" : "idle"} />
+        <div className="gate-stage">
+          <h1>{mode === "up" ? "Create your workspace" : "Welcome back"}</h1>
+          <p className="lede">Like Grok Bot, for the whole team.</p>
+          <div className="oauth">
+            <button
+              className="btn ghost oauth-btn"
+              type="button"
+              disabled={busy}
+              onClick={() => void social("google")}
+            >
+              <GoogleIcon />
+              Continue with Google
             </button>
-          ) : null}
-          <Link to="/" className="btn ghost">
-            Back
-          </Link>
+            <button
+              className="btn ghost oauth-btn"
+              type="button"
+              disabled={busy}
+              onClick={() => void social("github")}
+            >
+              <GitHubIcon />
+              Continue with GitHub
+            </button>
+          </div>
+          <p className="or-line">or</p>
+          {sentTo ? (
+            <div className="auth-sent">
+              <strong>Check {sentTo}</strong>
+              <p>
+                The sign-in link expires in 15 minutes.
+                {mail === "log"
+                  ? " No Cloudflare mailer in .env — the link is in the API terminal."
+                  : ""}
+              </p>
+              <button
+                className="btn ghost tiny"
+                type="button"
+                disabled={busy}
+                onClick={() => void sendLink()}
+              >
+                Send again
+              </button>
+            </div>
+          ) : emailOpen ? (
+            <form className="auth-email" onSubmit={submit}>
+              <label className="field">
+                <span>Work email</span>
+                <input
+                  ref={emailRef}
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  placeholder="you@company.com"
+                />
+              </label>
+              <button className="btn" type="submit" disabled={busy || !email.trim()}>
+                {busy ? "Sending…" : "Email me a link"}
+              </button>
+            </form>
+          ) : (
+            <button
+              className="btn ghost oauth-btn"
+              type="button"
+              disabled={busy}
+              onClick={() => setEmailOpen(true)}
+            >
+              Continue with email
+            </button>
+          )}
+          {error ? <p className="error">{error}</p> : null}
+          <div className="auth-foot">
+            <button
+              type="button"
+              onClick={() => {
+                setMode(mode === "up" ? "in" : "up");
+                setSentTo("");
+                setError("");
+              }}
+            >
+              {mode === "up" ? "I already have an account" : "Create an account"}
+            </button>
+            <Link to="/" viewTransition>
+              Back
+            </Link>
+          </div>
         </div>
-        <button
-          className="btn ghost tiny auth-alt"
-          type="button"
-          onClick={() => {
-            setMode(mode === "up" ? "in" : "up");
-            setSentTo("");
-            setError("");
-          }}
-        >
-          {mode === "up" ? "I already have an account" : "Create an account"}
-        </button>
-      </form>
-    </div>
+      </div>
+    </GateShell>
   );
 }

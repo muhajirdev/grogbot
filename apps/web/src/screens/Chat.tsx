@@ -1,8 +1,10 @@
 import type {
+  Bot,
   ComputerStatus,
   ProductEvent,
   ThreadMessage,
 } from "@grogbot/contracts";
+import { eq, useLiveQuery } from "@tanstack/react-db";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import {
@@ -10,13 +12,11 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import { AppSettings } from "../components/AppSettings";
 import { AvatarMark } from "../components/Avatar";
 import { BotSettingsPane } from "../components/BotSettingsPane";
-import { ComputerCard } from "../components/ComputerCard";
 import { ComputerPane } from "../components/ComputerPane";
 import {
   MicIcon,
@@ -26,14 +26,37 @@ import {
   SearchIcon,
 } from "../components/Icons";
 import { PluginsModal } from "../components/PluginsModal";
+import { ThreadList } from "../components/ThreadList";
 import { authClient } from "../lib/auth";
 import { isModelSetupError, humanizeRunError, userFacingError } from "../lib/errors";
 import { AVATAR_COLORS, FIRST_TASK } from "../lib/jobs";
 import { orpc } from "../lib/orpc";
 import { client } from "../lib/rpc";
-import { cacheCreatedBot } from "../lib/session";
+import {
+  cacheBot,
+  cacheCreatedBot,
+  firstLiveBot,
+  isArchivedBot,
+} from "../lib/session";
+import {
+  clearThreadStore,
+  messagesCollection,
+  threadMetaCollection,
+} from "../lib/collections";
+import {
+  appendOptimisticMessage,
+  computerKey,
+  ensureThreadMeta,
+  failOptimisticSend,
+  patchThreadMeta,
+  peekMessages,
+  prefetchComputer,
+  readCursor,
+  THREAD_GC_MS,
+  upsertCachedMessage,
+} from "../lib/thread-cache";
 import { applyTheme, readTheme, type Theme } from "../lib/theme";
-import { dayKey, formatDaySep, formatListTime } from "../lib/time";
+import { formatListTime } from "../lib/time";
 import { Button, cn } from "../ui";
 
 function asMessage(payload: Record<string, unknown>): ThreadMessage | null {
@@ -78,6 +101,49 @@ function initials(name: string): string {
   return `${parts[0]?.[0] ?? ""}${parts[1]?.[0] ?? ""}`.toUpperCase();
 }
 
+function BotRow(props: {
+  item: Bot;
+  selected: boolean;
+  working: boolean;
+  muted?: boolean;
+  onPrefetch: (botId: string) => void;
+}) {
+  const item = props.item;
+  return (
+    <Link
+      to="/$botId"
+      params={{ botId: item.id }}
+      preload="intent"
+      preloadDelay={0}
+      className={cn(
+        "chat-conv grid min-w-0 grid-cols-[40px_minmax(0,1fr)] items-center gap-2.5 rounded-[14px] border-0 bg-transparent px-2 py-2.5 text-left text-inherit no-underline",
+        props.selected && "bg-selected",
+        props.muted && "opacity-70",
+      )}
+      onMouseEnter={() => props.onPrefetch(item.id)}
+      onFocus={() => props.onPrefetch(item.id)}
+    >
+      <AvatarMark
+        name={item.name}
+        color={item.avatarColor}
+        shape={item.avatarShape}
+        mood={props.working ? "working" : "idle"}
+      />
+      <span className="chat-conv-copy min-w-0">
+        <span className="flex items-baseline justify-between gap-2">
+          <span className="text-sm font-semibold">{item.name}</span>
+          <span className="shrink-0 text-[11px] whitespace-nowrap text-muted">
+            {formatListTime(item.lastAt)}
+          </span>
+        </span>
+        <div className="mt-0.5 overflow-hidden text-xs text-ellipsis whitespace-nowrap text-muted">
+          {item.lastPreview || item.title || "No messages yet"}
+        </div>
+      </span>
+    </Link>
+  );
+}
+
 export function Chat(props: { botId: string }) {
   const navigate = useNavigate();
   const router = useRouter();
@@ -86,11 +152,7 @@ export function Chat(props: { botId: string }) {
   const meQuery = useQuery(orpc.me.queryOptions());
   const bots = botsQuery.data ?? [];
   const me = meQuery.data;
-  const [messages, setMessages] = useState<ThreadMessage[]>([]);
-  const [working, setWorking] = useState("");
-  const [computer, setComputer] = useState<ComputerStatus | null>(null);
-  const [draft, setDraft] = useState("");
-  const [error, setError] = useState("");
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [search, setSearch] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState<"general" | "models">(
@@ -101,19 +163,74 @@ export function Chat(props: { botId: string }) {
   const [paneMode, setPaneMode] = useState<"computer" | "settings" | null>(
     null,
   );
+  const [archivedOpen, setArchivedOpen] = useState(false);
   const [theme, setTheme] = useState<Theme>(readTheme());
-  const scroller = useRef<HTMLDivElement>(null);
-  const bot = bots.find((item) => item.id === props.botId) ?? bots[0];
+  const bot = bots.find((item) => item.id === props.botId) ?? firstLiveBot(bots);
   const activeId = bot?.id;
+  const draft = activeId ? (drafts[activeId] ?? "") : "";
+  const messagesQuery = useLiveQuery((q) => {
+    if (!activeId) return undefined;
+    return q
+      .from({ message: messagesCollection })
+      .where(({ message }) => eq(message.botId, activeId))
+      .orderBy(({ message }) => message.seq, "asc");
+  }, [activeId]);
+  const metaQuery = useLiveQuery((q) => {
+    if (!activeId) return undefined;
+    return q
+      .from({ meta: threadMetaCollection })
+      .where(({ meta }) => eq(meta.botId, activeId))
+      .findOne();
+  }, [activeId]);
+  const computerQuery = useQuery({
+    queryKey: computerKey(activeId ?? "_"),
+    queryFn: () => client.computer.status({ botId: activeId ?? "" }),
+    enabled: Boolean(activeId),
+    staleTime: 10_000,
+    gcTime: THREAD_GC_MS,
+  });
+  const liveMessages = messagesQuery.data ?? [];
+  const peeked = activeId ? peekMessages(activeId) : [];
+  const messages =
+    liveMessages.length > 0 || peeked.length === 0 ? liveMessages : peeked;
+  const working =
+    metaQuery.data?.working ??
+    (activeId ? threadMetaCollection.get(activeId)?.working : undefined) ??
+    "";
+  const error =
+    metaQuery.data?.error ??
+    (activeId ? threadMetaCollection.get(activeId)?.error : undefined) ??
+    "";
+  const computer = computerQuery.data ?? null;
   const q = search.trim().toLowerCase();
-  const visibleBots = useMemo(() => {
-    const list = q
-      ? bots.filter((item) => item.name.toLowerCase().includes(q))
-      : bots;
-    return [...list].sort(
-      (a, b) => new Date(b.lastAt).getTime() - new Date(a.lastAt).getTime(),
-    );
-  }, [bots, q]);
+  const matchesSearch = useCallback(
+    (item: Bot) => !q || item.name.toLowerCase().includes(q),
+    [q],
+  );
+  const liveBots = useMemo(() => {
+    return bots
+      .filter((item) => !isArchivedBot(item) && matchesSearch(item))
+      .sort(
+        (a, b) => new Date(b.lastAt).getTime() - new Date(a.lastAt).getTime(),
+      );
+  }, [bots, matchesSearch]);
+  const archivedBots = useMemo(() => {
+    return bots
+      .filter((item) => isArchivedBot(item) && matchesSearch(item))
+      .sort(
+        (a, b) => new Date(b.lastAt).getTime() - new Date(a.lastAt).getTime(),
+      );
+  }, [bots, matchesSearch]);
+  const showArchived = archivedOpen || Boolean(q) || Boolean(bot?.archivedAt);
+
+  useEffect(() => {
+    if (bot?.archivedAt) setArchivedOpen(true);
+  }, [bot?.archivedAt]);
+
+  function setDraft(text: string) {
+    if (!activeId) return;
+    setDrafts((current) => ({ ...current, [activeId]: text }));
+  }
 
   async function refreshBots(selectId?: string) {
     await queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
@@ -121,9 +238,30 @@ export function Chat(props: { botId: string }) {
     const list = await queryClient.ensureQueryData(
       orpc.bots.list.queryOptions(),
     );
-    const next = selectId ?? props.botId ?? list[0]?.id;
+    const next = selectId ?? props.botId ?? firstLiveBot(list)?.id;
     if (next && next !== props.botId) {
       await navigate({ to: "/$botId", params: { botId: next } });
+    }
+  }
+
+  async function applyArchiveChange(next: Bot) {
+    cacheBot(queryClient, next);
+    await queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
+    await queryClient.invalidateQueries({ queryKey: orpc.computers.key() });
+    const list = await queryClient.ensureQueryData(
+      orpc.bots.list.queryOptions(),
+    );
+    if (!next.archivedAt) {
+      if (next.id !== props.botId) {
+        await navigate({ to: "/$botId", params: { botId: next.id } });
+      }
+      return;
+    }
+    const fallback =
+      firstLiveBot(list.filter((item) => item.id !== next.id)) ?? next;
+    if (fallback.id !== props.botId) {
+      await navigate({ to: "/$botId", params: { botId: fallback.id } });
+      setPaneMode(null);
     }
   }
 
@@ -137,14 +275,17 @@ export function Chat(props: { botId: string }) {
           computer: computerChoice,
         });
         cacheCreatedBot(queryClient, created);
-        await queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
-        await navigate({ to: "/$botId", params: { botId: created.id } });
+        void queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
+        void navigate({ to: "/$botId", params: { botId: created.id } });
         setPaneMode("settings");
       } catch (caught) {
-        setError(caught instanceof Error ? caught.message : "Could not create");
+        if (!activeId) return;
+        patchThreadMeta(activeId, {
+          error: caught instanceof Error ? caught.message : "Could not create",
+        });
       }
     },
-    [navigate, queryClient],
+    [activeId, navigate, queryClient],
   );
 
   useEffect(() => {
@@ -171,89 +312,102 @@ export function Chat(props: { botId: string }) {
     if (!activeId) return;
     let cancelled = false;
     let iterator: AsyncIterator<ProductEvent> | undefined;
-    setMessages([]);
-    setWorking("");
-    setError("");
-    void client.computer
-      .status({ botId: activeId })
-      .then(setComputer)
-      .catch(() => setComputer(null));
+    let botsTimer: ReturnType<typeof setTimeout> | undefined;
+    let cursor = readCursor(activeId);
+    ensureThreadMeta(activeId);
+    const bumpBots = () => {
+      clearTimeout(botsTimer);
+      botsTimer = setTimeout(() => {
+        void queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
+      }, 400);
+    };
     void (async () => {
       iterator = (await client.threads.subscribe({
         botId: activeId,
-        cursor: -1,
+        cursor,
       })) as AsyncIterator<ProductEvent>;
       for (;;) {
         const next = await iterator.next();
         if (cancelled || next.done) break;
         const event = next.value;
+        cursor = event.seq;
+        let patched = false;
         if (event.type === "message.created") {
           const message = asMessage(event.payload);
           if (message) {
-            setMessages((current) => {
-              if (current.some((item) => item.id === message.id))
-                return current;
-              return [...current, message].sort((a, b) => a.seq - b.seq);
-            });
-            void queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
+            upsertCachedMessage(activeId, message);
+            patchThreadMeta(activeId, { cursor });
+            patched = true;
+            bumpBots();
           }
         }
         if (event.type === "run.updated") {
           const status = String(event.payload.status ?? "");
           const text = String(event.payload.text ?? "");
           if (status === "running" || status === "queued") {
-            setWorking(text || "working…");
-            setError("");
+            patchThreadMeta(activeId, {
+              working: text || "working…",
+              error: "",
+              cursor,
+            });
           } else if (status === "failed") {
-            setWorking("");
-            const message = humanizeRunError(text.trim() || "Run failed");
-            setError(message);
+            patchThreadMeta(activeId, {
+              working: "",
+              error: humanizeRunError(text.trim() || "Run failed"),
+              cursor,
+            });
           } else {
-            setWorking("");
+            patchThreadMeta(activeId, { working: "", cursor });
           }
+          patched = true;
         }
+        if (!patched) patchThreadMeta(activeId, { cursor });
         if (event.type === "computer.updated") {
-          setComputer(event.payload as unknown as ComputerStatus);
+          queryClient.setQueryData(
+            computerKey(activeId),
+            event.payload as ComputerStatus,
+          );
         }
         if (event.type === "guest.updated") {
-          void queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
+          bumpBots();
         }
       }
     })().catch((caught: unknown) => {
-      if (!cancelled)
-        setError(caught instanceof Error ? caught.message : "Lost the thread");
+      if (!cancelled) {
+        patchThreadMeta(activeId, {
+          error:
+            caught instanceof Error ? caught.message : "Lost the thread",
+        });
+      }
     });
     return () => {
       cancelled = true;
+      clearTimeout(botsTimer);
       void iterator?.return?.();
     };
   }, [activeId, queryClient]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: scroll when the transcript grows
-  useEffect(() => {
-    scroller.current?.scrollTo({ top: scroller.current.scrollHeight });
-  }, [messages.length, working]);
-
   async function send(event: FormEvent) {
     event.preventDefault();
     if (!bot || !draft.trim()) return;
+    if (bot.archivedAt) return;
     if (me?.needsModel) {
       setSettingsTab("models");
       setSettingsOpen(true);
-      setError("Add a model key to talk to teammates.");
+      patchThreadMeta(bot.id, {
+        error: "Add a model key to talk to teammates.",
+      });
       return;
     }
     const text = draft.trim();
     setDraft("");
-    setWorking("working…");
-    setError("");
+    const optimistic = appendOptimisticMessage(queryClient, bot.id, text);
     try {
       await client.threads.send({ botId: bot.id, text });
     } catch (caught) {
-      setDraft(text);
-      setWorking("");
       const message = userFacingError(caught, "Could not send");
-      setError(message);
+      failOptimisticSend(bot.id, optimistic.id, message);
+      setDraft(text);
       if (isModelSetupError(message)) {
         setSettingsTab("models");
         setSettingsOpen(true);
@@ -299,6 +453,8 @@ export function Chat(props: { botId: string }) {
     ((computer?.state === "running" || computer?.state === "booting") &&
       (computer.controlHolder === "bot" || Boolean(computer.usingBotId)));
 
+  const openComputer = useCallback(() => setPaneMode("computer"), []);
+
   return (
     <div
       className={cn(
@@ -343,37 +499,43 @@ export function Chat(props: { botId: string }) {
           </label>
         </div>
         <div className="grid flex-1 content-start gap-0.5 overflow-auto px-1">
-          {visibleBots.map((item) => (
-            <Link
+          {liveBots.map((item) => (
+            <BotRow
               key={item.id}
-              to="/$botId"
-              params={{ botId: item.id }}
-              className={cn(
-                "chat-conv grid min-w-0 grid-cols-[40px_minmax(0,1fr)] items-center gap-2.5 rounded-[14px] border-0 bg-transparent px-2 py-2.5 text-left text-inherit no-underline",
-                item.id === bot?.id && "bg-selected",
-              )}
-            >
-              <AvatarMark
-                name={item.name}
-                color={item.avatarColor}
-                shape={item.avatarShape}
-                mood={item.id === bot?.id && working ? "working" : "idle"}
-              />
-              <span className="chat-conv-copy min-w-0">
-                <span className="flex items-baseline justify-between gap-2">
-                  <span className="text-sm font-semibold">{item.name}</span>
-                  <span className="shrink-0 text-[11px] whitespace-nowrap text-muted">
-                    {formatListTime(item.lastAt)}
-                  </span>
-                </span>
-                <div className="mt-0.5 overflow-hidden text-xs text-ellipsis whitespace-nowrap text-muted">
-                  {item.lastPreview || item.title || "No messages yet"}
-                </div>
-              </span>
-            </Link>
+              item={item}
+              selected={item.id === bot?.id}
+              working={item.id === bot?.id && Boolean(working)}
+              onPrefetch={(botId) => prefetchComputer(queryClient, botId)}
+            />
           ))}
-          {visibleBots.length === 0 ? (
+          {liveBots.length === 0 && archivedBots.length === 0 ? (
             <p className="empty">No teammates yet.</p>
+          ) : null}
+          {archivedBots.length > 0 ? (
+            <div className="mt-2">
+              <button
+                className="flex w-full items-center justify-between rounded-xl border-0 bg-transparent px-2 py-2 text-left text-[12px] text-muted hover:bg-hover"
+                type="button"
+                onClick={() => setArchivedOpen((open) => !open)}
+              >
+                <span>Archived</span>
+                <span>{archivedBots.length}</span>
+              </button>
+              {showArchived
+                ? archivedBots.map((item) => (
+                    <BotRow
+                      key={item.id}
+                      item={item}
+                      selected={item.id === bot?.id}
+                      working={false}
+                      muted
+                      onPrefetch={(botId) =>
+                        prefetchComputer(queryClient, botId)
+                      }
+                    />
+                  ))
+                : null}
+            </div>
           ) : null}
         </div>
         <div className="chat-foot mt-auto grid gap-1 px-1.5 pt-2 pb-1">
@@ -417,6 +579,7 @@ export function Chat(props: { botId: string }) {
                 shape={bot.avatarShape}
                 mood={working ? "working" : "idle"}
                 size="sm"
+                hero
               />
             ) : null}
             <strong className="text-[15px] font-semibold tracking-tight">
@@ -468,143 +631,139 @@ export function Chat(props: { botId: string }) {
             </Button>
           </div>
         ) : null}
-        <div
-          className="grid flex-1 content-start gap-2.5 overflow-auto px-7 pt-2 pb-6"
-          ref={scroller}
-        >
-          {messages.map((message, index) => {
-            const prev = messages[index - 1];
-            const showDay =
-              !prev || dayKey(prev.createdAt) !== dayKey(message.createdAt);
-            const text = messageText(message);
-            const human = message.actorType === "human";
-            return (
-              <div key={message.id} className="contents">
-                {showDay ? (
-                  <div className="my-2.5 mb-1 text-center text-xs text-muted">
-                    {formatDaySep(message.createdAt)}
-                  </div>
-                ) : null}
-                {text ? (
-                  <div
-                    className={cn(
-                      "max-w-[72%] rounded-[18px] px-3.5 py-2.5 text-[15px] leading-snug whitespace-pre-wrap",
-                      human
-                        ? "justify-self-end border border-[#2a2a2a] bg-[#1a1a1a] light:border-line light:bg-white"
-                        : "justify-self-start bg-[#141414] light:bg-[#ececec]",
-                    )}
-                  >
-                    {text}
-                  </div>
-                ) : null}
-              </div>
-            );
-          })}
-          {showComputerCard ? (
-            <ComputerCard
-              title={
-                working
-                  ? draft || lastHumanBefore(messages, messages.length)
-                  : computer?.name ?? "Computer"
-              }
-              status={statusLabel}
-              done={!working && computer?.controlHolder !== "user"}
-              preview={
-                working || computer?.controlHolder === "user"
-                  ? computerBody
-                  : undefined
-              }
-              onOpen={() => setPaneMode("computer")}
-            />
-          ) : null}
-          {!working && messages.length === 0 ? (
-            <p className="mb-6 text-base leading-normal text-muted">
-              First message is a real task. A good handoff has an outcome,
-              sources, and when to stop.
-            </p>
-          ) : null}
+        <div className="min-h-0 flex-1">
+          <ThreadList
+            botId={activeId ?? "_"}
+            messages={messages}
+            empty={!working && messages.length === 0}
+            working={working}
+            computer={
+              showComputerCard
+                ? {
+                    title: working
+                      ? draft || lastHumanBefore(messages, messages.length)
+                      : computer?.name ?? "Computer",
+                    status: statusLabel,
+                    done: !working && computer?.controlHolder !== "user",
+                    preview:
+                      working || computer?.controlHolder === "user"
+                        ? computerBody
+                        : undefined,
+                  }
+                : null
+            }
+            onOpenComputer={openComputer}
+          />
         </div>
         <div className="px-5 pt-2 pb-[18px]">
           {error ? <p className="mb-2 text-[13px] text-danger">{error}</p> : null}
-          <form
-            className="grid grid-cols-[auto_1fr_auto] items-end gap-1.5 rounded-pill border border-[#262626] bg-[#141414] py-1.5 pr-2 pl-2.5 light:border-line light:bg-white"
-            onSubmit={(event) => void send(event)}
-          >
-            <Button
-              variant="icon"
-              className="size-[34px] rounded-pill"
-              type="button"
-              aria-label="Attach"
-              title="Attach"
+          {bot?.archivedAt ? (
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-line bg-card px-3 py-2.5 text-[13px]">
+              <span>Archived. Unarchive to keep working with {bot.name}.</span>
+              <Button
+                variant="text"
+                type="button"
+                onClick={() => {
+                  void client.bots
+                    .unarchive({ botId: bot.id })
+                    .then(applyArchiveChange)
+                    .catch((caught: unknown) =>
+                      patchThreadMeta(bot.id, {
+                        error: userFacingError(caught, "Could not unarchive"),
+                      }),
+                    );
+                }}
+              >
+                Unarchive
+              </Button>
+            </div>
+          ) : (
+            <form
+              className="grid grid-cols-[auto_1fr_auto] items-end gap-1.5 rounded-pill border border-[#262626] bg-[#141414] py-1.5 pr-2 pl-2.5 light:border-line light:bg-white"
+              onSubmit={(event) => void send(event)}
             >
-              <PlusIcon />
-            </Button>
-            <textarea
-              rows={1}
-              className="max-h-[140px] min-h-6 resize-none border-0 bg-transparent px-1 py-2 outline-none"
-              value={draft}
-              placeholder={
-                me?.needsModel
-                  ? "Add a model key to send"
-                  : messages.length === 0
-                    ? FIRST_TASK
-                    : bot
-                      ? `Message ${bot.name}`
-                      : "Message"
-              }
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" && !event.shiftKey) {
-                  event.preventDefault();
-                  event.currentTarget.form?.requestSubmit();
+              <Button
+                variant="icon"
+                className="size-[34px] rounded-pill"
+                type="button"
+                aria-label="Attach"
+                title="Attach"
+              >
+                <PlusIcon />
+              </Button>
+              <textarea
+                rows={1}
+                className="max-h-[140px] min-h-6 resize-none border-0 bg-transparent px-1 py-2 outline-none"
+                value={draft}
+                placeholder={
+                  me?.needsModel
+                    ? "Add a model key to send"
+                    : messages.length === 0
+                      ? FIRST_TASK
+                      : bot
+                        ? `Message ${bot.name}`
+                        : "Message"
                 }
-              }}
-            />
-            <Button
-              variant="icon"
-              className="size-[34px] rounded-pill"
-              type="button"
-              aria-label="Voice"
-              title="Voice"
-            >
-              <MicIcon />
-            </Button>
-          </form>
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    event.currentTarget.form?.requestSubmit();
+                  }
+                }}
+              />
+              <Button
+                variant="icon"
+                className="size-[34px] rounded-pill"
+                type="button"
+                aria-label="Voice"
+                title="Voice"
+              >
+                <MicIcon />
+              </Button>
+            </form>
+          )}
         </div>
       </section>
       {paneMode === "computer" && bot ? (
         <ComputerPane
           bot={bot}
           computer={computer}
+          computerPending={computerQuery.isPending && !computer}
           statusLabel={statusLabel}
           body={computerBody}
-          working={Boolean(working)}
           onSettings={() => setPaneMode("settings")}
           onCollapse={() => setPaneMode(null)}
           onTakeover={() => {
             if (!bot) return;
             void client.computer
               .takeover({ botId: bot.id })
-              .then(setComputer)
+              .then((status) => {
+                queryClient.setQueryData(computerKey(bot.id), status);
+              })
               .catch((caught: unknown) =>
-                setError(
-                  caught instanceof Error
-                    ? caught.message
-                    : "Could not take over",
-                ),
+                patchThreadMeta(bot.id, {
+                  error:
+                    caught instanceof Error
+                      ? caught.message
+                      : "Could not take over",
+                }),
               );
           }}
           onRelease={() => {
             if (!bot) return;
             void client.computer
               .release({ botId: bot.id })
-              .then(setComputer)
+              .then((status) => {
+                queryClient.setQueryData(computerKey(bot.id), status);
+              })
               .catch((caught: unknown) =>
-                setError(
-                  caught instanceof Error
-                    ? caught.message
-                    : "Could not continue",
-                ),
+                patchThreadMeta(bot.id, {
+                  error:
+                    caught instanceof Error
+                      ? caught.message
+                      : "Could not continue",
+                }),
               );
           }}
         />
@@ -617,6 +776,7 @@ export function Chat(props: { botId: string }) {
           onSaved={async () => {
             await refreshBots(bot.id);
           }}
+          onArchiveChange={applyArchiveChange}
         />
       ) : null}
       {pluginsOpen ? (
@@ -639,6 +799,7 @@ export function Chat(props: { botId: string }) {
             void (async () => {
               await authClient.signOut();
               queryClient.clear();
+              clearThreadStore();
               await router.invalidate();
               await navigate({ to: "/" });
             })();

@@ -8,8 +8,12 @@ describe("mascotMarkSvg", () => {
     expect(svg).toContain('viewBox="0 0 100 100"');
     expect(svg).toContain("<title>Grogbot</title>");
     expect(svg).toContain(GROGBOT_MARK_COLOR);
-    expect(svg).toContain("<circle");
+    expect(svg).toContain("<path");
+    expect(svg).toContain("<rect");
+    expect(svg).toContain("linearGradient");
+    expect(svg).toContain("<ellipse");
     expect(svg).not.toContain("animation");
+    expect(svg).not.toContain("<circle");
   });
 
   it("escapes a hostile name in the title", () => {

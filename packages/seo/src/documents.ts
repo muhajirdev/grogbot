@@ -33,7 +33,7 @@ Brand Name: ${GROGBOT_NAME}
 
 > ${GROGBOT_SUMMARY}
 
-Grogbot should feel like Grok Bot: a messaging app of named teammates, not a workflow builder, IDE, or Discord. Create a Bot, message it, grant access as needed. There isn't anything to learn — it's like bringing on a coworker.
+Grogbot should feel like Grok Bot: a messaging app of named teammates, not a workflow builder, IDE, or Discord. Like Grok Bot, for the team — if OpenClaw is for personal use, Grogbot is the office. Create a Bot, message it, grant access as needed. There isn't anything to learn — it's like bringing on a coworker.
 
 Product API is oRPC. Flue + Pi on Node. One wakeup queue per bot. Computers are workspace desks. Shared team data lives in Postgres. Hosted grogbot.com uses Cloudflare for the marketing site; a private company can self-host the same Node API and worker. The marketing site is ${web}; the office app is ${GROGBOT_APP}.
 
@@ -41,7 +41,7 @@ Product API is oRPC. Flue + Pi on Node. One wakeup queue per bot. Computers are 
 
 - [Homepage](${abs(web, "/")}): Product welcome page
 - [Markdown homepage](${abs(web, "/index.md")}): LLM-readable welcome copy
-- [Integrations](${abs(web, "/integrations")}): Composio toolkits and computer-run indie products
+- [Integrations](${abs(web, "/integrations")}): Gmail, Slack, GitHub, and 1,000+ tools — plus a computer for indie products
 - [Use cases](${abs(web, "/use-cases")}): Job-shaped first messages
 - [Press kit](${abs(web, "/press")}): Logos, naming, and boilerplate
 - [Get started](${GROGBOT_APP}/login): Sign in to the office
@@ -234,13 +234,19 @@ Lang: ${GROGBOT_LANGUAGE}
 ---
 
 Q: What is Grogbot?
-A: Grogbot is a self-hostable Grok Bot — named AI teammates with a real computer. You create a Bot, message it, and grant access as needed. No workflow builder.
+A: Grogbot is Grok Bot for the team — named AI teammates with a real computer. If OpenClaw is for personal use, Grogbot is the office. You create a Bot, message it, and grant access as needed. No workflow builder.
 URL: [${GROGBOT_NAME}](${web}/)
 
 ---
 
 Q: How is Grogbot different from xAI Grok Bot?
-A: Grogbot copies the Grok Bot simplicity (talk to named teammates) but is fair-code and self-hosted. Workspace Desk is shared by default; you can create an isolated computer. Self-host for your organization is free; hosted Grogbot for others is grogbot.com.
+A: Same motion: talk to named teammates. Grogbot is multiplayer (shared workspace computer by default, isolated when logins should stay private) and fair-code so you can self-host. Self-host for your organization is free; hosted Grogbot for others is grogbot.com.
+
+---
+
+Q: How is Grogbot different from OpenClaw?
+A: OpenClaw is a personal agent on your machine. Grogbot is the office: named teammates, a shared computer, Postgres for team data, and a messaging UI the whole company can sit in.
+URL: [${GROGBOT_NAME}](${web}/)
 
 ---
 
@@ -285,6 +291,21 @@ A: Bring your own keys (Pi catalog). Tests use a scripted runtime so they stay o
 
 Q: Can Hermes or OpenClaw connect?
 A: Guest runtimes are opt-in per bot and off by default. They dial out to Grogbot. Default teammates use Flue + Pi.
+
+---
+
+Q: Does the office remember? Is knowledge shared?
+A: Yes. What you decide in a thread is extracted into shared office knowledge — how we work, voice, constraints. Skills live with the workspace, not in one person's chat. The organization improves; you do not re-explain it every Monday.
+
+---
+
+Q: Which models can I use? Am I locked to one vendor?
+A: No. Bring your own keys. OpenRouter is one key for many models, or paste Anthropic, OpenAI, or Cloudflare. Claude, GPT, Grok, Kimi, DeepSeek — switch when the work asks for it.
+
+---
+
+Q: Can I measure AI adoption across the team?
+A: Yes. A leaderboard of who is putting Bots to work — plus spend and which models the team uses. Personal agents hide in laptops. This is visible to the team.
 
 ---
 
@@ -554,7 +575,7 @@ export function identityJson(
       {
         name: "Integrations",
         url: abs(web, "/integrations"),
-        description: "Composio toolkits and computer-run indie products",
+        description: "Gmail, Slack, GitHub, and 1,000+ tools — plus a computer for indie products",
       },
       {
         name: "Press kit",
@@ -706,6 +727,8 @@ export function indexMarkdown(origins: DiscoveryOrigins): string {
   return `# ${GROGBOT_NAME}
 
 > ${GROGBOT_SUMMARY}
+
+Like Grok Bot, for the whole team. If OpenClaw is for your personal use, Grogbot is for the office.
 
 Create a Bot, message it, grant access as needed. No workflow builder.
 

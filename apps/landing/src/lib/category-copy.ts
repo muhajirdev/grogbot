@@ -304,8 +304,8 @@ export function integrationFaqs(
       q: `Does Grogbot have a native ${name} integration?`,
       a:
         family === "general"
-          ? `If Composio lists ${name}, a Bot can call those tools after you connect. If not, the Bot still has a real computer — it can work in ${name} in the browser the way you would, then stop when it needs a login or approval.`
-          : `Yes when Composio carries ${name}. Connect it under Plugins. The Bot still asks before anything leaves the thread — sending ${familyLabel(family)} included.`,
+          ? `Connect ${name} under Plugins when it is listed. If not, the Bot still has a real computer — it can work in ${name} in the browser the way you would, then stop when it needs a login or approval.`
+          : `Yes. Connect ${name} under Plugins. The Bot still asks before anything leaves the thread — sending ${familyLabel(family)} included.`,
     },
     {
       q: `Can a Bot change live ${name} data?`,

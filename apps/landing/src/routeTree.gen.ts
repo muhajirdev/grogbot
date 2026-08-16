@@ -35,9 +35,6 @@ import { Route as PressFileRouteImport } from './routes/press/$file'
 import { Route as UseCasesIndexRouteImport } from './routes/use-cases/index'
 import { Route as UseCasesSlugRouteImport } from './routes/use-cases/$slug'
 import { Route as IntegrationsCategoryCategoryRouteImport } from './routes/integrations/category/$category'
-import { Route as WellKnownApiCatalogRouteImport } from './routes/.well-known/api-catalog'
-import { Route as WellKnownMcpDotjsonRouteImport } from './routes/.well-known/mcp[.]json'
-import { Route as WellKnownMcpServerCardDotjsonRouteImport } from './routes/.well-known/mcp/server-card[.]json'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -170,22 +167,6 @@ const IntegrationsCategoryCategoryRoute =
     path: '/integrations/category/$category',
     getParentRoute: () => rootRouteImport,
   } as any)
-const WellKnownApiCatalogRoute = WellKnownApiCatalogRouteImport.update({
-  id: '/.well-known/api-catalog',
-  path: '/.well-known/api-catalog',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const WellKnownMcpDotjsonRoute = WellKnownMcpDotjsonRouteImport.update({
-  id: '/.well-known/mcp.json',
-  path: '/.well-known/mcp.json',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const WellKnownMcpServerCardDotjsonRoute =
-  WellKnownMcpServerCardDotjsonRouteImport.update({
-    id: '/.well-known/mcp/server-card.json',
-    path: '/.well-known/mcp/server-card.json',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -214,9 +195,6 @@ export interface FileRoutesByFullPath {
   '/press/': typeof PressIndexRoute
   '/use-cases/': typeof UseCasesIndexRoute
   '/integrations/category/$category': typeof IntegrationsCategoryCategoryRoute
-  '/.well-known/api-catalog': typeof WellKnownApiCatalogRoute
-  '/.well-known/mcp.json': typeof WellKnownMcpDotjsonRoute
-  '/.well-known/mcp/server-card.json': typeof WellKnownMcpServerCardDotjsonRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -245,9 +223,6 @@ export interface FileRoutesByTo {
   '/press': typeof PressIndexRoute
   '/use-cases': typeof UseCasesIndexRoute
   '/integrations/category/$category': typeof IntegrationsCategoryCategoryRoute
-  '/.well-known/api-catalog': typeof WellKnownApiCatalogRoute
-  '/.well-known/mcp.json': typeof WellKnownMcpDotjsonRoute
-  '/.well-known/mcp/server-card.json': typeof WellKnownMcpServerCardDotjsonRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -277,9 +252,6 @@ export interface FileRoutesById {
   '/press/': typeof PressIndexRoute
   '/use-cases/': typeof UseCasesIndexRoute
   '/integrations/category/$category': typeof IntegrationsCategoryCategoryRoute
-  '/.well-known/api-catalog': typeof WellKnownApiCatalogRoute
-  '/.well-known/mcp.json': typeof WellKnownMcpDotjsonRoute
-  '/.well-known/mcp/server-card.json': typeof WellKnownMcpServerCardDotjsonRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -310,9 +282,6 @@ export interface FileRouteTypes {
     | '/press/'
     | '/use-cases/'
     | '/integrations/category/$category'
-    | '/.well-known/api-catalog'
-    | '/.well-known/mcp.json'
-    | '/.well-known/mcp/server-card.json'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -341,9 +310,6 @@ export interface FileRouteTypes {
     | '/press'
     | '/use-cases'
     | '/integrations/category/$category'
-    | '/.well-known/api-catalog'
-    | '/.well-known/mcp.json'
-    | '/.well-known/mcp/server-card.json'
   id:
     | '__root__'
     | '/'
@@ -372,9 +338,6 @@ export interface FileRouteTypes {
     | '/press/'
     | '/use-cases/'
     | '/integrations/category/$category'
-    | '/.well-known/api-catalog'
-    | '/.well-known/mcp.json'
-    | '/.well-known/mcp/server-card.json'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -404,9 +367,6 @@ export interface RootRouteChildren {
   PressIndexRoute: typeof PressIndexRoute
   UseCasesIndexRoute: typeof UseCasesIndexRoute
   IntegrationsCategoryCategoryRoute: typeof IntegrationsCategoryCategoryRoute
-  WellKnownApiCatalogRoute: typeof WellKnownApiCatalogRoute
-  WellKnownMcpDotjsonRoute: typeof WellKnownMcpDotjsonRoute
-  WellKnownMcpServerCardDotjsonRoute: typeof WellKnownMcpServerCardDotjsonRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -593,27 +553,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IntegrationsCategoryCategoryRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/.well-known/api-catalog': {
-      id: '/.well-known/api-catalog'
-      path: '/.well-known/api-catalog'
-      fullPath: '/.well-known/api-catalog'
-      preLoaderRoute: typeof WellKnownApiCatalogRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/.well-known/mcp.json': {
-      id: '/.well-known/mcp.json'
-      path: '/.well-known/mcp.json'
-      fullPath: '/.well-known/mcp.json'
-      preLoaderRoute: typeof WellKnownMcpDotjsonRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/.well-known/mcp/server-card.json': {
-      id: '/.well-known/mcp/server-card.json'
-      path: '/.well-known/mcp/server-card.json'
-      fullPath: '/.well-known/mcp/server-card.json'
-      preLoaderRoute: typeof WellKnownMcpServerCardDotjsonRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -644,19 +583,16 @@ const rootRouteChildren: RootRouteChildren = {
   PressIndexRoute: PressIndexRoute,
   UseCasesIndexRoute: UseCasesIndexRoute,
   IntegrationsCategoryCategoryRoute: IntegrationsCategoryCategoryRoute,
-  WellKnownApiCatalogRoute: WellKnownApiCatalogRoute,
-  WellKnownMcpDotjsonRoute: WellKnownMcpDotjsonRoute,
-  WellKnownMcpServerCardDotjsonRoute: WellKnownMcpServerCardDotjsonRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
 
-import type { getRouter } from "./router.tsx";
-import type { createStart } from "@tanstack/react-start";
-declare module "@tanstack/react-start" {
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
   interface Register {
-    ssr: true;
-    router: Awaited<ReturnType<typeof getRouter>>;
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
   }
 }

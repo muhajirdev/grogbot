@@ -32,7 +32,7 @@ export function IntegrationCard(props: { item: Integration }) {
       <span>
         <span className="int-card-name">{props.item.name}</span>
         <span className="int-card-meta">
-          {props.item.kind === "computer" ? "Computer" : "Composio"} ·{" "}
+          {props.item.kind === "computer" ? "Computer" : "Plugin"} ·{" "}
           {props.item.category}
         </span>
       </span>

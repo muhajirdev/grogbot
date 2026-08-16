@@ -1,8 +1,9 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { authClient } from "../lib/auth";
+import type { authClient } from "../lib/auth";
 import { orpc, queryClient } from "../lib/orpc";
+import { loadSession, readSession } from "../lib/session";
 import { applyTheme, readTheme } from "../lib/theme";
 
 export interface RouterContext {
@@ -20,20 +21,28 @@ function Boot() {
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
-  pendingMs: 0,
+  pendingMs: 1000,
   pendingComponent: Boot,
-  beforeLoad: async ({ context }) => {
-    const { data } = await authClient.getSession();
-    if (!data) return { session: null };
-    try {
-      await context.queryClient.ensureQueryData(orpc.me.queryOptions());
-      return { session: data };
-    } catch {
-      return { session: null };
-    }
+  beforeLoad: ({ context }) => {
+    const session = readSession(context.queryClient);
+    const me = context.queryClient.getQueryData(orpc.me.queryOptions().queryKey);
+    if (session && me) return { session };
+    if (session === null) return { session: null };
+    return loadAuthedContext(context.queryClient);
   },
   component: RootComponent,
 });
+
+async function loadAuthedContext(client: typeof queryClient) {
+  const session = await loadSession(client);
+  if (!session) return { session: null };
+  try {
+    await client.ensureQueryData(orpc.me.queryOptions());
+    return { session };
+  } catch {
+    return { session: null };
+  }
+}
 
 function RootComponent() {
   useEffect(() => {

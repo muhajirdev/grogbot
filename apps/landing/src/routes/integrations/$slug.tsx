@@ -28,12 +28,8 @@ export const Route = createFileRoute("/integrations/$slug")({
   head: ({ loaderData }) => {
     if (!loaderData?.item) return {};
     const { item } = loaderData;
-    const kind =
-      item.kind === "computer"
-        ? "computer integration"
-        : "Composio integration";
     return seoHead({
-      title: `${item.name} ${kind}`,
+      title: `${item.name} integration`,
       description: `Grogbot + ${item.name}: ${item.description}`.slice(0, 160),
       path: `/integrations/${item.slug}`,
       jsonLd: integrationJsonLd(item),
@@ -46,10 +42,10 @@ function IntegrationPage() {
   const { startUrl, item, related, useCases } = Route.useLoaderData();
   const connectorLine =
     item.kind === "composio"
-      ? `Composio lists ${item.toolCount} ${item.name} tools` +
+      ? `${item.toolCount} ${item.name} tools` +
         (item.triggerCount ? ` and ${item.triggerCount} triggers` : "") +
         ". Connect under Plugins. The Bot still asks before anything leaves the thread."
-      : `${item.name} is not in Composio yet. The Bot uses a real computer — the ${item.name} dashboard in a browser — then stops for login, 2FA, or publish.`;
+      : `The Bot uses a real computer — the ${item.name} dashboard in a browser — then stops for login, 2FA, or publish.`;
 
   return (
     <SiteChrome startUrl={startUrl}>
@@ -65,7 +61,7 @@ function IntegrationPage() {
           <IntegrationLogo item={item} />
           <div>
             <p className="kicker">
-              {item.kind === "computer" ? "Computer" : "Composio"} ·{" "}
+              {item.kind === "computer" ? "Computer" : "Plugin"} ·{" "}
               <Link
                 to="/integrations/category/$category"
                 params={{ category: item.categorySlug }}
@@ -109,7 +105,7 @@ function IntegrationPage() {
 
         {item.sampleTools.length ? (
           <section className="band">
-            <h2>Tools Composio exposes</h2>
+            <h2>Tools a Bot can call</h2>
             <p className="lede tight">
               A sample from the {item.name} toolkit. The Bot calls these after
               you connect. Writes that would go live still wait for approval.

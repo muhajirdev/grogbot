@@ -1,7 +1,7 @@
 import type { ComputerListItem, ComputerStatus } from "@grogbot/contracts";
 import { ControlHolder } from "@grogbot/contracts";
 import { bots, computers, type Database, runs, threads } from "@grogbot/db";
-import { and, eq, inArray, ne } from "drizzle-orm";
+import { and, eq, inArray, isNull, ne } from "drizzle-orm";
 import { appendEvent, sandboxKind, toComputerStatus } from "./threads.js";
 
 export const ACTIVE_RUN_STATUSES = [
@@ -36,7 +36,7 @@ export async function listComputerAgents(
     })
     .from(bots)
     .innerJoin(threads, eq(threads.botId, bots.id))
-    .where(eq(bots.computerId, computerId));
+    .where(and(eq(bots.computerId, computerId), isNull(bots.archivedAt)));
   return rows;
 }
 

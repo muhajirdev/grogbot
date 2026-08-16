@@ -29,6 +29,7 @@ export const BotSchema = z.object({
   model: z.string(),
   lastPreview: z.string(),
   lastAt: z.string(),
+  archivedAt: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

@@ -1,27 +1,33 @@
 import type { ReactNode } from "react";
 import { AvatarMark } from "../components/Avatar";
+import { GateBadge, GateShell } from "../components/Gate";
 
 export function Welcome(props: { start: ReactNode }) {
   return (
-    <div className="screen">
-      <div className="stack hero">
-        <div className="mascot-hello">
+    <GateShell>
+      <div className="gate-hero">
+        <GateBadge>Open source · Multiplayer</GateBadge>
+        <h1 className="hero-title">
+          <span>Meet</span>
           <AvatarMark
-            name="Piper"
+            name="Grogbot"
             color="#e45c9a"
             shape="circle"
-            large
+            size="md"
             mood="happy"
+            hero
           />
+          <span>Grogbot</span>
+        </h1>
+        <div className="gate-stage">
+          <p className="lede">Like Grok Bot, for the whole team.</p>
+          <p className="thesis">
+            Create a Bot, message it, grant access as needed. There isn’t anything
+            to learn.
+          </p>
+          <div className="row gate-actions">{props.start}</div>
         </div>
-        <p className="kicker">Grogbot</p>
-        <h1>Create a Bot, message it, grant access as needed.</h1>
-        <p className="lede">
-          No workflow builder. There isn’t anything to learn — it’s like
-          bringing on a coworker.
-        </p>
-        <div className="row">{props.start}</div>
       </div>
-    </div>
+    </GateShell>
   );
 }

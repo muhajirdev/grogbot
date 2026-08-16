@@ -35,11 +35,11 @@ function UseCasesIndex() {
   const { startUrl, items } = Route.useLoaderData();
   return (
     <SiteChrome startUrl={startUrl}>
-      <main>
+      <main className="job-index">
         <Breadcrumbs
           items={[{ label: "Home", to: "/" }, { label: "Use cases" }]}
         />
-        <section className="hero">
+        <section className="hero job-hero">
           <p className="kicker">Use cases</p>
           <h1>Hire for the work, not a template gallery.</h1>
           <p className="lede">
@@ -63,7 +63,13 @@ function UseCasesIndex() {
           </div>
         </section>
         <section className="cta">
-          <a className="btn" href={startUrl}>
+          <p className="kicker">Hire the first one</p>
+          <h2>Meet your first Bot.</h2>
+          <p className="lede tight">
+            Name, optional job, how it should work. Open the thread. The first
+            message is a real task.
+          </p>
+          <a className="btn lg" href={startUrl}>
             Get started
           </a>
         </section>

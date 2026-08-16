@@ -8,6 +8,7 @@ export function AvatarMark(props: {
   large?: boolean;
   mood?: MascotMood;
   size?: "xs" | "sm" | "md" | "lg";
+  hero?: boolean;
 }) {
   return (
     <MascotMark
@@ -16,6 +17,7 @@ export function AvatarMark(props: {
       shape={props.shape}
       mood={props.mood}
       size={props.size ?? (props.large ? "lg" : "md")}
+      className={props.hero ? "mascot-hero" : undefined}
     />
   );
 }

@@ -1,6 +1,6 @@
 import type { Bot, ComputerStatus, Routine } from "@grogbot/contracts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { client } from "../lib/rpc";
 import { CloseIcon, GearIcon } from "./Icons";
 import { ModalShell } from "../ui";
@@ -14,43 +14,30 @@ const CRONS = [
 export function ComputerPane(props: {
   bot: Bot;
   computer: ComputerStatus | null;
+  computerPending?: boolean;
   statusLabel: string;
   body: string;
-  working: boolean;
   onSettings: () => void;
   onCollapse: () => void;
   onTakeover: () => void;
   onRelease: () => void;
 }) {
   const queryClient = useQueryClient();
-  const [booting, setBooting] = useState(true);
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState("");
   const [prompt, setPrompt] = useState("");
   const [cron, setCron] = useState<string>(CRONS[0].value);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const live =
-    props.working ||
-    props.computer?.state === "running" ||
-    props.computer?.state === "booting" ||
-    props.computer?.controlHolder === "user";
   const botId = props.bot.id;
+  const waiting = Boolean(props.computerPending) && !props.computer;
+  const booting = props.computer?.state === "booting" || waiting;
   const routinesQuery = useQuery({
     queryKey: ["routines", botId],
     queryFn: () => client.routines.list({ botId }),
+    staleTime: 30_000,
   });
   const routines: Routine[] = routinesQuery.data ?? [];
-
-  useEffect(() => {
-    if (live) {
-      setBooting(false);
-      return;
-    }
-    setBooting(Boolean(botId));
-    const timer = window.setTimeout(() => setBooting(false), 2000);
-    return () => window.clearTimeout(timer);
-  }, [botId, live]);
 
   const user = props.computer?.controlHolder === "user";
 
@@ -81,7 +68,7 @@ export function ComputerPane(props: {
       </div>
       <div className="pane-scroll">
         <div className="boot-card">
-          {booting && !live ? (
+          {booting ? (
             <>
               <p>Starting desktop</p>
               <div className="progress">
@@ -94,9 +81,9 @@ export function ComputerPane(props: {
         </div>
         <p className="screen-label">{props.bot.name}'s screen</p>
         <div className="screen-box inset">
-          {booting && !live ? "" : props.body}
+          {waiting ? "" : props.body}
         </div>
-        {booting && !live ? null : (
+        {waiting ? null : (
           <div className="stage-actions" style={{ padding: "12px 0 8px" }}>
             <button
               className="btn"

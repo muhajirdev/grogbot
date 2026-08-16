@@ -14,6 +14,7 @@ export function BotSettingsPane(props: {
   computer: ComputerStatus | null;
   onCollapse: () => void;
   onSaved: () => Promise<void>;
+  onArchiveChange: (bot: Bot) => Promise<void>;
 }) {
   const bot = props.bot;
   const [name, setName] = useState(bot.name);
@@ -30,6 +31,10 @@ export function BotSettingsPane(props: {
     command: string;
     kind: string;
   } | null>(null);
+  const [confirmArchive, setConfirmArchive] = useState(false);
+  const [archiveBusy, setArchiveBusy] = useState(false);
+  const [archiveError, setArchiveError] = useState("");
+  const archived = Boolean(bot.archivedAt);
   const modelsQuery = useQuery(orpc.models.get.queryOptions());
   const catalog = modelsQuery.data?.catalog ?? [];
   const defaultLabel =
@@ -56,6 +61,8 @@ export function BotSettingsPane(props: {
     setIssued(null);
     setGuestError("");
     setAdvancedOpen(bot.guestKind !== "off");
+    setConfirmArchive(false);
+    setArchiveError("");
   }, [bot, modelsQuery.data]);
 
   async function save(patch: {
@@ -232,7 +239,7 @@ export function BotSettingsPane(props: {
                   key={kind}
                   className={`chip${bot.guestKind === kind ? " on" : ""}`}
                   type="button"
-                  disabled={guestBusy}
+                  disabled={guestBusy || archived}
                   onClick={() => {
                     setGuestBusy(true);
                     setGuestError("");
@@ -263,7 +270,7 @@ export function BotSettingsPane(props: {
                 <button
                   className="mini"
                   type="button"
-                  disabled={guestBusy}
+                  disabled={guestBusy || archived}
                   onClick={() => {
                     setGuestBusy(true);
                     setIssued(null);
@@ -293,6 +300,89 @@ export function BotSettingsPane(props: {
             {guestError ? <p className="error">{guestError}</p> : null}
           </div>
         ) : null}
+        <section className="set-block">
+          <p className="group-label">Archive</p>
+          {archived ? (
+            <>
+              <p className="hint">
+                Hidden from the sidebar. Unarchive to keep working with{" "}
+                {bot.name}.
+              </p>
+              <button
+                className="text-btn"
+                type="button"
+                disabled={archiveBusy}
+                onClick={() => {
+                  setArchiveBusy(true);
+                  setArchiveError("");
+                  void client.bots
+                    .unarchive({ botId: bot.id })
+                    .then(props.onArchiveChange)
+                    .catch((caught: unknown) =>
+                      setArchiveError(
+                        caught instanceof Error
+                          ? caught.message
+                          : "Could not unarchive",
+                      ),
+                    )
+                    .finally(() => setArchiveBusy(false));
+                }}
+              >
+                Unarchive
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="hint">
+                Hide this teammate from the sidebar and stop work. History
+                stays; you can unarchive later.
+              </p>
+              {confirmArchive ? (
+                <div className="row">
+                  <button
+                    className="text-btn danger"
+                    type="button"
+                    disabled={archiveBusy}
+                    onClick={() => {
+                      setArchiveBusy(true);
+                      setArchiveError("");
+                      void client.bots
+                        .archive({ botId: bot.id })
+                        .then(props.onArchiveChange)
+                        .catch((caught: unknown) =>
+                          setArchiveError(
+                            caught instanceof Error
+                              ? caught.message
+                              : "Could not archive",
+                          ),
+                        )
+                        .finally(() => setArchiveBusy(false));
+                    }}
+                  >
+                    Archive {bot.name}
+                  </button>
+                  <button
+                    className="text-btn"
+                    type="button"
+                    disabled={archiveBusy}
+                    onClick={() => setConfirmArchive(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  className="text-btn"
+                  type="button"
+                  onClick={() => setConfirmArchive(true)}
+                >
+                  Archive
+                </button>
+              )}
+            </>
+          )}
+          {archiveError ? <p className="error">{archiveError}</p> : null}
+        </section>
       </div>
     </aside>
   );

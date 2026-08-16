@@ -14,13 +14,13 @@ function abs(origin: string, path: string): string {
 }
 
 export const PRESS_SHORT =
-  "Grogbot is a self-hostable Grok Bot: named AI teammates with a real computer. Create a Bot, message it, grant access as needed. No workflow builder.";
+  "Grogbot is Grok Bot for teams: named AI teammates with a real computer. If OpenClaw is for your personal use, Grogbot is for the office. Self-hostable. No workflow builder.";
 
 export const PRESS_MEDIUM = GROGBOT_SUMMARY;
 
 export const PRESS_LONG = `${GROGBOT_NAME} is a messaging app of named AI teammates, not a workflow builder, IDE, or Discord. You hire a Bot — name, optional job, description, avatar — then talk to it in a thread. Each Bot has a real computer. Teammates share the workspace Desk by default; you can give a Bot an isolated computer when logins should stay private.
 
-The name is a joke that stuck: Grok, then grog. It copies Grok Bot’s simplicity (talk first, grant access when they hit a wall) and is fair-code so you can self-host. Bring your own model keys. Optional Composio covers Gmail, Slack, GitHub, and 1,000+ toolkits. Self-host for your organization is free. Hosted Grogbot for others is grogbot.com.`;
+The name is a joke that stuck: Grok, then grog. It copies Grok Bot’s simplicity (talk first, grant access when they hit a wall) and is fair-code so you can self-host. Bring your own model keys. Gmail, Slack, GitHub, and 1,000+ tools connect in the thread. Indie tools run on the computer. Self-host for your organization is free. Hosted Grogbot for others is grogbot.com.`;
 
 export const PRESS_BOILERPLATE = [
   { id: "short", label: "Short", text: PRESS_SHORT },
@@ -185,7 +185,7 @@ ${PRESS_COLORS.map((color) => `- ${color.name}: ${color.hex} — ${color.note}`)
 
 ## Logos
 
-SVG only. Do not add drop shadows, recolor the mascot away from ${PRESS_COLORS[0]?.hex}, or replace the face with a photoreal head.
+SVG only. Do not add drop shadows, recolor the mascot away from ${PRESS_COLORS[0]?.hex}, replace the two slits, or draw a photoreal head.
 
 ${assets}
 

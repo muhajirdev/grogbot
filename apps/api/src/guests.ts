@@ -94,6 +94,11 @@ export async function enableGuest(
   kind: GuestAgentKind,
 ): Promise<GuestConnect> {
   const { bot } = await getBotThread(context, actor, botId);
+  if (bot.archivedAt) {
+    throw new ORPCError("PRECONDITION_FAILED", {
+      message: "This teammate is archived.",
+    });
+  }
   const connectUrl = guestConnectUrl(context.env);
   const existing = await loadConnector(context, botId);
   const connectorId = existing?.id ?? newId();

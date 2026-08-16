@@ -1,18 +1,23 @@
 import { describe, expect, it } from "vitest";
 import {
-  ellipseContains,
-  eyeInsideCircle,
+  BODY_POINTS,
   MASCOT_MOODS,
   MASCOT_SHAPES,
   mascotAnchor,
   mascotBody,
+  mascotBodyPoints,
   mascotColors,
   mascotFace,
-  mascotShine,
+  mascotSlits,
   mixHex,
   moodFromActivity,
   normalizeHex,
+  PACK_LENGTH,
+  packMascot,
+  pointsToPath,
   seedFromName,
+  slitColor,
+  unpackMascot,
 } from "./geometry.js";
 
 describe("mascot geometry", () => {
@@ -28,54 +33,74 @@ describe("mascot geometry", () => {
     expect(light).not.toBe("#2f9e6d");
   });
 
-  it("keeps circle as the default cute face that fits inside the body", () => {
-    const body = mascotBody("circle");
-    const face = mascotFace("idle");
-    expect(body.kind).toBe("circle");
-    if (body.kind !== "circle") return;
-    expect(eyeInsideCircle(face.left, body)).toBe(true);
-    expect(eyeInsideCircle(face.right, body)).toBe(true);
+  it("uses a 24-point circle that sits inside the face box", () => {
+    const points = mascotBodyPoints("circle");
+    expect(points).toHaveLength(BODY_POINTS);
+    for (const point of points) {
+      const r = Math.hypot(point.x - 50, point.y - 51);
+      expect(r).toBeGreaterThan(42);
+      expect(r).toBeLessThan(44);
+    }
     expect(mascotAnchor("circle").scale).toBe(1);
+    expect(mascotBody("circle").d.startsWith("M")).toBe(true);
+    expect(mascotBody("circle").d.endsWith("Z")).toBe(true);
   });
 
-  it("uses tall oval eyes on every mood", () => {
-    for (const mood of MASCOT_MOODS) {
-      const face = mascotFace(mood);
-      expect(face.left.ry).toBeGreaterThan(face.left.rx);
-      expect(face.right.ry).toBeGreaterThan(face.right.rx);
+  it("gives every shape the same point count so they can morph", () => {
+    const counts = new Set(
+      MASCOT_SHAPES.map((shape) => mascotBodyPoints(shape).length),
+    );
+    expect(counts).toEqual(new Set([BODY_POINTS]));
+    for (const shape of MASCOT_SHAPES) {
+      const packed = packMascot(shape, "idle");
+      expect(packed).toHaveLength(PACK_LENGTH);
+      const path = pointsToPath(mascotBodyPoints(shape));
+      expect(path.match(/C/g)?.length).toBe(BODY_POINTS);
     }
   });
 
-  it("keeps the body gloss above the eyes so it is not a smear on the left eye", () => {
-    const shine = mascotShine();
-    const shineBottom = shine.cy + shine.ry;
-    expect(shine.cx).toBeLessThan(40);
-    for (const mood of MASCOT_MOODS) {
-      const face = mascotFace(mood);
-      expect(shineBottom).toBeLessThan(face.left.cy - face.left.ry);
-      expect(shineBottom).toBeLessThan(face.right.cy - face.right.ry);
+  it("keeps every body point inside the 100 box", () => {
+    for (const shape of MASCOT_SHAPES) {
+      for (const point of mascotBodyPoints(shape)) {
+        expect(point.x).toBeGreaterThan(4);
+        expect(point.x).toBeLessThan(96);
+        expect(point.y).toBeGreaterThan(4);
+        expect(point.y).toBeLessThan(96);
+      }
     }
   });
 
-  it("puts pupils and catchlights inside both eyes", () => {
+  it("uses two tilted capsules for every mood", () => {
     for (const mood of MASCOT_MOODS) {
       const face = mascotFace(mood);
-      expect(ellipseContains(face.left, face.pupils[0])).toBe(true);
-      expect(ellipseContains(face.right, face.pupils[1])).toBe(true);
-      expect(ellipseContains(face.pupils[0], face.sparks[0], 0)).toBe(true);
-      expect(ellipseContains(face.pupils[1], face.sparks[1], 0)).toBe(true);
+      expect(face.left.h).toBeGreaterThan(face.left.w);
+      expect(face.right.h).toBeGreaterThan(face.right.w);
+      expect(face.left.rot).toBeLessThan(0);
+      expect(face.right.rot).toBeLessThan(0);
     }
   });
 
-  it("gives each mood its own brows and mouth", () => {
-    const faces = MASCOT_MOODS.map((mood) => mascotFace(mood));
-    const mouths = new Set(faces.map((face) => face.mouth.d));
-    const leftBrows = new Set(faces.map((face) => face.brows[0].d));
-    expect(mouths.size).toBe(MASCOT_MOODS.length);
-    expect(leftBrows.size).toBe(MASCOT_MOODS.length);
-    expect(mascotFace("happy").mouth.fill).toBe(true);
-    expect(mascotFace("happy").blushOpacity).toBeGreaterThan(
-      mascotFace("idle").blushOpacity,
+  it("looks at you on idle instead of parking slits on the right", () => {
+    const [left, right] = mascotSlits("circle", "idle");
+    expect(left.cx).toBeGreaterThan(38);
+    expect(left.cx).toBeLessThan(48);
+    expect(right.cx).toBeGreaterThan(52);
+    expect(right.cx).toBeLessThan(62);
+    expect((left.cx + right.cx) / 2).toBeGreaterThan(48);
+    expect((left.cx + right.cx) / 2).toBeLessThan(52);
+  });
+
+  it("gives each mood its own slit pose", () => {
+    const poses = MASCOT_MOODS.map((mood) => {
+      const [left, right] = mascotSlits("circle", mood);
+      return `${left.cy.toFixed(1)}:${left.rot}:${right.rot}:${left.h.toFixed(1)}`;
+    });
+    expect(new Set(poses).size).toBe(MASCOT_MOODS.length);
+    expect(mascotSlits("circle", "working")[0]?.cy).toBeGreaterThan(
+      mascotSlits("circle", "idle")[0]?.cy ?? 0,
+    );
+    expect(mascotSlits("circle", "happy")[0]?.rot).toBeLessThan(
+      mascotSlits("circle", "idle")[0]?.rot ?? 0,
     );
   });
 
@@ -86,9 +111,15 @@ describe("mascot geometry", () => {
       expect(anchor.x).toBeLessThan(60);
       expect(anchor.scale).toBeGreaterThan(0.6);
       expect(anchor.scale).toBeLessThanOrEqual(1);
-      const body = mascotBody(shape);
-      if (body.kind === "path") expect(body.d.length).toBeGreaterThan(20);
+      expect(mascotBody(shape).d.length).toBeGreaterThan(40);
     }
+  });
+
+  it("round-trips a packed mascot", () => {
+    const packed = packMascot("hex", "thinking");
+    const unpacked = unpackMascot(packed);
+    expect(unpacked.slits[0]?.rot).toBe(packed[BODY_POINTS * 2 + 4]);
+    expect(unpacked.d.startsWith("M")).toBe(true);
   });
 
   it("maps activity onto working vs idle", () => {
@@ -100,12 +131,14 @@ describe("mascot geometry", () => {
     expect(seedFromName("Piper")).not.toBe(seedFromName("Ledger"));
   });
 
-  it("builds a three-stop body paint from the bot color", () => {
+  it("paints a plump highlight and a grog flush from the bot color", () => {
     const colors = mascotColors("#5b7cff");
     expect(colors.mid).toBe("#5b7cff");
     expect(colors.light).not.toBe(colors.mid);
     expect(colors.dark).not.toBe(colors.mid);
-    expect(colors.pupil).toBe("#241510");
-    expect(colors.eye).not.toBe(colors.pupil);
+    expect(colors.blush).not.toBe(colors.mid);
+    expect(colors.slit).toBe("#1a1412");
+    expect(slitColor("#e45c9a")).toBe("#1a1412");
+    expect(slitColor("#1a1a1a")).not.toBe("#1a1412");
   });
 });

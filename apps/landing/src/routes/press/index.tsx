@@ -126,9 +126,9 @@ function PressPage() {
           <p className="kicker">Logos</p>
           <h2>SVG only. Do not recolor the face.</h2>
           <p className="lede tight">
-            Keep the mascot pink. Do not add drop shadows, outlines, or a
-            photoreal head. Wordmark type is the system UI stack used on the
-            site.
+            Keep the mascot pink. Two slits, no mouth, no photoreal head.
+            Do not add drop shadows or outlines. Wordmark type is the system
+            UI stack used on the site.
           </p>
           <div className="logo-grid">
             {PRESS_ASSETS.map((asset) => (

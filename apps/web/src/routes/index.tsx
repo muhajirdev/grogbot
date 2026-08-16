@@ -20,7 +20,7 @@ function WelcomePage() {
   return (
     <Welcome
       start={
-        <Link to="/login" className="btn">
+        <Link to="/login" viewTransition className="btn lg">
           Get started
         </Link>
       }

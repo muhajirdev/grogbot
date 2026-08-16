@@ -1,19 +1,52 @@
 import type { Bot } from "@grogbot/contracts";
 import type { QueryClient } from "@tanstack/react-query";
 import { redirect } from "@tanstack/react-router";
+import { authClient } from "./auth";
 import { orpc, queryClient } from "./orpc";
+
+export const sessionQueryKey = ["auth", "session"] as const;
+
+export function readSession(client: QueryClient) {
+  return client.getQueryData(sessionQueryKey);
+}
+
+export async function loadSession(client: QueryClient) {
+  return client.ensureQueryData({
+    queryKey: sessionQueryKey,
+    queryFn: async () => {
+      const { data } = await authClient.getSession();
+      return data ?? null;
+    },
+    staleTime: 5 * 60_000,
+  });
+}
 
 function botsListOptions() {
   return orpc.bots.list.queryOptions();
 }
 
-/** Keep a just-created bot in the list cache so loaders don't see a stale `[]`. */
-export function cacheCreatedBot(client: QueryClient, bot: Bot) {
+export function isArchivedBot(bot: Bot): boolean {
+  return Boolean(bot.archivedAt);
+}
+
+/** Prefer a live teammate; fall back to an archived one if that's all that's left. */
+export function firstLiveBot(bots: Bot[]): Bot | undefined {
+  return bots.find((bot) => !isArchivedBot(bot)) ?? bots[0];
+}
+
+export function cacheBot(client: QueryClient, bot: Bot) {
   client.setQueryData<Bot[]>(botsListOptions().queryKey, (current) => {
     if (!current) return [bot];
-    if (current.some((item) => item.id === bot.id)) return current;
+    if (current.some((item) => item.id === bot.id)) {
+      return current.map((item) => (item.id === bot.id ? bot : item));
+    }
     return [bot, ...current];
   });
+}
+
+/** Keep a just-created bot in the list cache so loaders don't see a stale `[]`. */
+export function cacheCreatedBot(client: QueryClient, bot: Bot) {
+  cacheBot(client, bot);
 }
 
 /**
@@ -42,7 +75,7 @@ export async function loadBotsForRoute(
 export async function redirectAuthedHome(): Promise<never> {
   await queryClient.ensureQueryData(orpc.me.queryOptions());
   const bots = await loadBotsForRoute(queryClient);
-  const first = bots[0];
+  const first = firstLiveBot(bots);
   if (!first) throw redirect({ to: "/onboarding" });
   throw redirect({ to: "/$botId", params: { botId: first.id } });
 }

@@ -92,6 +92,7 @@ export function toBotDto(
     model: bot.model ?? "",
     lastPreview: extras?.lastPreview ?? "",
     lastAt,
+    archivedAt: iso(bot.archivedAt),
     createdAt: bot.createdAt.toISOString(),
     updatedAt: bot.updatedAt.toISOString(),
   };

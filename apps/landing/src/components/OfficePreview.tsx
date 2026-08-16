@@ -4,7 +4,16 @@ import type { ReactNode } from "react";
 export function OfficePreview() {
   return (
     <section className="preview-wrap" aria-label="Office preview">
-      <div className="preview" aria-hidden>
+      <div className="preview-window">
+        <div className="window-bar" aria-hidden>
+          <span className="traffic">
+            <i className="close" />
+            <i className="min" />
+            <i className="max" />
+          </span>
+          <span className="window-title">Grogbot</span>
+        </div>
+        <div className="preview" aria-hidden>
         <aside className="preview-side">
           <div className="side-head">
             <div className="search-field">
@@ -16,12 +25,17 @@ export function OfficePreview() {
             </span>
           </div>
           <div className="conv-list">
-            <PreviewConv
-              name="Piper"
-              when="9:56"
-              snip="Working the PDF on the default computer"
-              color="#e45c9a"
+            <PreviewRoom
+              name="Ops"
+              when="8:16"
+              snip="Maya, You, Chief"
               on
+            />
+            <PreviewConv
+              name="Inbox"
+              when="7:02"
+              snip="Five drafts parked for you"
+              color="#d46b4a"
             />
             <PreviewConv
               name="Scout"
@@ -34,6 +48,12 @@ export function OfficePreview() {
               when="8:16"
               snip="Flagged three receipts"
               color="#2f9e6d"
+            />
+            <PreviewConv
+              name="Outbound"
+              when="9:56"
+              snip="Twelve drafts. Nothing sent."
+              color="#e45c9a"
             />
           </div>
           <div className="side-foot">
@@ -55,13 +75,31 @@ export function OfficePreview() {
         <div className="preview-thread">
           <div className="thread-head">
             <div className="thread-who">
-              <MascotMark
-                name="Piper"
-                color="#e45c9a"
-                shape="circle"
-                mood="working"
-              />
-              Piper
+              <span className="face-stack">
+                <span
+                  className="avatar sm circle"
+                  style={{ background: "#6b8afd" }}
+                >
+                  M
+                </span>
+                <span
+                  className="avatar sm circle"
+                  style={{ background: "#4d5568" }}
+                >
+                  Y
+                </span>
+                <MascotMark
+                  name="Chief"
+                  color="#c9a227"
+                  shape="circle"
+                  size="sm"
+                  mood="working"
+                />
+              </span>
+              <span className="thread-who-copy">
+                Ops
+                <span>Maya, You, Chief</span>
+              </span>
             </div>
             <div className="head-actions">
               <span className="icon-btn on">
@@ -73,15 +111,36 @@ export function OfficePreview() {
             </div>
           </div>
           <div className="transcript">
-            <div className="day-sep">Yesterday 9:56 AM</div>
-            <p className="bubble human">
-              Summarize this deck in five bullets. List every date, decision,
-              and open question. Do not change the file.
-            </p>
-            <p className="bubble bot">
-              I’ll stop if anything needs your approval.
-            </p>
-            <div className="computer-card">
+            <div className="day-sep room-in" style={{ animationDelay: "0.35s" }}>
+              This morning 8:16 AM
+            </div>
+            <div className="msg them room-in" style={{ animationDelay: "0.7s" }}>
+              <span className="msg-who">Maya</span>
+              <p className="bubble">
+                Chief — catch the rest of us up. I was in the vendor call.
+              </p>
+            </div>
+            <div className="msg me room-in" style={{ animationDelay: "1.25s" }}>
+              <span className="msg-who">You</span>
+              <p className="bubble human">
+                Same digest. Only this week’s priorities. Don’t send or move
+                meetings.
+              </p>
+            </div>
+            <div
+              className="msg them room-in"
+              style={{ animationDelay: "2.05s" }}
+            >
+              <span className="msg-who">Chief</span>
+              <p className="bubble bot">
+                Three decisions. Venue deposit, the Acme reply, and whether to
+                loop Scout. Rest can wait.
+              </p>
+            </div>
+            <div
+              className="computer-card room-in"
+              style={{ animationDelay: "2.55s" }}
+            >
               <div className="computer-card-head">
                 Computer
                 <span className="status-pill">
@@ -89,25 +148,68 @@ export function OfficePreview() {
                 </span>
               </div>
               <p className="computer-task">
-                Working the PDF on the default computer.
+                Morning digest from Slack, Gmail, and calendar.
               </p>
               <div className="open-computer">Open computer</div>
             </div>
           </div>
           <div className="composer">
-            <div className="composer-pill">Message Piper</div>
+            <div className="composer-pill">Message Ops</div>
           </div>
         </div>
         <aside className="preview-pane">
-          <div className="pane-head">Piper's screen</div>
+          <div className="pane-head">Chief&apos;s screen</div>
           <p className="pane-label">Working</p>
           <div className="screen-box">
-            Sign in to Zendesk so I can work the support queue.
+            Digest · since yesterday
+            <br />
+            • Venue deposit — you owe a yes
+            <br />
+            • Acme replied on pricing
+            <br />
+            • Scout’s shortlist is ready
+            <br />
+            Do not send. Do not move meetings.
           </div>
           <div className="routines">Routines</div>
         </aside>
+        </div>
       </div>
     </section>
+  );
+}
+
+function PreviewRoom(props: {
+  name: string;
+  when: string;
+  snip: string;
+  on?: boolean;
+}) {
+  return (
+    <div className={`conv room${props.on ? " on" : ""}`}>
+      <span className="face-stack">
+        <span className="avatar sm circle" style={{ background: "#6b8afd" }}>
+          M
+        </span>
+        <span className="avatar sm circle" style={{ background: "#4d5568" }}>
+          Y
+        </span>
+        <MascotMark
+          name="Chief"
+          color="#c9a227"
+          shape="circle"
+          size="sm"
+          mood={props.on ? "working" : "idle"}
+        />
+      </span>
+      <span>
+        <span className="conv-top">
+          <span className="name">{props.name}</span>
+          <span className="when">{props.when}</span>
+        </span>
+        <div className="snip">{props.snip}</div>
+      </span>
+    </div>
   );
 }
 

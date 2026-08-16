@@ -15,6 +15,7 @@ import { guestConnectors, userModelCredentials } from "@grogbot/db";
 import { implement, ORPCError } from "@orpc/server";
 import { eq } from "drizzle-orm";
 import {
+  archiveBot,
   createBot,
   createRoutine,
   getBotThread,
@@ -25,6 +26,7 @@ import {
   sendMessage,
   setComputerControl,
   stopBotRuns,
+  unarchiveBot,
   updateBot,
 } from "./bots.js";
 import type { RpcContext } from "./context.js";
@@ -139,6 +141,14 @@ export const appRouter = os.router({
     update: os.bots.update.handler(async ({ context, input }) => {
       const actor = await requireActor(context);
       return updateBot(context, actor, input);
+    }),
+    archive: os.bots.archive.handler(async ({ context, input }) => {
+      const actor = await requireActor(context);
+      return archiveBot(context, actor, input.botId);
+    }),
+    unarchive: os.bots.unarchive.handler(async ({ context, input }) => {
+      const actor = await requireActor(context);
+      return unarchiveBot(context, actor, input.botId);
     }),
   },
   threads: {

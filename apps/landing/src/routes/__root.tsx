@@ -24,6 +24,16 @@ export const Route = createRootRoute({
       { name: "twitter:description", content: DEFAULT_DESCRIPTION },
     ],
     links: [
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      {
+        rel: "preconnect",
+        href: "https://fonts.gstatic.com",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,500;0,600;1,400&family=Source+Serif+4:ital,opsz,wght@1,8..60,480;1,8..60,560&display=swap",
+      },
       { rel: "stylesheet", href: appCss },
       { rel: "describedby", href: "https://grogbot.com/llms.txt" },
       {

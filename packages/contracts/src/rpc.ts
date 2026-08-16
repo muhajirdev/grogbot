@@ -40,6 +40,8 @@ export const appContract = oc.router({
     get: oc.input(botId).output(BotSchema),
     create: oc.input(CreateBotInput).output(BotSchema),
     update: oc.input(UpdateBotInput).output(BotSchema),
+    archive: oc.input(botId).output(BotSchema),
+    unarchive: oc.input(botId).output(BotSchema),
   },
   threads: {
     subscribe: oc

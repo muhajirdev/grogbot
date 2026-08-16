@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Landing } from "../components/Landing";
 import { appLoginUrl } from "../lib/app-url";
-import { organizationJsonLd, softwareJsonLd } from "../lib/json-ld";
+import { FAQS } from "../lib/copy";
+import { faqJsonLd, organizationJsonLd, softwareJsonLd } from "../lib/json-ld";
 import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, seoHead } from "../lib/site";
 
 export const Route = createFileRoute("/")({
@@ -11,7 +12,7 @@ export const Route = createFileRoute("/")({
       title: DEFAULT_TITLE,
       description: DEFAULT_DESCRIPTION,
       path: "/",
-      jsonLd: [organizationJsonLd(), softwareJsonLd()],
+      jsonLd: [organizationJsonLd(), softwareJsonLd(), faqJsonLd([...FAQS])],
     }),
   component: Home,
 });

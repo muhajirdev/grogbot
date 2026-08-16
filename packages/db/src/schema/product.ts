@@ -54,6 +54,8 @@ export const bots = pgTable("bots", {
   guestKind: text("guest_kind").notNull().default("off"),
   /** Empty = workspace default model from user_model_credentials. */
   model: text("model").notNull().default(""),
+  /** Set when the teammate is archived (hidden + paused). Null = active. */
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

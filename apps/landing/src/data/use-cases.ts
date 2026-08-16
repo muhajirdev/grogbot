@@ -15,6 +15,29 @@ export function getUseCase(slug: string): UseCase | undefined {
   return USE_CASES.find((item) => item.slug === slug);
 }
 
+export function relatedUseCases(item: UseCase, limit = 4): UseCase[] {
+  const others = USE_CASES.filter((other) => other.slug !== item.slug);
+  const withOverlap = others
+    .map((other) => ({
+      other,
+      overlap: other.integrationSlugs.filter((slug) =>
+        item.integrationSlugs.includes(slug),
+      ).length,
+    }))
+    .filter((row) => row.overlap > 0)
+    .sort(
+      (a, b) =>
+        b.overlap - a.overlap || a.other.title.localeCompare(b.other.title),
+    )
+    .map((row) => row.other);
+  if (withOverlap.length >= limit) return withOverlap.slice(0, limit);
+  const used = new Set(withOverlap.map((row) => row.slug));
+  return [
+    ...withOverlap,
+    ...others.filter((other) => !used.has(other.slug)),
+  ].slice(0, limit);
+}
+
 export const USE_CASES: UseCase[] = [
   {
     slug: "sales-outbound",
@@ -43,7 +66,7 @@ export const USE_CASES: UseCase[] = [
       },
       {
         q: "Which CRM?",
-        a: "Whatever Composio lists — HubSpot, Salesforce, Pipedrive, and the rest — or the CRM in the browser on the computer.",
+        a: "HubSpot, Salesforce, Pipedrive — or the CRM in the browser on the computer.",
       },
     ],
   },
@@ -53,10 +76,10 @@ export const USE_CASES: UseCase[] = [
     kicker: "A teammate for Postiz, Post Bridge, and Typefully",
     lede: "Indie schedulers already exist. Grogbot is the coworker who fills the calendar and never hits publish.",
     problem:
-      "You already pay Postiz, Post Bridge, or Typefully. The work is still sitting down every Sunday to write the week.",
+      "You already pay Postiz, Post Bridge, or Typefully. The work is still you sitting down every Sunday to write the week.",
     whatTheBotDoes: [
       "Turn a brief into drafts on Postiz or Post Bridge.",
-      "Use Typefully or X through Composio when those connectors exist.",
+      "Use Typefully or X when you want those queues instead.",
       "Leave posts as drafts or scheduled — publish stays yours.",
     ],
     neverWithoutApproval: [
@@ -64,7 +87,14 @@ export const USE_CASES: UseCase[] = [
       "Connect a new social account",
       "Change the handle",
     ],
-    integrationSlugs: ["postiz", "post-bridge", "typefully", "twitter", "linkedin"],
+    integrationSlugs: [
+      "postiz",
+      "post-bridge",
+      "typefully",
+      "instagram",
+      "twitter",
+      "linkedin",
+    ],
     firstMessage:
       "Draft this week's posts for Postiz and Post Bridge from this brief. Do not publish.",
     faqs: [
@@ -73,8 +103,8 @@ export const USE_CASES: UseCase[] = [
         a: "Postiz drives Postiz. Grogbot is the teammate that also has Gmail, GitHub, and a computer — one thread when the post needs a screenshot from the product.",
       },
       {
-        q: "Jack Friks / Marc Lou tools?",
-        a: "Post Bridge is a first-class computer integration. Same for DataFast when the caption needs a real revenue number.",
+        q: "Postiz, Post Bridge, or Typefully?",
+        a: "Any of them. Postiz and Post Bridge run on the Bot’s computer. Typefully and X connect under Plugins. You pick the calendar; publish still waits for you.",
       },
     ],
   },
@@ -256,27 +286,27 @@ export const USE_CASES: UseCase[] = [
   {
     slug: "chief-of-staff",
     title: "Chief of staff",
-    kicker: "Messy notes in. Decisions out.",
-    lede: "Turn messy notes into decisions, owners, and dates. Stop if you would need to message anyone outside.",
+    kicker: "What changed. What needs you.",
+    lede: "A source-linked digest of Slack, inbox, calendar, and notes — only the items that map to this week’s priorities. Does not send. Does not move meetings.",
     problem:
-      "The week lives in Notion, Slack, and a voice memo. You need a decision log, not another meeting.",
+      "The week is scattered across Slack, Gmail, and a calendar. You need a brief, not another inbox.",
     whatTheBotDoes: [
-      "Read the sources you name. Extract decisions, owners, dates.",
-      "Write the log in the thread (or a Notion draft).",
-      "Stop before Slack-blasting the company.",
+      "Review approved channels, inbox, calendar, and meeting notes since yesterday.",
+      "Return only items that map to the priorities you name.",
+      "For each: source, why it matters, proposed next step, whether you owe a decision.",
     ],
     neverWithoutApproval: [
+      "Send messages",
+      "Change meetings",
       "Message anyone outside the thread",
-      "Create calendar invites",
-      "Overwrite the source doc",
     ],
     integrationSlugs: ["notion", "slack", "googlecalendar", "gmail", "linear"],
     firstMessage:
-      "Turn these notes into decisions, owners, and dates. Do not message anyone.",
+      "Review Slack, inbox, and calendar since yesterday. Only what maps to this week’s priorities. Do not send messages or change meetings.",
     faqs: [
       {
         q: "Is this an orchestration canvas?",
-        a: "No. It is a person in the sidebar. You message it. It files the week.",
+        a: "No. It is a person in the sidebar. You hire a Chief of Staff, then specialists — inbox, expenses, recruiting. You message one Bot. It files the week.",
       },
     ],
   },
@@ -298,8 +328,8 @@ export const USE_CASES: UseCase[] = [
       "Triage unread from yesterday. Draft replies. Do not send.",
     faqs: [
       {
-        q: "Does it need Composio?",
-        a: "Gmail and Outlook are Composio toolkits — connect them under Plugins. First tasks can still be a file summary with no connector.",
+        q: "Does it need Gmail connected?",
+        a: "Gmail and Outlook connect under Plugins. First tasks can still be a file summary with no connector.",
       },
     ],
   },
@@ -357,11 +387,11 @@ export const USE_CASES: UseCase[] = [
     faqs: [
       {
         q: "Which indie products are first-class?",
-        a: "DataFast, Postiz, Post Bridge, ShipFast, TrustMRR, Zenvoice, ByeDispute, Indie Page, and Polar. Composio covers Gmail, GitHub, Typefully, Stripe, and hundreds more.",
+        a: "DataFast, Postiz, Post Bridge, ShipFast, TrustMRR, Zenvoice, ByeDispute, Indie Page, and Polar. Gmail, GitHub, Typefully, Stripe, and hundreds more connect under Plugins.",
       },
       {
         q: "Do I need every connector?",
-        a: "No. The computer covers the tools Composio does not list yet. Connect the rest when a Bot hits a wall.",
+        a: "No. The computer covers tools that aren’t connected yet. Connect the rest when a Bot hits a wall.",
       },
     ],
   },

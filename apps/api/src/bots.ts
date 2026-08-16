@@ -36,7 +36,7 @@ import {
   threads,
 } from "@grogbot/db";
 import { ORPCError } from "@orpc/server";
-import { and, count, desc, eq, inArray } from "drizzle-orm";
+import { and, count, desc, eq, inArray, isNull } from "drizzle-orm";
 import type { RpcContext } from "./context.js";
 import { agentRuntimeSource } from "./env.js";
 import type { Actor } from "./session.js";
@@ -74,6 +74,14 @@ export async function getBotThread(
     .limit(1);
   if (!thread) throw new ORPCError("NOT_FOUND", { message: "Thread missing" });
   return { bot, thread };
+}
+
+function assertBotActive(bot: { archivedAt: Date | null }) {
+  if (bot.archivedAt) {
+    throw new ORPCError("PRECONDITION_FAILED", {
+      message: "This teammate is archived.",
+    });
+  }
 }
 
 export async function listBots(
@@ -243,9 +251,12 @@ export async function listComputers(
     .select({ computerId: bots.computerId, n: count() })
     .from(bots)
     .where(
-      inArray(
-        bots.computerId,
-        rows.map((row) => row.id),
+      and(
+        inArray(
+          bots.computerId,
+          rows.map((row) => row.id),
+        ),
+        isNull(bots.archivedAt),
       ),
     )
     .groupBy(bots.computerId);
@@ -357,6 +368,58 @@ export async function updateBot(
   return toBotDto(updated, thread.id, { computerName: computer?.name });
 }
 
+async function botDto(
+  context: RpcContext,
+  bot: typeof bots.$inferSelect,
+  threadId: string,
+): Promise<Bot> {
+  const computer = await getBotComputer(context.db, bot);
+  return toBotDto(bot, threadId, { computerName: computer?.name });
+}
+
+export async function archiveBot(
+  context: RpcContext,
+  actor: Actor,
+  botId: string,
+): Promise<Bot> {
+  const { bot, thread } = await getBotThread(context, actor, botId);
+  if (bot.archivedAt) return botDto(context, bot, thread.id);
+  await stopBotRuns(context, actor, botId);
+  const computer = await getBotComputer(context.db, bot);
+  if (
+    computer &&
+    computer.controlHolder === "bot" &&
+    computer.controlHolderId === bot.id
+  ) {
+    await setComputerControl(context, actor, botId, "none");
+  }
+  const now = new Date();
+  const [updated] = await context.db
+    .update(bots)
+    .set({ archivedAt: now, updatedAt: now })
+    .where(eq(bots.id, bot.id))
+    .returning();
+  if (!updated) throw new ORPCError("NOT_FOUND", { message: "Bot not found" });
+  return botDto(context, updated, thread.id);
+}
+
+export async function unarchiveBot(
+  context: RpcContext,
+  actor: Actor,
+  botId: string,
+): Promise<Bot> {
+  const { bot, thread } = await getBotThread(context, actor, botId);
+  if (!bot.archivedAt) return botDto(context, bot, thread.id);
+  const now = new Date();
+  const [updated] = await context.db
+    .update(bots)
+    .set({ archivedAt: null, updatedAt: now })
+    .where(eq(bots.id, bot.id))
+    .returning();
+  if (!updated) throw new ORPCError("NOT_FOUND", { message: "Bot not found" });
+  return botDto(context, updated, thread.id);
+}
+
 export async function getComputer(
   context: RpcContext,
   actor: Actor,
@@ -375,6 +438,7 @@ export async function setComputerControl(
   holder: "user" | "bot" | "none",
 ): Promise<ComputerStatus> {
   const { bot } = await getBotThread(context, actor, botId);
+  if (holder !== "none") assertBotActive(bot);
   const row = await getBotComputer(context.db, bot);
   if (!row) throw new ORPCError("NOT_FOUND", { message: "Computer not found" });
   const [updated] = await context.db
@@ -400,6 +464,7 @@ export async function sendMessage(
   text: string,
 ) {
   const { bot, thread } = await getBotThread(context, actor, botId);
+  assertBotActive(bot);
   if (!isOfflineAgentRuntime(context.env.agentRuntime)) {
     const overlay = await resolveRunModel(
       context.db,
@@ -570,7 +635,8 @@ export async function createRoutine(
     timezone?: string;
   },
 ): Promise<Routine> {
-  await getBotThread(context, actor, input.botId);
+  const { bot } = await getBotThread(context, actor, input.botId);
+  assertBotActive(bot);
   const now = new Date();
   const [row] = await context.db
     .insert(routines)

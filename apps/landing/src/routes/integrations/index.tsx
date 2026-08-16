@@ -38,7 +38,7 @@ export const Route = createFileRoute("/integrations/")({
     return seoHead({
       title: q ? `Integrations matching “${q}”` : "Integrations",
       description:
-        "Grogbot connects through Composio (Gmail, Slack, GitHub, Typefully…) and a real computer for indie tools like DataFast, Postiz, and Post Bridge.",
+        "Gmail, Slack, GitHub, Typefully — plus a computer for indie tools like DataFast, Postiz, and Post Bridge.",
       path: "/integrations",
       jsonLd: [
         breadcrumbJsonLd([
@@ -71,12 +71,11 @@ function IntegrationsIndex() {
         />
         <section className="hero">
           <p className="kicker">Integrations</p>
-          <h1>Composio for the giants. A computer for everyone else.</h1>
+          <h1>Gmail, Slack, GitHub — plus a computer for the rest.</h1>
           <p className="lede">
-            Optional Composio for Gmail, Slack, GitHub, Typefully, and a
-            thousand other toolkits. DataFast, Postiz, Post Bridge, and the rest
-            of the indie stack run on the Bot&apos;s computer until a connector
-            exists.
+            Connect the tools you already use. DataFast, Postiz, Post Bridge,
+            and the rest of the indie stack run on the Bot&apos;s computer
+            until a connector exists.
           </p>
           <form className="search-form" method="get" action="/integrations">
             <label className="sr-only" htmlFor="q">
@@ -107,14 +106,14 @@ function IntegrationsIndex() {
             <section className="band">
               <h2>Indie tools on the computer</h2>
               <p className="lede tight">
-                Marc Lou, Jack Friks, Nevo David — products Composio does not
-                list. The Bot still works in the dashboard, then stops before
+                Marc Lou, Jack Friks, Nevo David — products that live in a
+                dashboard. The Bot still works there, then stops before
                 publish.
               </p>
               <IntegrationGrid items={indie} />
             </section>
             <section className="band">
-              <h2>Featured Composio toolkits</h2>
+              <h2>Featured tools</h2>
               <IntegrationGrid
                 items={featured.filter((item) => item.kind === "composio")}
               />

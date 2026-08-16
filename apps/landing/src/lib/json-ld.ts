@@ -21,7 +21,7 @@ export function softwareJsonLd(): Record<string, unknown> {
     operatingSystem: "Web",
     url: landingOrigin(),
     description:
-      "Self-hostable Grok Bot: named teammates with a real computer. Composio for Gmail, Slack, and GitHub. Bring your own keys.",
+      "Like Grok Bot, for the team. Named teammates with a real computer. If OpenClaw is for personal use, Grogbot is the office. Self-hostable.",
     offers: {
       "@type": "Offer",
       price: "0",
