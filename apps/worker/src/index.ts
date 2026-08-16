@@ -4,8 +4,8 @@ import path from "node:path";
 import type { WakeupJob } from "@grogbot/adapter-kit";
 import {
   createAgentRuntime,
-  resolveAgentRuntimeKind,
   RivetWakeupDriver,
+  resolveAgentRuntimeKind,
 } from "@grogbot/adapters";
 import {
   createWakeHandlers,

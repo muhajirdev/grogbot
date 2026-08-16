@@ -1,7 +1,4 @@
-import {
-  type GatewayEnv,
-  resolveAgentRuntimeKind,
-} from "@grogbot/adapters";
+import { type GatewayEnv, resolveAgentRuntimeKind } from "@grogbot/adapters";
 import {
   CLOUD_API_ORIGIN,
   CLOUD_LANDING_ORIGIN,
