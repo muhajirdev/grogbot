@@ -41,6 +41,7 @@ pnpm dev
 - oRPC: http://127.0.0.1:3100/rpc
 - Worker / actors: http://127.0.0.1:3101/health
 - Web: http://127.0.0.1:5173 — `/` welcome, `/login`, `/onboarding`, `/{botId}` office
+- Landing: http://127.0.0.1:5174 — marketing (TanStack Start)
 
 Google / GitHub need client IDs in `.env`. Use **127.0.0.1**, not localhost:
 
@@ -51,13 +52,19 @@ Email/password still works with no OAuth keys.
 
 The scripted runtime echoes so you can test the loop without model keys.
 
+Landing (marketing site, TanStack Start):
+
+```bash
+pnpm dev:landing
+```
+
 Desktop (same web UI in a window):
 
 ```bash
 pnpm dev:desktop
 ```
 
-That loads local Vite. A **packaged** desktop build opens **https://grogbot.com**, which talks to **https://api.grogbot.com**. Override with `WEB_ORIGIN` if you self-host.
+That loads local Vite. A **packaged** desktop build opens **https://app.grogbot.com**, which talks to **https://api.grogbot.com**. Override with `WEB_ORIGIN` if you self-host. The marketing site is **https://grogbot.com**.
 
 Production OAuth callbacks:
 
@@ -75,7 +82,7 @@ On a device, set `EXPO_PUBLIC_API_URL` to this machine’s LAN address.
 ## Layout
 
 ```
-apps/web desktop mobile api worker
+apps/web desktop mobile landing api worker
 packages/contracts rpc adapter-kit core db auth adapters
 infra/compose
 docs/

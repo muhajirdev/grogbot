@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "turbo dev --filter=@grogbot/api --filter=@grogbot/worker --filter=@grogbot/web",
+    "dev:landing": "turbo dev --filter=@grogbot/landing",
     "dev:desktop": "turbo dev --filter=@grogbot/api --filter=@grogbot/worker --filter=@grogbot/web --filter=@grogbot/desktop",
     "dev:mobile": "pnpm --filter @grogbot/mobile start",
     "build": "turbo build",

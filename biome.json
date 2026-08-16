@@ -16,7 +16,8 @@
       "packages/**",
       "*.json",
       "!**/routeTree.gen.ts",
-      "!**/dist"
+      "!**/dist",
+      "!**/.output"
     ]
   }
 }

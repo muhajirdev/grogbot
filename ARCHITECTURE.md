@@ -29,9 +29,10 @@ The **workspace** (Better Auth org) also has:
 | Topic | Choice |
 | --- | --- |
 | Product | Grok Bot-shaped teammates + Composio + team context/skills |
-| UI | Messaging app. **Web first.** Packaged desktop loads grogbot.com (API: api.grogbot.com). Dev desktop loads local Vite. Mobile = Expo later |
+| UI | Messaging app. **Web first** (SPA). Marketing is **TanStack Start** at grogbot.com. Packaged desktop loads app.grogbot.com (API: api.grogbot.com). Dev desktop loads local Vite. Mobile = Expo later |
 | API | **oRPC** — contract in `@grogbot/contracts`, client in `@grogbot/rpc` |
 | Web | **Vite + React 19 + TanStack Router** (SPA). oRPC queries via `@orpc/tanstack-query`. Not TanStack Start — API stays Hono so Electron can load the same origin. |
+| Landing | **TanStack Start** marketing site. SSR for grogbot.com. CTAs go to the office SPA. |
 | Actor | **One Rivet actor per bot** |
 | Computer | **Workspace Desk by default.** New computer = isolated sandbox. GUI serialized per desk. |
 | Shared data | **One Postgres** — auth, bots, threads, messages, skills, artifacts |
@@ -77,9 +78,11 @@ Mobile (Expo) ────┘          │
       Pi (BYOK)         Sandbox            Composio
       + workspace       docker/e2b         (if key set)
         skills
+
+Landing (Start :5174) ──► CTAs to the web office (no oRPC)
 ```
 
-Clients share **one contract**. Web is what we build against now. Desktop loads that same web app. Expo is a later shell on the same `@grogbot/rpc` client.
+Clients share **one contract**. Web is the office we build against now. The **landing** app is marketing only (no oRPC). Desktop loads that same web app. Expo is a later shell on the same `@grogbot/rpc` client.
 
 Wake a bot with:
 

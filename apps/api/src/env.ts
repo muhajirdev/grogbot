@@ -1,4 +1,8 @@
-import { CLOUD_API_ORIGIN, CLOUD_WEB_ORIGIN } from "@grogbot/contracts";
+import {
+  CLOUD_API_ORIGIN,
+  CLOUD_LANDING_ORIGIN,
+  CLOUD_WEB_ORIGIN,
+} from "@grogbot/contracts";
 
 export type OAuthProviderId = "google" | "github";
 
@@ -76,10 +80,13 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     webOrigin,
     corsOrigins: parseOrigins(source.CORS_ORIGINS, [
       webOrigin,
+      CLOUD_LANDING_ORIGIN,
       CLOUD_WEB_ORIGIN,
       CLOUD_API_ORIGIN,
       "http://127.0.0.1:5173",
       "http://localhost:5173",
+      "http://127.0.0.1:5174",
+      "http://localhost:5174",
       "http://127.0.0.1:8081",
       "http://localhost:8081",
     ]),

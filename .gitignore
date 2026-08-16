@@ -9,7 +9,12 @@ data
 *.log
 coverage
 .vite
+.output
+.nitro
+.tanstack
 apps/web/dist
+apps/landing/dist
+apps/landing/.output
 apps/mobile/.expo
 apps/mobile/ios
 apps/mobile/android
