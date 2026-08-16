@@ -1,6 +1,7 @@
 import type { AvatarShape } from "@grogbot/contracts";
 
 export const AVATAR_COLORS = [
+  "#e45c9a",
   "#5b7cff",
   "#e25d4a",
   "#2f9e6d",

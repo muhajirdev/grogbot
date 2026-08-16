@@ -73,3 +73,10 @@ export interface AgentRuntime {
   ): AsyncIterable<AgentRuntimeEvent>;
   abort(runId: string): Promise<void>;
 }
+
+export class GuestOfflineError extends Error {
+  constructor(botId: string) {
+    super(`Guest runtime for ${botId} is not connected`);
+    this.name = "GuestOfflineError";
+  }
+}

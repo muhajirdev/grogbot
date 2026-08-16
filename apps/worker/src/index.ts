@@ -3,7 +3,12 @@ import { createServer } from "node:http";
 import path from "node:path";
 import type { WakeupJob } from "@grogbot/adapter-kit";
 import { RivetWakeupDriver, ScriptedAgentRuntime } from "@grogbot/adapters";
-import { createWakeHandlers } from "@grogbot/core";
+import {
+  createWakeHandlers,
+  GuestHub,
+  handleGuestRequest,
+  nodeRequestFrom,
+} from "@grogbot/core";
 import { createDb } from "@grogbot/db";
 import { config } from "dotenv";
 
@@ -46,7 +51,8 @@ async function main() {
   const { db } = createDb(databaseUrl);
   const runtime = new ScriptedAgentRuntime();
   const wakeup = new RivetWakeupDriver();
-  await wakeup.start(createWakeHandlers({ db, runtime, wakeup }));
+  const guests = new GuestHub();
+  await wakeup.start(createWakeHandlers({ db, runtime, wakeup, guests }));
 
   const port = Number(process.env.WORKER_PORT ?? 3101);
   const server = createServer((req, res) => {
@@ -54,6 +60,27 @@ async function main() {
       if (req.method === "GET" && req.url === "/health") {
         res.writeHead(200, { "content-type": "application/json" });
         res.end(JSON.stringify({ ok: true, wakeup: "rivet" }));
+        return;
+      }
+      if (req.url?.startsWith("/guest")) {
+        const chunks: Buffer[] = [];
+        for await (const chunk of req) chunks.push(chunk as Buffer);
+        const request = nodeRequestFrom(req, Buffer.concat(chunks));
+        const response = await handleGuestRequest(request, {
+          db,
+          hub: guests,
+          wakeup,
+        });
+        if (!response) {
+          res.writeHead(404);
+          res.end();
+          return;
+        }
+        res.writeHead(response.status, {
+          "content-type":
+            response.headers.get("content-type") ?? "application/json",
+        });
+        res.end(Buffer.from(await response.arrayBuffer()));
         return;
       }
       if (req.method === "POST" && req.url === "/wakeup") {

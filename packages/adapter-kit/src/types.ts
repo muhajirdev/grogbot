@@ -48,7 +48,22 @@ export interface AgentRunRequest {
 export type AgentRuntimeEvent =
   | { type: "text"; text: string }
   | { type: "progress"; text: string }
-  | { type: "done"; text?: string };
+  | { type: "done"; text?: string }
+  | { type: "error"; text: string };
+
+export type GuestAgentKind = "hermes" | "openclaw" | "generic";
+
+export type HostToGuest =
+  | { type: "welcome"; botId: string; name: string }
+  | { type: "run"; request: AgentRunRequest }
+  | { type: "abort"; runId: string }
+  | { type: "idle" }
+  | { type: "bye"; reason: string };
+
+export type GuestToHost =
+  | { type: "hello"; token: string; kind: GuestAgentKind }
+  | { type: "event"; runId: string; event: AgentRuntimeEvent }
+  | { type: "bye" };
 
 export interface PortableFile {
   path: string;

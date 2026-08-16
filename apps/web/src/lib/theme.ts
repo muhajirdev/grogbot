@@ -5,7 +5,7 @@ const KEY = "grogbot.theme";
 export function readTheme(): Theme {
   const value = localStorage.getItem(KEY);
   if (value === "light" || value === "dark" || value === "system") return value;
-  return "system";
+  return "dark";
 }
 
 export function applyTheme(theme: Theme): void {

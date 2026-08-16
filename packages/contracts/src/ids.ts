@@ -3,6 +3,9 @@ import * as z from "zod";
 export const Id = z.string().min(1);
 export type Id = z.infer<typeof Id>;
 
+/** Display name for the workspace default computer. */
+export const DEFAULT_COMPUTER_NAME = "Default computer";
+
 export const ActorType = z.enum(["human", "bot", "system"]);
 export type ActorType = z.infer<typeof ActorType>;
 
@@ -43,3 +46,10 @@ export const AvatarShape = z.enum([
   "hex",
 ]);
 export type AvatarShape = z.infer<typeof AvatarShape>;
+
+/** Off = Grogbot’s own runtime. Other values are outbound guest agents. */
+export const GuestKind = z.enum(["off", "hermes", "openclaw", "generic"]);
+export type GuestKind = z.infer<typeof GuestKind>;
+
+export const GuestAgentKind = z.enum(["hermes", "openclaw", "generic"]);
+export type GuestAgentKind = z.infer<typeof GuestAgentKind>;

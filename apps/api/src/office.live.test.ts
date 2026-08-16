@@ -63,6 +63,7 @@ describe.skipIf(!dbUp)("office loop", () => {
         db: handles.db,
         runtime: new ScriptedAgentRuntime(),
         wakeup: handles.wakeup,
+        guests: handles.guests,
       }),
     );
   });
@@ -118,6 +119,9 @@ describe.skipIf(!dbUp)("office loop", () => {
     });
     expect(bot.name).toBe("Piper");
 
+    const nameless = await rpc.bots.create({ name: "Scout" });
+    expect(nameless.title).toBe("");
+
     const listed = await rpc.bots.list();
     expect(listed.some((item) => item.id === bot.id)).toBe(true);
 
@@ -163,13 +167,13 @@ describe.skipIf(!dbUp)("office loop", () => {
 
     const taken = await rpc.computer.takeover({ botId: bot.id });
     expect(taken.controlHolder).toBe("user");
-    expect(taken.name).toBe("Desk");
+    expect(taken.name).toBe("Default computer");
     expect(taken.isDefault).toBe(true);
     const released = await rpc.computer.release({ botId: bot.id });
     expect(released.controlHolder).toBe("bot");
   }, 15_000);
 
-  it("lets two bots share the default desk and isolates a new computer", async () => {
+  it("lets two bots share the default computer and isolates a new computer", async () => {
     const email = `desk-${Date.now()}@example.com`;
     const signUp = await handles.app.request(
       new Request(`${origin}/api/auth/sign-up/email`, {
@@ -202,7 +206,7 @@ describe.skipIf(!dbUp)("office loop", () => {
       instructions: "Same desk.",
     });
     expect(scout.computerId).toBe(piper.computerId);
-    expect(scout.computerName).toBe("Desk");
+    expect(scout.computerName).toBe("Default computer");
 
     const expense = await rpc.bots.create({
       name: "Expense",
@@ -212,7 +216,7 @@ describe.skipIf(!dbUp)("office loop", () => {
       computer: "new",
     });
     expect(expense.computerId).not.toBe(piper.computerId);
-    expect(expense.computerName).not.toBe("Desk");
+    expect(expense.computerName).not.toBe("Default computer");
 
     const desks = await rpc.computers.list();
     expect(desks.some((item) => item.isDefault && item.agentCount === 2)).toBe(
@@ -236,4 +240,135 @@ describe.skipIf(!dbUp)("office loop", () => {
     expect(scoutSees.controlHolder).toBe("user");
     expect(scoutSees.id).toBe(taken.id);
   }, 15_000);
+
+  it("lets a guest agent dial in and answer", async () => {
+    const email = `guest-${Date.now()}@example.com`;
+    const signUp = await handles.app.request(
+      new Request(`${origin}/api/auth/sign-up/email`, {
+        method: "POST",
+        headers: {
+          origin,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          name: "Guest Tester",
+          email,
+          password: "password1",
+        }),
+      }),
+    );
+    cookie = cookieHeader(signUp, cookie);
+    expect(signUp.status, await signUp.text()).toBe(200);
+
+    const rpc = client();
+    const bot = await rpc.bots.create({
+      name: "Hermes stand-in",
+      title: "External",
+      description: "Guest loop.",
+      instructions: "Guest loop.",
+    });
+    expect(bot.guestKind).toBe("off");
+
+    const issued = await rpc.guests.enable({
+      botId: bot.id,
+      kind: "hermes",
+    });
+    expect(issued.token.startsWith("gbg_")).toBe(true);
+    expect(issued.command).toContain("--kind hermes");
+
+    const sent = await rpc.threads.send({
+      botId: bot.id,
+      text: "ping from office",
+    });
+    expect(sent.seq).toBeGreaterThan(0);
+
+    const hello = await handles.app.request(
+      new Request(`${origin}/guest/hello`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ token: issued.token, kind: "hermes" }),
+      }),
+    );
+    const helloBody = await hello.text();
+    expect(hello.status, helloBody).toBe(200);
+    const session = JSON.parse(helloBody) as { sessionId: string };
+
+    let runId = "";
+    for (let i = 0; i < 8 && !runId; i += 1) {
+      const waited = await handles.app.request(
+        new Request(`${origin}/guest/wait`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ sessionId: session.sessionId }),
+        }),
+      );
+      expect(waited.status).toBe(200);
+      const message = (await waited.json()) as {
+        type: string;
+        request?: { runId: string; prompt: string };
+      };
+      if (message.type === "run" && message.request) {
+        runId = message.request.runId;
+        expect(message.request.prompt).toBe("ping from office");
+      }
+    }
+    expect(runId.length).toBeGreaterThan(0);
+
+    const reply = "Guest: ping from office";
+    for (const event of [
+      { type: "progress", text: "working…" },
+      { type: "text", text: reply },
+      { type: "done", text: reply },
+    ]) {
+      const posted = await handles.app.request(
+        new Request(`${origin}/guest/event`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            sessionId: session.sessionId,
+            runId,
+            event,
+          }),
+        }),
+      );
+      expect(posted.status, await posted.text()).toBe(200);
+    }
+
+    const texts: string[] = [];
+    const iterator = (await rpc.threads.subscribe({
+      botId: bot.id,
+      cursor: -1,
+    })) as AsyncGenerator<{
+      type: string;
+      payload: Record<string, unknown>;
+    }>;
+    const stop = setTimeout(() => void iterator.return(undefined), 8_000);
+    try {
+      for await (const event of iterator) {
+        if (event.type !== "message.created") continue;
+        const blocks = event.payload.blocks;
+        if (!Array.isArray(blocks)) continue;
+        for (const block of blocks) {
+          if (
+            block &&
+            typeof block === "object" &&
+            "text" in block &&
+            typeof block.text === "string"
+          ) {
+            texts.push(block.text);
+          }
+        }
+        if (texts.includes(reply)) break;
+      }
+    } finally {
+      clearTimeout(stop);
+      await iterator.return(undefined);
+    }
+    expect(texts).toContain("ping from office");
+    expect(texts).toContain(reply);
+
+    await rpc.guests.disable({ botId: bot.id });
+    const after = await rpc.bots.get({ botId: bot.id });
+    expect(after.guestKind).toBe("off");
+  }, 20_000);
 });
