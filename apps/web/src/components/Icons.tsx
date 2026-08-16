@@ -99,8 +99,8 @@ export function FilterIcon(props: IconProps) {
 export function GearIcon(props: IconProps) {
   return (
     <Svg className={props.className}>
-      <circle cx="12" cy="12" r="3" />
-      <path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1" />
+      <circle cx="12" cy="12" r="3.2" />
+      <path d="M12 3.2v2.2M12 18.6V20.8M3.2 12h2.2M18.6 12h2.2M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M5.6 18.4l1.6-1.6M16.8 7.2l1.6-1.6" />
     </Svg>
   );
 }

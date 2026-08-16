@@ -45,7 +45,7 @@ export function ComputerPane(props: {
       return;
     }
     setBooting(Boolean(botId));
-    const timer = window.setTimeout(() => setBooting(false), 1600);
+    const timer = window.setTimeout(() => setBooting(false), 2000);
     return () => window.clearTimeout(timer);
   }, [botId, live]);
 
