@@ -6,16 +6,14 @@
   "type": "module",
   "main": "src/main.ts",
   "scripts": {
-    "dev": "electron --import tsx src/main.ts",
+    "dev": "env -u ELECTRON_RUN_AS_NODE electron --experimental-strip-types src/main.ts",
     "check": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "electron": "^37.2.0",
-    "@grogbot/contracts": "workspace:*"
+    "electron": "^37.2.0"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
-    "tsx": "^4.20.5",
     "typescript": "^5.9.2"
   }
 }

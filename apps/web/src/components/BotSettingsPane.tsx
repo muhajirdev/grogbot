@@ -7,7 +7,7 @@ import { orpc } from "../lib/orpc";
 import { readNotify, writeNotify } from "../lib/prefs";
 import { client } from "../lib/rpc";
 import { AvatarMark, ShapePicks } from "./Avatar";
-import { ChevronLeftIcon, CollapseIcon } from "./Icons";
+import { CloseIcon } from "./Icons";
 
 export function BotSettingsPane(props: {
   bot: Bot;
@@ -76,25 +76,15 @@ export function BotSettingsPane(props: {
 
   return (
     <aside className="pane">
-      <div className="pane-head">
-        <div className="row tight">
-          <button
-            className="icon-btn"
-            type="button"
-            aria-label="Back"
-            onClick={props.onCollapse}
-          >
-            <ChevronLeftIcon />
-          </button>
-          <strong>Settings</strong>
-        </div>
+      <div className="pane-head drag">
+        <span className="pane-title">Settings</span>
         <button
-          className="icon-btn"
+          className="icon-btn no-drag"
           type="button"
-          aria-label="Collapse settings"
+          aria-label="Close settings"
           onClick={props.onCollapse}
         >
-          <CollapseIcon />
+          <CloseIcon />
         </button>
       </div>
       <div className="pane-scroll">

@@ -72,7 +72,7 @@ export class GatewayAgentRuntime implements AgentRuntime {
         method: "POST",
         headers: gatewayHeaders(this.config),
         body: JSON.stringify({
-          model: this.config.model,
+          model: request.model?.trim() || this.config.model,
           stream: true,
           messages: chatMessages(request),
         }),
@@ -192,6 +192,18 @@ export function resolveAgentRuntimeKind(kind?: string | null): string {
 
 export function isOfflineAgentRuntime(kind: string): boolean {
   return kind === "scripted" || kind === "flue-echo";
+}
+
+export function bindAgentRuntime(
+  kind: string | undefined,
+  overlay: { env: NodeJS.ProcessEnv; model: string },
+  fetchImpl?: typeof fetch,
+): AgentRuntime {
+  return createAgentRuntime(
+    resolveAgentRuntimeKind(kind),
+    overlay.env,
+    fetchImpl,
+  );
 }
 
 export function agentRuntimeNeedsModel(

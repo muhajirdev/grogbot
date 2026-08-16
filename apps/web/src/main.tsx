@@ -4,6 +4,10 @@ import { createRoot } from "react-dom/client";
 import { router } from "./router";
 import "./styles.css";
 
+if (navigator.userAgent.includes("Electron")) {
+  document.documentElement.classList.add("electron");
+}
+
 const root = document.getElementById("root");
 if (!root) throw new Error("Missing #root");
 

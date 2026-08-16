@@ -13,7 +13,7 @@ export type ModelKeySource = z.infer<typeof ModelKeySource>;
 
 /** One-key starter. Native Anthropic/OpenAI stay available when those keys exist. */
 export const SUGGESTED_STARTER_MODEL =
-  "openrouter/deepseek/deepseek-v4-flash-0731";
+  "openrouter/deepseek/deepseek-v4-flash";
 
 export const PROVIDER_META: Record<
   ModelProvider,
@@ -23,7 +23,6 @@ export const PROVIDER_META: Record<
     docsUrl: string;
     hint: string;
     recommended?: boolean;
-    gatewayOnly?: boolean;
   }
 > = {
   openrouter: {
@@ -46,18 +45,17 @@ export const PROVIDER_META: Record<
     hint: "Direct OpenAI models.",
   },
   cloudflare: {
-    label: "Cloudflare Workers AI",
+    label: "Cloudflare AI Gateway",
     placeholder: "API token",
     docsUrl:
-      "https://developers.cloudflare.com/workers-ai/get-started/rest-api/",
-    hint: "Workers AI / AI Gateway. Shown when this office uses the gateway runtime.",
-    gatewayOnly: true,
+      "https://developers.cloudflare.com/ai-gateway/integrations/coding-agents/pi/",
+    hint: "Pi routes through your gateway (Workers AI, and Anthropic/OpenAI when billed on the gateway). Account id + token; gateway id can stay default.",
   },
 };
 
 export const MODEL_CATALOG = [
   {
-    id: "openrouter/deepseek/deepseek-v4-flash-0731",
+    id: "openrouter/deepseek/deepseek-v4-flash",
     label: "DeepSeek V4 Flash",
     provider: "openrouter" as const,
   },
@@ -92,8 +90,8 @@ export const MODEL_CATALOG = [
     provider: "openai" as const,
   },
   {
-    id: "@cf/deepseek-ai/deepseek-v4-flash-0731",
-    label: "DeepSeek V4 Flash (Workers AI)",
+    id: "cloudflare-ai-gateway/workers-ai/@cf/moonshotai/kimi-k2.6",
+    label: "Kimi K2.6 (Workers AI)",
     provider: "cloudflare" as const,
   },
 ] as const;
@@ -162,8 +160,34 @@ export function providerForModel(model: string): ModelProvider | undefined {
   if (trimmed.startsWith("anthropic/")) return "anthropic";
   if (trimmed.startsWith("openai/")) return "openai";
   if (trimmed.startsWith("openrouter/")) return "openrouter";
-  if (trimmed.startsWith("@cf/")) return "cloudflare";
+  if (
+    trimmed.startsWith("cloudflare-ai-gateway/") ||
+    trimmed.startsWith("cloudflare-workers-ai/") ||
+    trimmed.startsWith("workers-ai/@cf/") ||
+    trimmed.startsWith("@cf/")
+  ) {
+    return "cloudflare";
+  }
   return undefined;
+}
+
+/** Map legacy / short Cloudflare ids onto Pi's cloudflare-ai-gateway provider. */
+export function flueModelId(model: string): string {
+  const trimmed = model.trim();
+  // Pi OpenRouter catalog uses deepseek/deepseek-v4-flash (no date suffix).
+  if (
+    trimmed === "openrouter/deepseek/deepseek-v4-flash-0731" ||
+    trimmed === "deepseek/deepseek-v4-flash-0731"
+  ) {
+    return "openrouter/deepseek/deepseek-v4-flash";
+  }
+  if (trimmed.startsWith("@cf/")) {
+    return `cloudflare-ai-gateway/workers-ai/${trimmed}`;
+  }
+  if (trimmed.startsWith("workers-ai/@cf/")) {
+    return `cloudflare-ai-gateway/${trimmed}`;
+  }
+  return trimmed;
 }
 
 export function labelForModel(model: string): string {
@@ -173,10 +197,9 @@ export function labelForModel(model: string): string {
 }
 
 export function catalogForRuntime(
-  runtime: string | undefined,
+  _runtime: string | undefined,
 ): Array<(typeof MODEL_CATALOG)[number]> {
-  if (isGatewayRuntime(runtime)) return [...MODEL_CATALOG];
-  return MODEL_CATALOG.filter((item) => item.provider !== "cloudflare");
+  return [...MODEL_CATALOG];
 }
 
 export function modelsForProviders(
@@ -202,7 +225,9 @@ export function missingProviderMessage(model: string): string {
   if (!provider) {
     return "This model id needs a provider key. Paste OpenRouter to cover custom ids.";
   }
-  return `${labelForModel(model)} needs a ${PROVIDER_META[provider].label} key.`;
+  const label = PROVIDER_META[provider].label;
+  const article = /^[aeiou]/i.test(label) ? "an" : "a";
+  return `${labelForModel(model)} needs ${article} ${label} key.`;
 }
 
 export function resolveStoredModelId(input: {

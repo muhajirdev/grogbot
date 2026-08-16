@@ -7,7 +7,7 @@ import {
   writeConnectedPlugins,
 } from "../lib/plugins";
 import { CheckIcon, CloseIcon, FilterIcon, SearchIcon } from "./Icons";
-import { ModalShell } from "./Modal";
+import { ModalShell } from "../ui";
 
 export function PluginsModal(props: { onClose: () => void }) {
   const [tab, setTab] = useState<"market" | "yours">("market");

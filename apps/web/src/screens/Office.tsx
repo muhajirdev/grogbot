@@ -19,8 +19,6 @@ import { BotSettingsPane } from "../components/BotSettingsPane";
 import { ComputerCard } from "../components/ComputerCard";
 import { ComputerPane } from "../components/ComputerPane";
 import {
-  DoubleChevronIcon,
-  GearIcon,
   MicIcon,
   MonitorIcon,
   PlugIcon,
@@ -36,6 +34,7 @@ import { client } from "../lib/rpc";
 import { cacheCreatedBot } from "../lib/session";
 import { applyTheme, readTheme, type Theme } from "../lib/theme";
 import { dayKey, formatDaySep, formatListTime } from "../lib/time";
+import { Button, cn } from "../ui";
 
 function asMessage(payload: Record<string, unknown>): ThreadMessage | null {
   const id = String(payload.id ?? "");
@@ -290,9 +289,39 @@ export function Office(props: { botId: string }) {
   }, [bot, computer, working]);
 
   return (
-    <div className={`office${paneMode ? "" : " collapsed"}`}>
-      <aside className="sidebar">
-        <div className="side-head">
+    <div
+      className={cn(
+        "office-shell relative grid h-screen bg-bg",
+        paneMode
+          ? "grid-cols-[280px_minmax(0,1fr)_320px]"
+          : "grid-cols-[280px_minmax(0,1fr)]",
+      )}
+    >
+      <aside className="flex min-h-0 flex-col border-r border-line bg-bg-side px-2.5 pb-2">
+        <div className="flex flex-col gap-2 px-0.5 pt-1.5 pb-2.5">
+          <div className="side-chrome drag flex min-h-9 items-center">
+            <div className="min-w-0 flex-1" />
+            <div className="no-drag relative shrink-0">
+              <Button
+                variant="icon"
+                type="button"
+                aria-label="New"
+                onClick={() => setNewOpen((open) => !open)}
+              >
+                <PlusIcon />
+              </Button>
+              {newOpen ? (
+                <div className="menu">
+                  <button type="button" onClick={() => void hire("default")}>
+                    Create new agent
+                  </button>
+                  <button type="button" onClick={() => void hire("new")}>
+                    Create with new computer
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </div>
           <label className="search-field">
             <SearchIcon />
             <input
@@ -301,34 +330,17 @@ export function Office(props: { botId: string }) {
               placeholder="Search"
             />
           </label>
-          <div style={{ position: "relative" }}>
-            <button
-              className="plus-btn"
-              type="button"
-              aria-label="New"
-              onClick={() => setNewOpen((open) => !open)}
-            >
-              <PlusIcon />
-            </button>
-            {newOpen ? (
-              <div className="menu">
-                <button type="button" onClick={() => void hire("default")}>
-                  Create new agent
-                </button>
-                <button type="button" onClick={() => void hire("new")}>
-                  Create with new computer
-                </button>
-              </div>
-            ) : null}
-          </div>
         </div>
-        <div className="conv-list">
+        <div className="grid flex-1 content-start gap-0.5 overflow-auto px-1">
           {visibleBots.map((item) => (
             <Link
               key={item.id}
               to="/$botId"
               params={{ botId: item.id }}
-              className={`conv${item.id === bot?.id ? " on" : ""}`}
+              className={cn(
+                "office-conv grid min-w-0 grid-cols-[40px_minmax(0,1fr)] items-center gap-2.5 rounded-[14px] border-0 bg-transparent px-2 py-2.5 text-left text-inherit no-underline",
+                item.id === bot?.id && "bg-selected",
+              )}
             >
               <AvatarMark
                 name={item.name}
@@ -336,12 +348,14 @@ export function Office(props: { botId: string }) {
                 shape={item.avatarShape}
                 mood={item.id === bot?.id && working ? "working" : "idle"}
               />
-              <span className="conv-copy">
-                <span className="conv-top">
-                  <span className="name">{item.name}</span>
-                  <span className="when">{formatListTime(item.lastAt)}</span>
+              <span className="office-conv-copy min-w-0">
+                <span className="flex items-baseline justify-between gap-2">
+                  <span className="text-sm font-semibold">{item.name}</span>
+                  <span className="shrink-0 text-[11px] whitespace-nowrap text-muted">
+                    {formatListTime(item.lastAt)}
+                  </span>
                 </span>
-                <div className="snip">
+                <div className="mt-0.5 overflow-hidden text-xs text-ellipsis whitespace-nowrap text-muted">
                   {item.lastPreview || item.title || "No messages yet"}
                 </div>
               </span>
@@ -351,9 +365,9 @@ export function Office(props: { botId: string }) {
             <p className="empty">No teammates yet.</p>
           ) : null}
         </div>
-        <div className="side-foot">
+        <div className="office-foot mt-auto grid gap-1 px-1.5 pt-2 pb-1">
           <button
-            className="foot-item"
+            className="flex w-full items-center gap-2.5 rounded-xl border-0 bg-transparent px-2 py-2 text-left text-inherit hover:bg-hover"
             type="button"
             onClick={() => setPluginsOpen(true)}
           >
@@ -361,7 +375,7 @@ export function Office(props: { botId: string }) {
             <span>Plugins</span>
           </button>
           <button
-            className="foot-item"
+            className="flex w-full items-center gap-2.5 rounded-xl border-0 bg-transparent px-2 py-2 text-left text-inherit hover:bg-hover"
             type="button"
             onClick={() => {
               setSettingsTab("general");
@@ -378,10 +392,10 @@ export function Office(props: { botId: string }) {
           </button>
         </div>
       </aside>
-      <section className="thread">
-        <div className="thread-head">
+      <section className="flex min-h-0 flex-col bg-bg-thread">
+        <div className="thread-head drag flex items-center justify-between gap-2 border-b border-line px-[18px] py-2.5">
           <button
-            className="thread-who"
+            className="no-drag flex items-center gap-2.5 border-0 bg-transparent p-0 text-inherit"
             type="button"
             onClick={() => setPaneMode("settings")}
           >
@@ -391,66 +405,48 @@ export function Office(props: { botId: string }) {
                 color={bot.avatarColor}
                 shape={bot.avatarShape}
                 mood={working ? "working" : "idle"}
+                size="sm"
               />
             ) : null}
-            <strong>{bot?.name ?? "—"}</strong>
+            <strong className="text-[15px] font-semibold tracking-tight">
+              {bot?.name ?? "—"}
+            </strong>
           </button>
-          <div className="row tight">
+          <div className="no-drag flex flex-wrap items-center gap-1.5">
             {working ? (
-              <button
-                className="mini"
+              <Button
+                variant="mini"
                 type="button"
                 onClick={() =>
                   bot && void client.threads.stop({ botId: bot.id })
                 }
               >
                 Stop now
-              </button>
+              </Button>
             ) : null}
-            <button
-              className={`icon-btn${paneMode === "computer" ? " on" : ""}`}
+            <Button
+              variant="icon"
               type="button"
               aria-label="Computer"
               title="Computer"
+              on={paneMode === "computer"}
               onClick={() =>
                 setPaneMode(paneMode === "computer" ? null : "computer")
               }
             >
               <MonitorIcon />
-            </button>
-            <button
-              className={`icon-btn${paneMode === "settings" ? " on" : ""}`}
-              type="button"
-              aria-label="Settings"
-              title="Settings"
-              onClick={() =>
-                setPaneMode(paneMode === "settings" ? null : "settings")
-              }
-            >
-              <GearIcon />
-            </button>
-            {paneMode ? (
-              <button
-                className="icon-btn"
-                type="button"
-                aria-label="Collapse pane"
-                title="Collapse"
-                onClick={() => setPaneMode(null)}
-              >
-                <DoubleChevronIcon />
-              </button>
-            ) : null}
+            </Button>
           </div>
         </div>
         {me?.needsModel || me?.modelWarning ? (
-          <div className="model-banner">
+          <div className="mx-5 mb-2 flex items-center justify-between gap-3 rounded-xl border border-line bg-card px-3 py-2.5 text-[13px]">
             <span>
               {me?.needsModel
                 ? "Add a model key to talk to teammates."
                 : me?.modelWarning}
             </span>
-            <button
-              className="text-btn"
+            <Button
+              variant="text"
               type="button"
               onClick={() => {
                 setSettingsTab("models");
@@ -458,10 +454,13 @@ export function Office(props: { botId: string }) {
               }}
             >
               Open models
-            </button>
+            </Button>
           </div>
         ) : null}
-        <div className="transcript" ref={scroller}>
+        <div
+          className="grid flex-1 content-start gap-2.5 overflow-auto px-7 pt-2 pb-6"
+          ref={scroller}
+        >
           {messages.map((message, index) => {
             const prev = messages[index - 1];
             const showDay =
@@ -478,16 +477,22 @@ export function Office(props: { botId: string }) {
               !messages
                 .slice(index + 1)
                 .some((item) => item.actorType === "bot" && item.runId);
+            const human = message.actorType === "human";
             return (
-              <div key={message.id} style={{ display: "contents" }}>
+              <div key={message.id} className="contents">
                 {showDay ? (
-                  <div className="day-sep">
+                  <div className="my-2.5 mb-1 text-center text-xs text-muted">
                     {formatDaySep(message.createdAt)}
                   </div>
                 ) : null}
                 {text ? (
                   <div
-                    className={`bubble ${message.actorType === "human" ? "human" : "bot"}`}
+                    className={cn(
+                      "max-w-[72%] rounded-[18px] px-3.5 py-2.5 text-[15px] leading-snug whitespace-pre-wrap",
+                      human
+                        ? "justify-self-end border border-[#2a2a2a] bg-[#1a1a1a] light:border-line light:bg-white"
+                        : "justify-self-start bg-[#141414] light:bg-[#ececec]",
+                    )}
                   >
                     {text}
                   </div>
@@ -532,28 +537,30 @@ export function Office(props: { botId: string }) {
             />
           ) : null}
           {!working && messages.length === 0 ? (
-            <p className="lede">
+            <p className="mb-6 text-base leading-normal text-muted">
               First message is a real task. A good handoff has an outcome,
               sources, and when to stop.
             </p>
           ) : null}
         </div>
-        <div className="composer">
-          {error ? <p className="error">{error}</p> : null}
+        <div className="px-5 pt-2 pb-[18px]">
+          {error ? <p className="mb-2 text-[13px] text-danger">{error}</p> : null}
           <form
-            className="composer-pill"
+            className="grid grid-cols-[auto_1fr_auto] items-end gap-1.5 rounded-pill border border-[#262626] bg-[#141414] py-1.5 pr-2 pl-2.5 light:border-line light:bg-white"
             onSubmit={(event) => void send(event)}
           >
-            <button
-              className="icon-btn"
+            <Button
+              variant="icon"
+              className="size-[34px] rounded-pill"
               type="button"
               aria-label="Attach"
               title="Attach"
             >
               <PlusIcon />
-            </button>
+            </Button>
             <textarea
               rows={1}
+              className="max-h-[140px] min-h-6 resize-none border-0 bg-transparent px-1 py-2 outline-none"
               value={draft}
               placeholder={
                 me?.needsModel
@@ -572,14 +579,15 @@ export function Office(props: { botId: string }) {
                 }
               }}
             />
-            <button
-              className="icon-btn"
+            <Button
+              variant="icon"
+              className="size-[34px] rounded-pill"
               type="button"
               aria-label="Voice"
               title="Voice"
             >
               <MicIcon />
-            </button>
+            </Button>
           </form>
         </div>
       </section>
@@ -590,6 +598,8 @@ export function Office(props: { botId: string }) {
           statusLabel={statusLabel}
           body={computerBody}
           working={Boolean(working)}
+          onSettings={() => setPaneMode("settings")}
+          onCollapse={() => setPaneMode(null)}
           onTakeover={() => {
             if (!bot) return;
             void client.computer
