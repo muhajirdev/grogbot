@@ -117,6 +117,9 @@ importers:
       '@grogbot/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@grogbot/mascot':
+        specifier: workspace:*
+        version: link:../../packages/mascot
       '@tanstack/react-router':
         specifier: ^1.170.29
         version: 1.170.29(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -182,6 +185,9 @@ importers:
       '@grogbot/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@grogbot/mascot':
+        specifier: workspace:*
+        version: link:../../packages/mascot
       '@grogbot/rpc':
         specifier: workspace:*
         version: link:../../packages/rpc
@@ -334,6 +340,22 @@ importers:
       typescript:
         specifier: ^5.9.2
         version: 5.9.3
+
+  packages/mascot:
+    dependencies:
+      react:
+        specifier: 19.2.3
+        version: 19.2.3
+    devDependencies:
+      '@types/react':
+        specifier: ^19.0.10
+        version: 19.2.18
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.33.0)(terser@5.50.0)(tsx@4.23.12)(yaml@2.9.0)
 
   packages/rpc:
     dependencies:

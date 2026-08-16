@@ -315,6 +315,7 @@ export function Office(props: { botId: string }) {
                 name={item.name}
                 color={item.avatarColor}
                 shape={item.avatarShape}
+                mood={item.id === bot?.id && working ? "working" : "idle"}
               />
               <span className="conv-copy">
                 <span className="conv-top">
@@ -367,6 +368,7 @@ export function Office(props: { botId: string }) {
                 name={bot.name}
                 color={bot.avatarColor}
                 shape={bot.avatarShape}
+                mood={working ? "working" : "idle"}
               />
             ) : null}
             <strong>{bot?.name ?? "—"}</strong>

@@ -1,3 +1,4 @@
+import { MascotMark } from "@grogbot/mascot";
 import { type ReactNode, useState } from "react";
 import { FAQS, JOBS, SOURCE_REPO } from "../lib/copy";
 
@@ -6,7 +7,7 @@ export function Landing(props: { startUrl: string }) {
     <div className="page">
       <header className="nav">
         <a className="brand" href="#top">
-          <span className="mark" aria-hidden />
+          <MascotMark name="Grogbot" color="#e45c9a" shape="circle" size="sm" />
           Grogbot
         </a>
         <nav className="nav-links" aria-label="Page">
@@ -193,9 +194,12 @@ function OfficePreview() {
         <div className="preview-thread">
           <div className="thread-head">
             <div className="thread-who">
-              <span className="avatar circle" style={{ background: "#e45c9a" }}>
-                P
-              </span>
+              <MascotMark
+                name="Piper"
+                color="#e45c9a"
+                shape="circle"
+                mood="working"
+              />
               Piper
             </div>
             <div className="head-actions">
@@ -255,9 +259,12 @@ function PreviewConv(props: {
 }) {
   return (
     <div className={`conv${props.on ? " on" : ""}`}>
-      <span className="avatar circle" style={{ background: props.color }}>
-        {props.name[0] ?? "?"}
-      </span>
+      <MascotMark
+        name={props.name}
+        color={props.color}
+        shape="circle"
+        mood={props.on ? "working" : "idle"}
+      />
       <span>
         <span className="conv-top">
           <span className="name">{props.name}</span>

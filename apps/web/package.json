@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@grogbot/contracts": "workspace:*",
+    "@grogbot/mascot": "workspace:*",
     "@grogbot/rpc": "workspace:*",
     "@orpc/tanstack-query": "^1.10.0",
     "@tanstack/react-query": "^5.101.4",

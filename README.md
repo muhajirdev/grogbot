@@ -85,7 +85,7 @@ On a device, set `EXPO_PUBLIC_API_URL` to this machine’s LAN address.
 
 ```
 apps/web desktop mobile landing guest api worker
-packages/contracts rpc adapter-kit core db auth adapters
+packages/contracts rpc adapter-kit core db auth adapters mascot
 infra/compose
 docs/
 ```

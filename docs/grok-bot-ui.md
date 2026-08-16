@@ -86,7 +86,7 @@ Docs examples: **Talent Scout**, **Expense Manager**, **Bug Reproduction**. Avoi
 
 - **Messaging app**, not a dashboard. No kanban of agents as the home screen.
 - Each Bot: **short name**, optional **job**, **description**, **avatar**.
-- Avatar onboarding: pick a **color and shape** (geometric, not a photoreal face). Sidebar shows that mark like a contact photo.
+- Avatar onboarding: pick a **color** and a **rounded mark** (circle by default — a cute blob with eyes, not a photoreal face). Sidebar shows that mascot like a contact photo. Working bots bounce.
 - Appearance: Follow system / Light / Dark (`Cmd/Ctrl+,`).
 - Attention in the list:
   - Needs attention (question, approval, handoff)

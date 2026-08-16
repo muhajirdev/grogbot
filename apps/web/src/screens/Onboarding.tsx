@@ -2,7 +2,7 @@ import type { AvatarShape } from "@grogbot/contracts";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { AvatarMark } from "../components/Avatar";
+import { AvatarMark, ShapePicks } from "../components/Avatar";
 import { AVATAR_COLORS, AVATAR_SHAPES, SUGGESTED_JOBS } from "../lib/jobs";
 import { orpc } from "../lib/orpc";
 import { client } from "../lib/rpc";
@@ -63,6 +63,15 @@ export function Onboarding() {
         <p className="kicker">Meet a teammate</p>
         {step === 0 ? (
           <>
+            <div className="mascot-hello">
+              <AvatarMark
+                name="Piper"
+                color="#e45c9a"
+                shape="circle"
+                large
+                mood="happy"
+              />
+            </div>
             <h1>Bots are coworkers.</h1>
             <p className="lede">
               Each Bot is a named person in the sidebar. You talk to them. They
@@ -158,26 +167,24 @@ export function Onboarding() {
               }}
             >
               <AvatarMark name={name} color={color} shape={shape} large />
-              <div className="swatches">
-                {AVATAR_COLORS.map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    className={`swatch avatar circle${color === value ? " on" : ""}`}
-                    style={{ background: value }}
-                    onClick={() => setColor(value)}
-                  />
-                ))}
-                {AVATAR_SHAPES.map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    className={`chip${shape === value ? " on" : ""}`}
-                    onClick={() => setShape(value)}
-                  >
-                    {value}
-                  </button>
-                ))}
+              <div>
+                <div className="swatches">
+                  {AVATAR_COLORS.map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      className={`swatch${color === value ? " on" : ""}`}
+                      style={{ background: value }}
+                      onClick={() => setColor(value)}
+                    />
+                  ))}
+                </div>
+                <ShapePicks
+                  color={color}
+                  value={shape}
+                  shapes={AVATAR_SHAPES}
+                  onChange={setShape}
+                />
               </div>
             </div>
             <label className="field">
