@@ -844,7 +844,7 @@ a.btn {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  align-items: flex-start;
+  align-items: center;
   margin: 10px 0 16px;
 }
 
@@ -881,6 +881,11 @@ a.btn {
 
 .toggle-row input[type="checkbox"]:checked::after {
   left: 21px;
+}
+
+.toggle-row + .hint {
+  margin-top: -8px;
+  margin-bottom: 16px;
 }
 
 .set-block {
@@ -1006,16 +1011,22 @@ a.btn {
 
 .settings-shell {
   display: grid;
-  grid-template-columns: 180px minmax(0, 1fr);
-  min-height: 520px;
+  grid-template-columns: 196px minmax(0, 1fr);
+  flex: 1;
+  min-height: min(560px, 80vh);
+  max-height: min(86vh, 900px);
+  min-width: 0;
 }
 
 .settings-nav {
+  background: var(--card-2);
   border-right: 1px solid var(--line);
-  padding: 18px 10px;
+  padding: 16px 12px;
   display: grid;
   align-content: start;
   gap: 4px;
+  min-height: 0;
+  overflow: auto;
 }
 
 .nav-item {
@@ -1024,7 +1035,7 @@ a.btn {
   color: var(--muted);
   text-align: left;
   border-radius: 10px;
-  padding: 8px 10px;
+  padding: 8px 12px;
 }
 
 .nav-item.on {
@@ -1033,15 +1044,64 @@ a.btn {
 }
 
 .settings-main {
-  padding: 8px 8px 20px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--card);
+}
+
+.settings-main .modal-head {
+  flex: none;
+  padding: 16px 28px 12px;
+}
+
+.settings-body {
+  flex: 1;
+  min-height: 0;
   overflow: auto;
+  padding: 4px 28px 28px;
+}
+
+.settings-body > * {
+  max-width: 520px;
+}
+
+.settings-body > .set-block:first-child {
+  margin-top: 8px;
+}
+
+.settings-main .field input,
+.settings-main .field textarea,
+.settings-main .field select {
+  background: var(--card-2);
 }
 
 .account-row {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: 16px;
   align-items: center;
+}
+
+.account-row > div {
+  min-width: 0;
+}
+
+.account-row strong {
+  display: block;
+}
+
+.account-row .muted {
+  margin: 4px 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-row .mini {
+  flex: none;
 }
 
 .menu {
