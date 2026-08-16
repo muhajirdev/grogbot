@@ -34,7 +34,7 @@ Brand Name: ${GROGBOT_NAME}
 
 Grogbot should feel like Grok Bot: a messaging app of named teammates, not a workflow builder, IDE, or Discord. Create a Bot, message it, grant access as needed. There isn't anything to learn — it's like bringing on a coworker.
 
-Product API is oRPC. One Rivet actor per bot. Computers are workspace desks. Shared team data lives in Postgres. The marketing site is ${web}; the office app is ${GROGBOT_APP}.
+Product API is oRPC. Flue + Pi on Node. One wakeup queue per bot. Computers are workspace desks. Shared team data lives in Postgres. Hosted grogbot.com uses Cloudflare for the marketing site; a private company can self-host the same Node API and worker. The marketing site is ${web}; the office app is ${GROGBOT_APP}.
 
 ## Docs
 
@@ -237,7 +237,7 @@ A: Grogbot copies the Grok Bot simplicity (talk to named teammates) but is fair-
 ---
 
 Q: What is a Bot?
-A: A Bot is a contact: name, title, description, avatar, one office thread, and a bound computer. One Rivet actor runs that bot.
+A: A Bot is a contact: name, title, description, avatar, one office thread, and a bound computer. One Node-worker queue runs that bot (serial with Flue + Pi).
 
 ---
 
@@ -342,11 +342,11 @@ Use 127.0.0.1, not localhost, for OAuth callbacks.
 - POST ${abs(api, "/rpc")} — signed-in product API (oRPC)
 - POST ${abs(api, "/api/auth/*")} — Better Auth
 
-Do not import fs, dockerode, or cloud vendor SDKs from the Pi/executor. The worker (actor host) may import Rivet.
+Do not import fs, dockerode, or Cloudflare bindings from the Pi/executor. The worker may import Node and Flue’s Node target.
 
 ## Tests
 
-Stay offline: AGENT_RUNTIME=scripted, SANDBOX_PROVIDER=fake, in-process Rivet wakeup. No live OpenRouter/E2B/Rivet Cloud. Flue+Pi is AGENT_RUNTIME=flue; flue-echo is the offline harness.
+Stay offline: AGENT_RUNTIME=scripted, SANDBOX_PROVIDER=fake, in-process wakeup. No live OpenRouter/E2B. Flue+Pi is AGENT_RUNTIME=flue; flue-echo is the offline harness.
 
 ## Source layout
 

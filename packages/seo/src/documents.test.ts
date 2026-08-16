@@ -2,12 +2,15 @@ import { CLOUD_LANDING_ORIGIN } from "@grogbot/contracts";
 import { describe, expect, it } from "vitest";
 import {
   aiJson,
+  developerAiTxt,
+  faqAiTxt,
   identityJson,
+  llmsFullTxt,
   llmsTxt,
   robotsTxt,
   sitemapXml,
 } from "./documents.js";
-import { cloudOrigins } from "./identity.js";
+import { cloudOrigins, GROGBOT_STACK } from "./identity.js";
 
 const origins = cloudOrigins();
 
@@ -27,5 +30,13 @@ describe("discovery documents", () => {
     expect(sitemap).toContain(`${CLOUD_LANDING_ORIGIN}/mcp`);
     expect(robotsTxt(origins)).toContain("User-agent: GPTBot");
     expect(robotsTxt(origins)).toContain("Allow: /llms.txt");
+  });
+
+  it("describes Flue on Node and self-host, not Rivet", () => {
+    expect(llmsTxt(origins)).toMatch(/self-host/i);
+    expect(developerAiTxt(origins)).toMatch(/Flue/);
+    expect(faqAiTxt(origins)).toMatch(/self-host/i);
+    expect(llmsFullTxt(origins)).not.toMatch(/Rivet/i);
+    expect(GROGBOT_STACK.join("\n")).not.toMatch(/Rivet/i);
   });
 });

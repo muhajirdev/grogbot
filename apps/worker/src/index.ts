@@ -4,7 +4,7 @@ import path from "node:path";
 import type { WakeupJob } from "@grogbot/adapter-kit";
 import {
   createAgentRuntime,
-  RivetWakeupDriver,
+  InProcessWakeupDriver,
   resolveAgentRuntimeKind,
 } from "@grogbot/adapters";
 import {
@@ -55,7 +55,7 @@ async function main() {
   const { db } = createDb(databaseUrl);
   const agentRuntime = resolveAgentRuntimeKind(process.env.AGENT_RUNTIME);
   const runtime = createAgentRuntime(agentRuntime);
-  const wakeup = new RivetWakeupDriver();
+  const wakeup = new InProcessWakeupDriver();
   const guests = new GuestHub();
   await wakeup.start(createWakeHandlers({ db, runtime, wakeup, guests }));
 
@@ -67,7 +67,7 @@ async function main() {
         res.end(
           JSON.stringify({
             ok: true,
-            wakeup: "rivet",
+            wakeup: "in-process",
             runtime: agentRuntime,
           }),
         );
@@ -128,7 +128,7 @@ async function main() {
   });
 
   server.listen(port, "127.0.0.1", () => {
-    console.log(`grogbot worker (rivet actors) http://127.0.0.1:${port}`);
+    console.log(`grogbot worker (bot actors) http://127.0.0.1:${port}`);
   });
 }
 

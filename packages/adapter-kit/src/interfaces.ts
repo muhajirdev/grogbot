@@ -10,7 +10,7 @@ import type {
 } from "./types.js";
 
 export interface WakeupDriver {
-  /** Enqueue onto the Rivet actor for `job.botId` (serial queue / named schedule). */
+  /** Enqueue onto the bot actor for `job.botId` (serial queue / named schedule). */
   enqueue(job: WakeupJob): Promise<void>;
   start(
     handlers: Record<

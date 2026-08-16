@@ -8,10 +8,10 @@ interface BotActor {
 }
 
 /**
- * In-process stand-in for a Rivet actor per bot: serial queue + named delayed
- * schedules. Swap the body for rivetkit (engine / Cloudflare DO driver) later.
+ * In-process queue per bot: serial runs + named delayed schedules.
+ * Cron lives in the worker (croner) and enqueues onto this driver.
  */
-export class RivetWakeupDriver implements WakeupDriver {
+export class InProcessWakeupDriver implements WakeupDriver {
   private handlers: Record<string, Handler> = {};
   private actors = new Map<string, BotActor>();
 
@@ -65,7 +65,7 @@ export class RivetWakeupDriver implements WakeupDriver {
         await handler({ ...job.payload, botId: job.botId });
       })
       .catch((error) => {
-        console.error("rivet actor", job.botId, job.name, error);
+        console.error("bot actor", job.botId, job.name, error);
       });
   }
 }
@@ -97,5 +97,5 @@ export class WakeupHttpClient implements WakeupDriver {
 
 export function createWakeupDriver(workerUrl?: string): WakeupDriver {
   if (workerUrl) return new WakeupHttpClient(workerUrl);
-  return new RivetWakeupDriver();
+  return new InProcessWakeupDriver();
 }

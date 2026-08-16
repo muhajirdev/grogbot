@@ -21,7 +21,7 @@ export function healthPayload(
     version: "0.0.1",
     runtime: env.agentRuntime,
     sandbox: env.sandboxProvider,
-    wakeup: env.workerUrl ? "rivet-http" : "rivet",
+    wakeup: env.workerUrl ? "http" : "in-process",
     oauth: oauthProviders(env),
     mail: cloudflareMailConfigured(env)
       ? ("cloudflare" as const)
