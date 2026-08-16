@@ -19,6 +19,7 @@ import {
 import type { GuestHub } from "./guest-hub.js";
 import { GuestAgentRuntime } from "./guest-runtime.js";
 import { newId } from "./ids.js";
+import { encryptionSecret, resolveRunModel } from "./models.js";
 import { appendEvent, nextSeq } from "./office.js";
 import { assertTransition } from "./run-state.js";
 
@@ -43,8 +44,12 @@ export async function continueRun(opts: {
   runtime: AgentRuntime;
   runId: string;
   guests?: GuestHub;
+  bindRuntime?: (overlay: {
+    env: NodeJS.ProcessEnv;
+    model: string;
+  }) => AgentRuntime;
 }): Promise<void> {
-  const { db, runtime, runId, guests } = opts;
+  const { db, runId, guests } = opts;
   const [run] = await db.select().from(runs).where(eq(runs.id, runId)).limit(1);
   if (!run) return;
   if (run.status !== "queued") return;
@@ -135,8 +140,17 @@ export async function continueRun(opts: {
 
   const controller = new AbortController();
   let reply = "";
-  const runner =
-    guestEnabled && guests ? new GuestAgentRuntime(guests) : runtime;
+  const overlay = await resolveRunModel(
+    db,
+    bot,
+    process.env,
+    encryptionSecret(process.env),
+  );
+  const bound =
+    opts.bindRuntime && overlay.configured
+      ? opts.bindRuntime(overlay)
+      : opts.runtime;
+  const runner = guestEnabled && guests ? new GuestAgentRuntime(guests) : bound;
   try {
     for await (const event of runner.run(
       {
@@ -146,6 +160,7 @@ export async function continueRun(opts: {
         prompt: task.prompt,
         instructions: bot.instructions || bot.description,
         history,
+        model: overlay.model,
       },
       {
         operationId: newId(),

@@ -555,6 +555,23 @@ a.btn {
   padding: 12px 20px;
 }
 
+.model-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 20px 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  font-size: 13px;
+}
+
+.model-banner .text-btn {
+  flex-shrink: 0;
+}
+
 .thread-who {
   display: flex;
   align-items: center;

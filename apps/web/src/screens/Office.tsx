@@ -93,6 +93,9 @@ export function Office(props: { botId: string }) {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<"general" | "models">(
+    "general",
+  );
   const [pluginsOpen, setPluginsOpen] = useState(false);
   const [newOpen, setNewOpen] = useState(false);
   const [paneMode, setPaneMode] = useState<"computer" | "settings" | null>(
@@ -156,6 +159,7 @@ export function Office(props: { botId: string }) {
       }
       if ((event.metaKey || event.ctrlKey) && event.key === ",") {
         event.preventDefault();
+        setSettingsTab("general");
         setSettingsOpen(true);
       }
     };
@@ -344,7 +348,10 @@ export function Office(props: { botId: string }) {
           <button
             className="foot-item"
             type="button"
-            onClick={() => setSettingsOpen(true)}
+            onClick={() => {
+              setSettingsTab("general");
+              setSettingsOpen(true);
+            }}
           >
             <span
               className="avatar circle"
@@ -420,6 +427,21 @@ export function Office(props: { botId: string }) {
             ) : null}
           </div>
         </div>
+        {me?.needsModel ? (
+          <div className="model-banner">
+            <span>Add a model key to talk to teammates.</span>
+            <button
+              className="text-btn"
+              type="button"
+              onClick={() => {
+                setSettingsTab("models");
+                setSettingsOpen(true);
+              }}
+            >
+              Open models
+            </button>
+          </div>
+        ) : null}
         <div className="transcript" ref={scroller}>
           {messages.map((message, index) => {
             const prev = messages[index - 1];
@@ -592,11 +614,15 @@ export function Office(props: { botId: string }) {
         <AppSettings
           me={me}
           theme={theme}
+          initialTab={settingsTab}
           onTheme={(value) => {
             setTheme(value);
             applyTheme(value);
           }}
-          onClose={() => setSettingsOpen(false)}
+          onClose={() => {
+            setSettingsOpen(false);
+            setSettingsTab("general");
+          }}
           onSignOut={() => {
             void (async () => {
               await authClient.signOut();

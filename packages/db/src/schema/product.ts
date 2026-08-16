@@ -52,6 +52,8 @@ export const bots = pgTable("bots", {
   parentBotId: text("parent_bot_id"),
   /** off | hermes | openclaw | generic. Default off = Grogbot runtime. */
   guestKind: text("guest_kind").notNull().default("off"),
+  /** Empty = workspace default model from user_model_credentials. */
+  model: text("model").notNull().default(""),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -242,18 +244,28 @@ export const memoryDocuments = pgTable(
   ],
 );
 
-export const secrets = pgTable("secrets", {
-  id: text("id").primaryKey(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  workspaceId: text("workspace_id").notNull(),
-  kind: text("kind").notNull(),
-  ciphertext: text("ciphertext").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+export const secrets = pgTable(
+  "secrets",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    workspaceId: text("workspace_id").notNull(),
+    kind: text("kind").notNull(),
+    ciphertext: text("ciphertext").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("secrets_user_workspace_kind").on(
+      t.userId,
+      t.workspaceId,
+      t.kind,
+    ),
+  ],
+);
 
 /** Outbound guest (Hermes/OpenClaw) connector for one bot. Token shown once. */
 export const guestConnectors = pgTable("guest_connectors", {
@@ -281,21 +293,31 @@ export const guestConnectors = pgTable("guest_connectors", {
     .defaultNow(),
 });
 
-export const userModelCredentials = pgTable("user_model_credentials", {
-  id: text("id").primaryKey(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  workspaceId: text("workspace_id").notNull(),
-  provider: text("provider").notNull(),
-  label: text("label").notNull(),
-  secretId: text("secret_id").notNull(),
-  isDefault: boolean("is_default").notNull().default(false),
-  defaultModel: text("default_model"),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+export const userModelCredentials = pgTable(
+  "user_model_credentials",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    workspaceId: text("workspace_id").notNull(),
+    provider: text("provider").notNull(),
+    label: text("label").notNull(),
+    secretId: text("secret_id").notNull(),
+    isDefault: boolean("is_default").notNull().default(false),
+    defaultModel: text("default_model"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("user_model_credentials_user_workspace_provider").on(
+      t.userId,
+      t.workspaceId,
+      t.provider,
+    ),
+  ],
+);

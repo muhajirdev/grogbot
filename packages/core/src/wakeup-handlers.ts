@@ -8,6 +8,10 @@ export function createWakeHandlers(opts: {
   runtime: AgentRuntime;
   wakeup: WakeupDriver;
   guests?: GuestHub;
+  bindRuntime?: (overlay: {
+    env: NodeJS.ProcessEnv;
+    model: string;
+  }) => AgentRuntime;
 }) {
   return {
     "run.continue": async (payload: Record<string, unknown>) => {
@@ -19,6 +23,7 @@ export function createWakeHandlers(opts: {
         runtime: opts.runtime,
         runId,
         guests: opts.guests,
+        bindRuntime: opts.bindRuntime,
       });
       if (botId) {
         await opts.wakeup.enqueue({

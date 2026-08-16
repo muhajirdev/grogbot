@@ -73,4 +73,16 @@ describe("FlueAgentRuntime", () => {
       text: "Echo: summarize the handoff",
     });
   });
+
+  it("honors a per-turn model id", async () => {
+    const runtime = createAgentRuntime("flue-echo");
+    const events = [];
+    for await (const event of runtime.run(
+      { ...runRequest, model: "grogbot-echo/echo" },
+      adapterContext,
+    )) {
+      events.push(event);
+    }
+    expect(events.at(-1)).toMatchObject({ type: "done" });
+  });
 });

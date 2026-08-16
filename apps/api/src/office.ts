@@ -320,6 +320,7 @@ export async function updateOfficeBot(
     instructions?: string;
     avatarColor?: string;
     avatarShape?: string;
+    model?: string;
   },
 ): Promise<Bot> {
   const { bot, thread } = await getOffice(context, actor, input.botId);
@@ -332,6 +333,7 @@ export async function updateOfficeBot(
       instructions: input.instructions ?? bot.instructions,
       avatarColor: input.avatarColor ?? bot.avatarColor,
       avatarShape: input.avatarShape ?? bot.avatarShape,
+      model: input.model !== undefined ? input.model.trim() : bot.model,
       updatedAt: new Date(),
     })
     .where(eq(bots.id, bot.id));

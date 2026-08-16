@@ -57,7 +57,15 @@ async function main() {
   const runtime = createAgentRuntime(agentRuntime);
   const wakeup = new InProcessWakeupDriver();
   const guests = new GuestHub();
-  await wakeup.start(createWakeHandlers({ db, runtime, wakeup, guests }));
+  await wakeup.start(
+    createWakeHandlers({
+      db,
+      runtime,
+      wakeup,
+      guests,
+      bindRuntime: (overlay) => createAgentRuntime(agentRuntime, overlay.env),
+    }),
+  );
 
   const port = Number(process.env.WORKER_PORT ?? 3101);
   const server = createServer((req, res) => {

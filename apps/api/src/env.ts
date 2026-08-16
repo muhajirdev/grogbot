@@ -33,6 +33,7 @@ export interface Env {
   openaiApiKey?: string;
   emailFrom?: string;
   cloudflareEmailToken?: string;
+  encryptionKey?: string;
   production: boolean;
 }
 
@@ -126,6 +127,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     openaiApiKey: source.OPENAI_API_KEY,
     emailFrom: source.EMAIL_FROM,
     cloudflareEmailToken: source.CLOUDFLARE_EMAIL_API_TOKEN,
+    encryptionKey: source.ENCRYPTION_KEY,
     production: source.NODE_ENV === "production",
   };
 }

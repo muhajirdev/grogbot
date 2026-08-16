@@ -1,14 +1,18 @@
-import { agentRuntimeNeedsModel } from "@grogbot/adapters";
+import { isOfflineAgentRuntime } from "@grogbot/adapters";
 import { appContract } from "@grogbot/contracts";
 import {
+  encryptionSecret,
   getBotComputer,
   listEventsAfter,
+  loadModelSettings,
+  saveModelSettings,
   sleep,
   toBotDto,
+  userHasModelCredentials,
 } from "@grogbot/core";
 import { guestConnectors, userModelCredentials } from "@grogbot/db";
 import { implement } from "@orpc/server";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { RpcContext } from "./context.js";
 import { agentRuntimeSource } from "./env.js";
 import {
@@ -43,7 +47,12 @@ export const appRouter = os.router({
     const creds = await context.db
       .select()
       .from(userModelCredentials)
-      .where(eq(userModelCredentials.userId, actor.userId))
+      .where(
+        and(
+          eq(userModelCredentials.userId, actor.userId),
+          eq(userModelCredentials.workspaceId, actor.workspaceId),
+        ),
+      )
       .limit(1);
     return {
       userId: actor.userId,
@@ -52,12 +61,37 @@ export const appRouter = os.router({
       workspaceId: actor.workspaceId,
       isDeploymentOwner: actor.isDeploymentOwner,
       needsModel:
-        agentRuntimeNeedsModel(
-          context.env.agentRuntime,
-          agentRuntimeSource(context.env),
-        ) && creds.length === 0,
+        !isOfflineAgentRuntime(context.env.agentRuntime) &&
+        !userHasModelCredentials(creds.length, agentRuntimeSource(context.env)),
     };
   }),
+  models: {
+    get: os.models.get.handler(async ({ context }) => {
+      const actor = await requireActor(context);
+      return loadModelSettings(
+        context.db,
+        actor,
+        agentRuntimeSource(context.env),
+        encryptionSecret({
+          ENCRYPTION_KEY: context.env.encryptionKey,
+          BETTER_AUTH_SECRET: context.env.authSecret,
+        }),
+      );
+    }),
+    save: os.models.save.handler(async ({ context, input }) => {
+      const actor = await requireActor(context);
+      return saveModelSettings(
+        context.db,
+        actor,
+        input,
+        encryptionSecret({
+          ENCRYPTION_KEY: context.env.encryptionKey,
+          BETTER_AUTH_SECRET: context.env.authSecret,
+        }),
+        agentRuntimeSource(context.env),
+      );
+    }),
+  },
   bots: {
     list: os.bots.list.handler(async ({ context }) => {
       const actor = await requireActor(context);

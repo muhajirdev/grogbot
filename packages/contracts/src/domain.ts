@@ -25,6 +25,8 @@ export const BotSchema = z.object({
   computerName: z.string(),
   guestKind: GuestKind,
   guestOnline: z.boolean(),
+  /** Empty = workspace default model. */
+  model: z.string(),
   lastPreview: z.string(),
   lastAt: z.string(),
   createdAt: z.string(),
@@ -54,6 +56,7 @@ export const UpdateBotInput = z.object({
   instructions: z.string().max(20000).optional(),
   avatarColor: z.string().max(32).optional(),
   avatarShape: AvatarShape.optional(),
+  model: z.string().max(200).optional(),
 });
 
 export const MessageBlockSchema = z.discriminatedUnion("kind", [
