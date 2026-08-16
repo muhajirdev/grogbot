@@ -27,7 +27,7 @@ import {
 } from "../components/Icons";
 import { PluginsModal } from "../components/PluginsModal";
 import { authClient } from "../lib/auth";
-import { isModelSetupError, userFacingError } from "../lib/errors";
+import { isModelSetupError, humanizeRunError, userFacingError } from "../lib/errors";
 import { AVATAR_COLORS, FIRST_TASK } from "../lib/jobs";
 import { orpc } from "../lib/orpc";
 import { client } from "../lib/rpc";
@@ -78,7 +78,7 @@ function initials(name: string): string {
   return `${parts[0]?.[0] ?? ""}${parts[1]?.[0] ?? ""}`.toUpperCase();
 }
 
-export function Office(props: { botId: string }) {
+export function Chat(props: { botId: string }) {
   const navigate = useNavigate();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -173,6 +173,7 @@ export function Office(props: { botId: string }) {
     let iterator: AsyncIterator<ProductEvent> | undefined;
     setMessages([]);
     setWorking("");
+    setError("");
     void client.computer
       .status({ botId: activeId })
       .then(setComputer)
@@ -200,11 +201,16 @@ export function Office(props: { botId: string }) {
         if (event.type === "run.updated") {
           const status = String(event.payload.status ?? "");
           const text = String(event.payload.text ?? "");
-          setWorking(
-            status === "running" || status === "queued"
-              ? text || "working…"
-              : "",
-          );
+          if (status === "running" || status === "queued") {
+            setWorking(text || "working…");
+            setError("");
+          } else if (status === "failed") {
+            setWorking("");
+            const message = humanizeRunError(text.trim() || "Run failed");
+            setError(message);
+          } else {
+            setWorking("");
+          }
         }
         if (event.type === "computer.updated") {
           setComputer(event.payload as unknown as ComputerStatus);
@@ -288,10 +294,15 @@ export function Office(props: { botId: string }) {
     return `${computer?.name ?? "Computer"}. Work continues if you close this.`;
   }, [bot, computer, working]);
 
+  const showComputerCard =
+    computer?.controlHolder === "user" ||
+    ((computer?.state === "running" || computer?.state === "booting") &&
+      (computer.controlHolder === "bot" || Boolean(computer.usingBotId)));
+
   return (
     <div
       className={cn(
-        "office-shell relative grid h-screen bg-bg",
+        "chat-shell relative grid h-screen bg-bg",
         paneMode
           ? "grid-cols-[280px_minmax(0,1fr)_320px]"
           : "grid-cols-[280px_minmax(0,1fr)]",
@@ -338,7 +349,7 @@ export function Office(props: { botId: string }) {
               to="/$botId"
               params={{ botId: item.id }}
               className={cn(
-                "office-conv grid min-w-0 grid-cols-[40px_minmax(0,1fr)] items-center gap-2.5 rounded-[14px] border-0 bg-transparent px-2 py-2.5 text-left text-inherit no-underline",
+                "chat-conv grid min-w-0 grid-cols-[40px_minmax(0,1fr)] items-center gap-2.5 rounded-[14px] border-0 bg-transparent px-2 py-2.5 text-left text-inherit no-underline",
                 item.id === bot?.id && "bg-selected",
               )}
             >
@@ -348,7 +359,7 @@ export function Office(props: { botId: string }) {
                 shape={item.avatarShape}
                 mood={item.id === bot?.id && working ? "working" : "idle"}
               />
-              <span className="office-conv-copy min-w-0">
+              <span className="chat-conv-copy min-w-0">
                 <span className="flex items-baseline justify-between gap-2">
                   <span className="text-sm font-semibold">{item.name}</span>
                   <span className="shrink-0 text-[11px] whitespace-nowrap text-muted">
@@ -365,7 +376,7 @@ export function Office(props: { botId: string }) {
             <p className="empty">No teammates yet.</p>
           ) : null}
         </div>
-        <div className="office-foot mt-auto grid gap-1 px-1.5 pt-2 pb-1">
+        <div className="chat-foot mt-auto grid gap-1 px-1.5 pt-2 pb-1">
           <button
             className="flex w-full items-center gap-2.5 rounded-xl border-0 bg-transparent px-2 py-2 text-left text-inherit hover:bg-hover"
             type="button"
@@ -466,17 +477,6 @@ export function Office(props: { botId: string }) {
             const showDay =
               !prev || dayKey(prev.createdAt) !== dayKey(message.createdAt);
             const text = messageText(message);
-            const lastInRun =
-              Boolean(message.runId) &&
-              message.actorType === "bot" &&
-              !messages
-                .slice(index + 1)
-                .some((item) => item.runId === message.runId);
-            const latestRun =
-              lastInRun &&
-              !messages
-                .slice(index + 1)
-                .some((item) => item.actorType === "bot" && item.runId);
             const human = message.actorType === "human";
             return (
               <div key={message.id} className="contents">
@@ -497,42 +497,23 @@ export function Office(props: { botId: string }) {
                     {text}
                   </div>
                 ) : null}
-                {lastInRun ? (
-                  <ComputerCard
-                    title={lastHumanBefore(messages, index)}
-                    status={
-                      latestRun && working
-                        ? "Working"
-                        : latestRun && computer?.controlHolder === "user"
-                          ? "You're in control"
-                          : "Done"
-                    }
-                    done={!(latestRun && working)}
-                    preview={
-                      latestRun &&
-                      (working || computer?.controlHolder === "user")
-                        ? computerBody
-                        : undefined
-                    }
-                    onOpen={() => setPaneMode("computer")}
-                  />
-                ) : null}
               </div>
             );
           })}
-          {working &&
-          !messages.some(
-            (item, index) =>
-              item.runId &&
-              item.actorType === "bot" &&
-              !messages
-                .slice(index + 1)
-                .some((later) => later.runId === item.runId),
-          ) ? (
+          {showComputerCard ? (
             <ComputerCard
-              title={draft || lastHumanBefore(messages, messages.length)}
-              status="Working"
-              preview={computerBody}
+              title={
+                working
+                  ? draft || lastHumanBefore(messages, messages.length)
+                  : computer?.name ?? "Computer"
+              }
+              status={statusLabel}
+              done={!working && computer?.controlHolder !== "user"}
+              preview={
+                working || computer?.controlHolder === "user"
+                  ? computerBody
+                  : undefined
+              }
               onOpen={() => setPaneMode("computer")}
             />
           ) : null}

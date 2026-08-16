@@ -270,7 +270,7 @@ export function Onboarding() {
               the Bot hits a wall.
             </p>
             <div className="flex flex-wrap gap-2">
-              {TOOLS.map(({ name, Icon }) => (
+              {TOOLS.map(({ name, logo }) => (
                 <Chip
                   key={name}
                   selected={tools.includes(name)}
@@ -282,7 +282,14 @@ export function Onboarding() {
                     )
                   }
                 >
-                  <Icon />
+                  <img
+                    src={logo}
+                    alt=""
+                    width={14}
+                    height={14}
+                    decoding="async"
+                    className="size-3.5 shrink-0"
+                  />
                   {name}
                 </Chip>
               ))}

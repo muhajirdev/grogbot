@@ -91,12 +91,15 @@ describe("FlueAgentRuntime", () => {
     expect(events.at(-1)).toMatchObject({ type: "done" });
   });
 
-  it("caps the live runtime pool", async () => {
+  it("reuses one Flue runtime and applies later env overlays", async () => {
     await stopFlueAgentRuntime();
-    for (let i = 0; i < 6; i += 1) {
-      getFlueAgentRuntime(true, { GROGBOT_MODEL: `echo-${i}` });
-    }
-    expect(flueRuntimePoolSize()).toBeLessThanOrEqual(4);
+    const first = getFlueAgentRuntime(true, { GROGBOT_MODEL: "echo-1" });
+    const second = getFlueAgentRuntime(true, { GROGBOT_MODEL: "echo-2" });
+    expect(second).toBe(first);
+    expect(flueRuntimePoolSize()).toBe(1);
+    expect(resolveFlueModel(true, { GROGBOT_MODEL: "ignored" })).toBe(
+      ECHO_MODEL,
+    );
     await stopFlueAgentRuntime();
     expect(flueRuntimePoolSize()).toBe(0);
   });

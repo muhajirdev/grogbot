@@ -1,6 +1,6 @@
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import { AgentRunError, init } from "@flue/runtime";
+import { init } from "@flue/runtime";
 import { type Flue, sqlite, start } from "@flue/runtime/node";
 import type {
   AdapterContext,
@@ -8,8 +8,11 @@ import type {
   AgentRuntime,
   AgentRuntimeEvent,
 } from "@grogbot/adapter-kit";
+import { installCloudflareGatewayProvider } from "./cloudflare-provider.js";
 import { setTeammateTurn, teammateInstanceId } from "./context.js";
 import { createEchoProvider, ECHO_MODEL } from "./echo.js";
+import { flueErrorText } from "./errors.js";
+import { installWorkspaceProviderAuth } from "./overlay-auth.js";
 import { Teammate } from "./teammate.js";
 
 export interface FlueRuntimeOptions {
@@ -67,7 +70,14 @@ export class FlueAgentRuntime implements AgentRuntime {
 
   constructor(options: FlueRuntimeOptions = {}) {
     this.echo = options.echo === true;
-    this.env = options.env ?? process.env;
+    this.env = options.env ?? {};
+  }
+
+  /** Mutate the overlay Flue/Pi already closed over. Do not replace the object. */
+  applyEnv(env: NodeJS.ProcessEnv): void {
+    for (const key of Object.keys(this.env)) delete this.env[key];
+    Object.assign(this.env, env);
+    this.model = undefined;
   }
 
   private resolvedModel(): string {
@@ -125,15 +135,7 @@ export class FlueAgentRuntime implements AgentRuntime {
         yield { type: "done", text: "stopped" };
         return;
       }
-      const message =
-        error instanceof AgentRunError
-          ? error.cause instanceof Error
-            ? error.cause.message
-            : error.message
-          : error instanceof Error
-            ? error.message
-            : "Flue run failed";
-      yield { type: "error", text: message };
+      yield { type: "error", text: flueErrorText(error) };
     } finally {
       this.running.delete(request.runId);
     }
@@ -152,61 +154,45 @@ export class FlueAgentRuntime implements AgentRuntime {
       env: this.env,
       providers: echo ? [echo.provider] : undefined,
     });
+    if (!echo) {
+      installWorkspaceProviderAuth(this.env);
+      installCloudflareGatewayProvider(this.env);
+    }
     this.flue = flue;
     return flue;
   }
 }
 
-let shared: FlueAgentRuntime | undefined;
-const pool = new Map<string, FlueAgentRuntime>();
-
-function envFingerprint(echo: boolean, env: NodeJS.ProcessEnv): string {
-  const material = [
-    echo ? "echo" : "live",
-    env.GROGBOT_MODEL ?? "",
-    env.ANTHROPIC_API_KEY ?? "",
-    env.OPENAI_API_KEY ?? "",
-    env.OPENROUTER_API_KEY ?? "",
-    env.CLOUDFLARE_ACCOUNT_ID ?? "",
-    env.CLOUDFLARE_API_KEY ?? env.CLOUDFLARE_API_TOKEN ?? "",
-    env.CLOUDFLARE_GATEWAY_ID ?? env.CLOUDFLARE_AI_GATEWAY_ID ?? "",
-  ].join("\0");
-  return material;
-}
-
-const MAX_POOL = 4;
+/** Flue allows one `start()` per process. Echo and live are separate slots;
+ * the worker uses one. Env overlays mutate the existing object. */
+let liveRuntime: FlueAgentRuntime | undefined;
+let echoRuntime: FlueAgentRuntime | undefined;
 
 export function flueRuntimePoolSize(): number {
-  return pool.size;
+  return (liveRuntime ? 1 : 0) + (echoRuntime ? 1 : 0);
 }
 
 export function getFlueAgentRuntime(
   echo: boolean,
   env: NodeJS.ProcessEnv = process.env,
 ): FlueAgentRuntime {
-  const key = envFingerprint(echo, env);
-  const cached = pool.get(key);
-  if (cached) return cached;
-  while (pool.size >= MAX_POOL) {
-    const oldest = pool.keys().next().value;
-    if (!oldest) break;
-    const evicted = pool.get(oldest);
-    pool.delete(oldest);
-    if (evicted === shared) shared = undefined;
-    void evicted?.stop();
+  if (echo) {
+    echoRuntime ??= new FlueAgentRuntime({ echo: true, env: {} });
+    echoRuntime.applyEnv(env);
+    return echoRuntime;
   }
-  const created = new FlueAgentRuntime({ echo, env });
-  pool.set(key, created);
-  shared ??= created;
-  return created;
+  liveRuntime ??= new FlueAgentRuntime({ echo: false, env: {} });
+  liveRuntime.applyEnv(env);
+  return liveRuntime;
 }
 
 export async function stopFlueAgentRuntime(): Promise<void> {
-  const runtimes = new Set(pool.values());
-  if (shared) runtimes.add(shared);
-  pool.clear();
-  shared = undefined;
-  await Promise.all([...runtimes].map((runtime) => runtime.stop()));
+  const runtimes = [liveRuntime, echoRuntime].filter(
+    (runtime): runtime is FlueAgentRuntime => Boolean(runtime),
+  );
+  liveRuntime = undefined;
+  echoRuntime = undefined;
+  await Promise.all(runtimes.map((runtime) => runtime.stop()));
 }
 
 function mergeSignals(

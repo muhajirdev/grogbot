@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { Chat } from "../../screens/Chat";
 import { loadBotsForRoute } from "../../lib/session";
-import { Office } from "../../screens/Office";
 
 export const Route = createFileRoute("/_authed/$botId")({
   loader: async ({ context, params }) => {
@@ -12,10 +12,10 @@ export const Route = createFileRoute("/_authed/$botId")({
     }
     return bots;
   },
-  component: OfficePage,
+  component: ChatPage,
 });
 
-function OfficePage() {
+function ChatPage() {
   const { botId } = Route.useParams();
-  return <Office botId={botId} />;
+  return <Chat botId={botId} />;
 }

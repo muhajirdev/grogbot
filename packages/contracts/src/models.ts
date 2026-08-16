@@ -100,6 +100,16 @@ export const MODEL_CATALOG = [
     provider: "cloudflare" as const,
   },
   {
+    id: "cloudflare-ai-gateway/workers-ai/@cf/zai-org/glm-4.7-flash",
+    label: "GLM 4.7 Flash (Workers AI)",
+    provider: "cloudflare" as const,
+  },
+  {
+    id: "cloudflare-ai-gateway/workers-ai/@cf/zai-org/glm-5.2",
+    label: "GLM 5.2 (Workers AI)",
+    provider: "cloudflare" as const,
+  },
+  {
     id: "cloudflare-ai-gateway/workers-ai/@cf/moonshotai/kimi-k2.6",
     label: "Kimi K2.6 (Workers AI)",
     provider: "cloudflare" as const,
@@ -181,7 +191,9 @@ export function providerForModel(model: string): ModelProvider | undefined {
   return undefined;
 }
 
-/** Map legacy / short Cloudflare ids onto Pi's cloudflare-ai-gateway provider. */
+/** Map legacy / short Cloudflare ids onto Pi's cloudflare-ai-gateway provider.
+ * Workers AI through the gateway uses `workers-ai/@cf/…` model ids (compat).
+ */
 export function flueModelId(model: string): string {
   const trimmed = model.trim();
   // Pi OpenRouter catalog uses deepseek/deepseek-v4-flash (no date suffix).
@@ -196,6 +208,10 @@ export function flueModelId(model: string): string {
   }
   if (trimmed.startsWith("workers-ai/@cf/")) {
     return `cloudflare-ai-gateway/${trimmed}`;
+  }
+  // Direct Workers AI provider ids → gateway compat (we always require a gateway).
+  if (trimmed.startsWith("cloudflare-workers-ai/@cf/")) {
+    return `cloudflare-ai-gateway/workers-ai/${trimmed.slice("cloudflare-workers-ai/".length)}`;
   }
   return trimmed;
 }

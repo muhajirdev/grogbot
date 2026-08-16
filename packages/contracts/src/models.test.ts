@@ -37,6 +37,11 @@ describe("model catalog", () => {
     expect(flueModelId("openrouter/deepseek/deepseek-v4-flash-0731")).toBe(
       "openrouter/deepseek/deepseek-v4-flash",
     );
+    expect(
+      flueModelId("cloudflare-workers-ai/@cf/deepseek-ai/deepseek-v4-flash-0731"),
+    ).toBe(
+      "cloudflare-ai-gateway/workers-ai/@cf/deepseek-ai/deepseek-v4-flash-0731",
+    );
   });
 
   it("lists Cloudflare models for every runtime", () => {
@@ -54,6 +59,8 @@ describe("model catalog", () => {
       expect.arrayContaining([
         "cloudflare-ai-gateway/workers-ai/@cf/deepseek-ai/deepseek-v4-flash-0731",
         "cloudflare-ai-gateway/workers-ai/@cf/deepseek-ai/deepseek-v4-pro-0813",
+        "cloudflare-ai-gateway/workers-ai/@cf/zai-org/glm-4.7-flash",
+        "cloudflare-ai-gateway/workers-ai/@cf/zai-org/glm-5.2",
       ]),
     );
   });

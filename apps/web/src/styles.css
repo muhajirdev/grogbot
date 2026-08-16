@@ -1150,15 +1150,15 @@ html.electron .pane-head {
 }
 
 @media (max-width: 960px) {
-  .office-shell {
+  .chat-shell {
     grid-template-columns: 72px minmax(0, 1fr) !important;
   }
-  .office-conv-copy,
-  .office-foot span,
+  .chat-conv-copy,
+  .chat-foot span,
   .search-field {
     display: none;
   }
-  .office-conv {
+  .chat-conv {
     grid-template-columns: 36px;
     justify-content: center;
     justify-items: center;

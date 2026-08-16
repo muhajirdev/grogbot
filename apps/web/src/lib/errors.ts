@@ -9,15 +9,37 @@ const GENERIC = new Set([
 export function userFacingError(caught: unknown, fallback: string): string {
   if (caught instanceof Error && caught.message.trim()) {
     const text = caught.message.trim();
-    return GENERIC.has(text) ? fallback : text;
+    return GENERIC.has(text) ? fallback : humanizeRunError(text);
   }
   if (caught && typeof caught === "object" && "message" in caught) {
     const text = String((caught as { message?: unknown }).message ?? "").trim();
-    if (text && !GENERIC.has(text)) return text;
+    if (text && !GENERIC.has(text)) return humanizeRunError(text);
   }
   return fallback;
 }
 
+/** Clean stream / run failure text before showing it above the composer. */
+export function humanizeRunError(raw: string): string {
+  const text = raw.trim().replace(/^(\[flue\]\s*)+/i, "");
+  if (/^Agent run was aborted \(submission [^)]+\)\.?$/i.test(text)) {
+    return "Stopped.";
+  }
+  if (/^Agent run failed \(submission [^)]+\)\.?$/i.test(text)) {
+    return "The model run failed. Pick another model in Settings → Models.";
+  }
+  const unknown = text.match(
+    /^Unknown model ID "([^"]+)" for provider "([^"]+)"/i,
+  );
+  if (unknown) {
+    return `Model “${unknown[1]}” isn’t available for ${unknown[2]}. Pick another model in Settings → Models.`;
+  }
+  const missing = text.match(/Provider is not configured:\s*(\S+)/i);
+  if (missing) {
+    return `${missing[1]} isn’t configured. Add a key in Settings → Models.`;
+  }
+  return text;
+}
+
 export function isModelSetupError(message: string): boolean {
-  return /settings → models|model key|needs a .+ key/i.test(message);
+  return /add a model key|needs a .+ key/i.test(message);
 }
