@@ -1,7 +1,7 @@
 {
   "name": "@grogbot/desktop",
   "version": "0.0.1",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "private": true,
   "type": "module",
   "main": "src/main.ts",

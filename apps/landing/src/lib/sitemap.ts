@@ -1,0 +1,67 @@
+import { USE_CASES } from "../data/use-cases";
+import {
+  INTEGRATIONS,
+  integrationCategories,
+} from "./integrations";
+import { canonicalUrl } from "./site";
+
+export type SitemapEntry = {
+  path: string;
+  changefreq: "daily" | "weekly" | "monthly";
+  priority: string;
+};
+
+export function sitemapEntries(): SitemapEntry[] {
+  const entries: SitemapEntry[] = [
+    { path: "/", changefreq: "weekly", priority: "1.0" },
+    { path: "/integrations", changefreq: "weekly", priority: "0.9" },
+    { path: "/use-cases", changefreq: "weekly", priority: "0.9" },
+  ];
+  for (const category of integrationCategories()) {
+    entries.push({
+      path: `/integrations/category/${category.slug}`,
+      changefreq: "weekly",
+      priority: "0.7",
+    });
+  }
+  for (const item of INTEGRATIONS) {
+    entries.push({
+      path: `/integrations/${item.slug}`,
+      changefreq: "weekly",
+      priority: item.featured ? "0.8" : "0.6",
+    });
+  }
+  for (const item of USE_CASES) {
+    entries.push({
+      path: `/use-cases/${item.slug}`,
+      changefreq: "weekly",
+      priority: "0.8",
+    });
+  }
+  return entries;
+}
+
+export function sitemapXml(): string {
+  const urls = sitemapEntries()
+    .map(
+      (entry) => `  <url>
+    <loc>${escapeXml(canonicalUrl(entry.path))}</loc>
+    <changefreq>${entry.changefreq}</changefreq>
+    <priority>${entry.priority}</priority>
+  </url>`,
+    )
+    .join("\n");
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls}
+</urlset>
+`;
+}
+
+function escapeXml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}

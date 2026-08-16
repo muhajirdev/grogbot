@@ -1,0 +1,113 @@
+import { describe, expect, it } from "vitest";
+import { INDIE_INTEGRATIONS } from "../data/indie-integrations";
+import { USE_CASES } from "../data/use-cases";
+import { categoryFamily } from "./category-copy";
+import {
+  computerIntegrations,
+  getIntegration,
+  INTEGRATIONS,
+  integrationCategories,
+  relatedIntegrations,
+  searchIntegrations,
+} from "./integrations";
+import { sitemapEntries, sitemapXml } from "./sitemap";
+import { canonicalUrl } from "./site";
+import { slugify } from "./slug";
+
+describe("slugify", () => {
+  it("turns categories into url slugs", () => {
+    expect(slugify("developer tools")).toBe("developer-tools");
+    expect(slugify("ads & conversion")).toBe("ads-and-conversion");
+  });
+});
+
+describe("integrations catalog", () => {
+  it("snapshots Composio toolkits plus indie computer integrations", () => {
+    expect(getIntegration("gmail")?.kind).toBe("composio");
+    expect(getIntegration("gmail")?.toolCount).toBeGreaterThan(0);
+    expect(getIntegration("datafast")?.kind).toBe("computer");
+    expect(getIntegration("postiz")?.kind).toBe("computer");
+    expect(getIntegration("post-bridge")?.founder).toBe("Jack Friks");
+    expect(INTEGRATIONS.length).toBeGreaterThan(1000);
+  });
+
+  it("does not let indie slugs collide with Composio", () => {
+    const composioSlugs = new Set(
+      INTEGRATIONS.filter((item) => item.kind === "composio").map(
+        (item) => item.slug,
+      ),
+    );
+    for (const item of INDIE_INTEGRATIONS) {
+      expect(composioSlugs.has(item.slug)).toBe(false);
+    }
+  });
+
+  it("varies copy by category family", () => {
+    const gmail = getIntegration("gmail");
+    const github = getIntegration("github");
+    expect(gmail).toBeDefined();
+    expect(github).toBeDefined();
+    if (!gmail || !github) return;
+    expect(categoryFamily(gmail.category)).toBe("email");
+    expect(categoryFamily(github.category)).toBe("code");
+    expect(gmail.firstMessage).not.toBe(github.firstMessage);
+    expect(gmail.how[0]).not.toBe(github.how[0]);
+  });
+
+  it("finds related tools in the same category", () => {
+    const gmail = getIntegration("gmail");
+    expect(gmail).toBeDefined();
+    if (!gmail) return;
+    const related = relatedIntegrations(gmail, 4);
+    expect(related.length).toBeGreaterThan(0);
+    expect(related.some((item) => item.slug === "gmail")).toBe(false);
+  });
+
+  it("searches indie founders and product names", () => {
+    expect(searchIntegrations("marc lou").some((item) => item.slug === "datafast")).toBe(
+      true,
+    );
+    expect(searchIntegrations("post bridge")[0]?.slug).toBe("post-bridge");
+  });
+
+  it("lists computer integrations separately", () => {
+    const slugs = computerIntegrations().map((item) => item.slug);
+    expect(slugs).toEqual(
+      expect.arrayContaining(["datafast", "postiz", "post-bridge", "shipfast"]),
+    );
+  });
+});
+
+describe("use cases", () => {
+  it("points at real integrations", () => {
+    for (const useCase of USE_CASES) {
+      for (const slug of useCase.integrationSlugs) {
+        expect(getIntegration(slug), slug).toBeDefined();
+      }
+    }
+  });
+});
+
+describe("sitemap", () => {
+  it("includes hubs, categories, integrations, and use cases", () => {
+    const paths = sitemapEntries().map((entry) => entry.path);
+    expect(paths).toContain("/");
+    expect(paths).toContain("/integrations");
+    expect(paths).toContain("/use-cases");
+    expect(paths).toContain("/integrations/gmail");
+    expect(paths).toContain("/integrations/datafast");
+    expect(paths).toContain("/use-cases/indie-stack");
+    expect(paths.some((path) => path.startsWith("/integrations/category/"))).toBe(
+      true,
+    );
+    expect(paths.length).toBe(
+      3 + integrationCategories().length + INTEGRATIONS.length + USE_CASES.length,
+    );
+  });
+
+  it("emits xml with canonical grogbot.com urls", () => {
+    const xml = sitemapXml();
+    expect(xml).toContain(canonicalUrl("/integrations/postiz"));
+    expect(xml).toContain("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+  });
+});
