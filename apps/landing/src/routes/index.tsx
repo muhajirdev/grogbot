@@ -1,0 +1,22 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { Landing } from "../components/Landing";
+import { appLoginUrl } from "../lib/app-url";
+import { organizationJsonLd, softwareJsonLd } from "../lib/json-ld";
+import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, seoHead } from "../lib/site";
+
+export const Route = createFileRoute("/")({
+  loader: () => ({ startUrl: appLoginUrl() }),
+  head: () =>
+    seoHead({
+      title: DEFAULT_TITLE,
+      description: DEFAULT_DESCRIPTION,
+      path: "/",
+      jsonLd: [organizationJsonLd(), softwareJsonLd()],
+    }),
+  component: Home,
+});
+
+function Home() {
+  const { startUrl } = Route.useLoaderData();
+  return <Landing startUrl={startUrl} />;
+}

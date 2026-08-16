@@ -8,12 +8,12 @@ v1 code stays: one thread per bot (`threads.bot_id` unique), `thread_members` fo
 
 ```
   Human ---- office thread ---- Bot actor ---- bound computer
-                                               (Desk by default)
+                                               (default computer)
 ```
 
 - Actor = the bot, never the room.
-- Computer = a workspace primitive. Bots bind to one. Default is Desk (shared). New computer = isolated sandbox.
-- GUI on a shared desk is one mouse (`control_holder`). Two bots on Desk can think in parallel; they take turns clicking.
+- Computer = a workspace primitive. Bots bind to one. Default computer is shared. New computer = isolated sandbox.
+- GUI on a shared computer is one mouse (`control_holder`). Two bots on the default computer can think in parallel; they take turns clicking.
 - Extra humans can wait: `thread_members` + message `actor_type` / `actor_id` already exist. No extra UX.
 
 ## Later A — two humans, one office
@@ -36,11 +36,11 @@ This is a new product surface (not Discord in v1). Schema work then, not now:
 - UI: `focusedBotId` for the computer pane.
 
 ```
-  Human ---- group thread ---- Bot A actor ---- computer (Desk or private)
-                         +---- Bot B actor ---- same Desk, or another computer
+  Human ---- group thread ---- Bot A actor ---- computer (default or private)
+                         +---- Bot B actor ---- same default, or another computer
 ```
 
-Two bots in one room **can** think in parallel (two actors). If they share Desk, GUI is serialized. If they have two computers, two mice.
+Two bots in one room **can** think in parallel (two actors). If they share the default computer, GUI is serialized. If they have two computers, two mice.
 
 ## Can one actor run two rooms in parallel?
 
@@ -58,7 +58,7 @@ True parallel for “the same teammate in two rooms” would mean a **second com
 | Situation | Parallel? |
 |---|---|
 | Two humans, one office | No. One queue. |
-| Two bots, one room, same Desk | Brains yes. GUI no (one mouse). |
+| Two bots, one room, same default computer | Brains yes. GUI no (one mouse). |
 | Two bots, one room, two computers | **Yes.** Two actors, two VMs. |
 | One bot, two rooms | **No** on one VM. Serial queue. Or spawn a child bot. |
 

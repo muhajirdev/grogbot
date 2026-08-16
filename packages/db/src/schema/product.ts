@@ -9,14 +9,14 @@ import {
 } from "drizzle-orm/pg-core";
 import { organization, user } from "./auth.js";
 
-/** Workspace desk. Many bots can share one; GUI is one mouse at a time. */
+/** Shared workspace computer. Many bots can share one; GUI is one mouse at a time. */
 export const computers = pgTable("computers", {
   id: text("id").primaryKey(),
   workspaceId: text("workspace_id")
     .notNull()
     .references(() => organization.id, { onDelete: "cascade" }),
   userId: text("user_id").notNull(),
-  name: text("name").notNull().default("Desk"),
+  name: text("name").notNull().default("Default computer"),
   isDefault: boolean("is_default").notNull().default(false),
   kind: text("kind").notNull(),
   providerRef: text("provider_ref"),

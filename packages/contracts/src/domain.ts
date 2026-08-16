@@ -25,6 +25,8 @@ export const BotSchema = z.object({
   computerName: z.string(),
   guestKind: GuestKind,
   guestOnline: z.boolean(),
+  lastPreview: z.string(),
+  lastAt: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -32,12 +34,13 @@ export type Bot = z.infer<typeof BotSchema>;
 
 export const CreateBotInput = z.object({
   name: z.string().min(1).max(80),
-  title: z.string().max(160).default(""),
+  /** Optional job line. Empty is fine — name is enough. */
+  title: z.string().max(160).optional().default(""),
   description: z.string().max(4000).default(""),
   instructions: z.string().max(20000).default(""),
   avatarColor: z.string().max(32).default("#5b7cff"),
   avatarShape: AvatarShape.default("circle"),
-  /** default = workspace Desk. new = isolated computer. id = bind to that computer. */
+  /** default = workspace default computer. new = isolated computer. id = bind to that computer. */
   computer: z
     .union([z.literal("default"), z.literal("new"), Id])
     .default("default"),

@@ -1,6 +1,6 @@
 # Grok Bot UI copy-brief
 
-Grogbot should **feel like Grok Bot**: a messaging app of named teammates, not a workflow builder, IDE, or Discord. This is the visual and onboarding spec. Product/architecture stays ours (workspace Desk shared by default, optional isolated computer, Postgres for team data, Rivet actor per bot, oRPC, Composio). **Implement on web first**; desktop reuses that UI; Expo gets the same contract later.
+Grogbot should **feel like Grok Bot**: a messaging app of named teammates, not a workflow builder, IDE, or Discord. This is the visual and onboarding spec. Product/architecture stays ours (workspace default computer shared by default, optional isolated computer, Postgres for team data, Rivet actor per bot, oRPC, Composio). **Implement on web first**; desktop reuses that UI; Expo gets the same contract later.
 
 We could not screenshot the live desktop app (paywalled: SuperGrok Heavy / Cursor Ultra). This brief is from official docs and marketing as of 11–15 Aug 2026.
 
@@ -30,14 +30,14 @@ Quote they highlight: *“There wasn’t anything to learn. It was just like bri
 Copy this:
 
 - First action is **talk**, not configure a graph.
-- A Bot is a **contact**: name, title, description, avatar, one thread.
+- A Bot is a **contact**: name, optional job, description, avatar, one thread.
 - Computer is a **pane you can ignore**. Work continues if you close it.
 - Plugins exist, but first task can be “summarize this file” with no connector.
 - Sign-in to tools happens **when the Bot hits a wall**, via computer takeover — not a 20-field setup wizard.
 
 Do not copy:
 
-- Their **always-shared** computer with no escape hatch. We share a workspace **Desk** by default and let you create a new computer for private logins.
+- Their **always-shared** computer with no escape hatch. We share a workspace **default computer** and let you create a new computer for private logins.
 - Group chat of 2–6 Bots in v1 (see [rooms-plan.md](./rooms-plan.md)).
 - Teach-by-demonstration in v1.
 - Cursor-only sign-in / Ultra paywall.
@@ -46,29 +46,25 @@ Do not copy:
 
 ## Layout (desktop)
 
-Three regions. Looks like iMessage + a remote desktop, not Linear.
+Three regions. Looks like iMessage, not Linear. The computer icon in the thread header opens the right pane.
 
 ```
 +------------------+---------------------------+------------------+
-| SIDEBAR          | THREAD                    | DETAILS / COMPUTER
-|                  |                           |
-| Grok Bot         |  Piper                    | Agent Computer
-| [New]  Cmd+N     |  Product performance      | [Working]
-|                  |                           | +--------------+
-| o Inbox Manager  |  You: summarize this PDF  | |  browser /   |
-| o Talent Scout   |                           | |  desktop     |
-| o Expense Mgr    |  Piper: working…          | |  clicks      |
-| o Piper      *   |  [tool: browser]          | +--------------+
-|                  |  [file: summary.md]       | Take over
-| ---- hidden ---- |                           |
-| Plugins          |  [  Message Piper     ]   | Profile
-|                  |   @  /  attach            | name, title,
-+------------------+---------------------------+ desc, avatar
+| SIDEBAR          | THREAD                    | COMPUTER
+| [Search]     [+] |  Reja            🖥 ⚙ >> | Starting desktop
+|                  |                           |  [progress]
+| o New Bot  8:16  |  Yesterday 9:56 AM        |
+| o Lookout  11:47 |  You: …                   | Reja's screen
+| o Reja     9:56  |  Reja: …                  | [  desktop   ]
+|                  |  [Computer • Done]        |
+| Plugins          |  [  Message Reja      ]   | Routines
+| You              |                           | [Create Routine]
++------------------+---------------------------+------------------+
 ```
 
-- **Left:** roster of Bots (and later groups). Pin at top. Hide without deleting. Unread / needs-attention / working.
-- **Center:** one conversation with that Bot. Transcript is the audit log (tools, computer, files, approvals inline).
-- **Right or overlay:** **Agent Computer** preview + **Bot actions → Edit Profile**.
+- **Left:** roster of Bots. Search. `+` → Create new agent. Plugins and you at the bottom.
+- **Center:** one conversation. Transcript is the audit log. In-thread **Computer** cards still **Open computer**. Header: computer icon, gear (profile), collapse.
+- **Right:** computer icon → **Starting desktop** / `{Bot}'s screen` + **Routines**. Gear → Bot settings (name, title, description, notify). Collapse hides the pane. Takeover is on the computer pane, not in chat.
 
 Composer:
 
@@ -89,8 +85,8 @@ Docs examples: **Talent Scout**, **Expense Manager**, **Bug Reproduction**. Avoi
 ## Visual style
 
 - **Messaging app**, not a dashboard. No kanban of agents as the home screen.
-- Each Bot: **short name**, **job title**, **description**, **avatar**.
-- Avatar onboarding: pick a **color and shape** (geometric, not a photoreal face). Sidebar shows that mark like a contact photo.
+- Each Bot: **short name**, optional **job**, **description**, **avatar**.
+- Avatar onboarding: pick a **color** and a **rounded mark** (circle by default — a cute blob with eyes, not a photoreal face). Sidebar shows that mascot like a contact photo. Working bots bounce.
 - Appearance: Follow system / Light / Dark (`Cmd/Ctrl+,`).
 - Attention in the list:
   - Needs attention (question, approval, handoff)
@@ -128,14 +124,14 @@ Desktop ([get started](https://docs.x.ai/grok-bot/get-started)):
 Create-your-own fields (example from docs):
 
 - **Name:** Piper
-- **Job:** Product performance
+- **Job:** Product performance (optional)
 - **Description:** operational rules — sources, output shape, **never** change production.
 
 After that, **New** / `Cmd+N` → **Create new agent** → opens **New Agent** → **Bot actions → Edit Profile** (name, title, description, avatar) → give a task.
 
 iPhone: Login with Cursor → first-run tour → choose first Bot → wait for computer → same roster. `+` → New Agent | New Group Chat.
 
-**Our v1 trim:** same tour, but the default computer is the workspace **Desk** (shared files and logins, one mouse). Skip group chat. Plugins = Composio when we have it; first-run tool question can still be asked.
+**Our v1 trim:** same tour, but the default computer is shared (files and logins, one mouse). Skip group chat. Plugins = Composio when we have it; first-run tool question can still be asked.
 
 ### First-task recipe (surface in empty composer)
 

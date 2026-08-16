@@ -2,10 +2,11 @@ import type { AvatarShape } from "@grogbot/contracts";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { AvatarMark } from "../components/Avatar";
+import { AvatarMark, ShapePicks } from "../components/Avatar";
 import { AVATAR_COLORS, AVATAR_SHAPES, SUGGESTED_JOBS } from "../lib/jobs";
 import { orpc } from "../lib/orpc";
 import { client } from "../lib/rpc";
+import { cacheCreatedBot } from "../lib/session";
 
 const TOOLS = ["Gmail", "Slack", "GitHub", "Calendar", "Drive", "Linear"];
 
@@ -15,7 +16,7 @@ export function Onboarding() {
   const [step, setStep] = useState(0);
   const [tools, setTools] = useState<string[]>([]);
   const [name, setName] = useState("Piper");
-  const [title, setTitle] = useState("Product performance");
+  const [title, setTitle] = useState("");
   const [description, setDescription] = useState(
     "Operational rules — sources, output shape, never change production.",
   );
@@ -44,6 +45,7 @@ export function Onboarding() {
         avatarShape: shape,
       });
       localStorage.setItem("grogbot.onboarded", "1");
+      cacheCreatedBot(queryClient, bot);
       await queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
       await navigate({ to: "/$botId", params: { botId: bot.id } });
     } catch (caught) {
@@ -61,11 +63,20 @@ export function Onboarding() {
         <p className="kicker">Meet a teammate</p>
         {step === 0 ? (
           <>
+            <div className="mascot-hello">
+              <AvatarMark
+                name="Piper"
+                color="#e45c9a"
+                shape="circle"
+                large
+                mood="happy"
+              />
+            </div>
             <h1>Bots are coworkers.</h1>
             <p className="lede">
               Each Bot is a named person in the sidebar. You talk to them. They
-              share the workspace Desk by default — files and logins — unless
-              you give one its own computer.
+              share the default computer — files and logins — unless you give
+              one its own.
             </p>
             <button className="btn" type="button" onClick={() => setStep(1)}>
               Next
@@ -76,7 +87,7 @@ export function Onboarding() {
           <>
             <h1>The computer is a pane you can ignore.</h1>
             <p className="lede">
-              Teammates on the same Desk take turns with the mouse. Work
+              Teammates on the same computer take turns with the mouse. Work
               continues if you close the pane. Take over only when a password,
               2FA, or payment shows up — on the computer, not in chat.
             </p>
@@ -146,7 +157,7 @@ export function Onboarding() {
         ) : null}
         {step === 4 ? (
           <>
-            <h1>Name + job + how it should work.</h1>
+            <h1>Name + how it should work.</h1>
             <div
               style={{
                 display: "flex",
@@ -156,26 +167,24 @@ export function Onboarding() {
               }}
             >
               <AvatarMark name={name} color={color} shape={shape} large />
-              <div className="swatches">
-                {AVATAR_COLORS.map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    className={`swatch avatar circle${color === value ? " on" : ""}`}
-                    style={{ background: value }}
-                    onClick={() => setColor(value)}
-                  />
-                ))}
-                {AVATAR_SHAPES.map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    className={`chip${shape === value ? " on" : ""}`}
-                    onClick={() => setShape(value)}
-                  >
-                    {value}
-                  </button>
-                ))}
+              <div>
+                <div className="swatches">
+                  {AVATAR_COLORS.map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      className={`swatch${color === value ? " on" : ""}`}
+                      style={{ background: value }}
+                      onClick={() => setColor(value)}
+                    />
+                  ))}
+                </div>
+                <ShapePicks
+                  color={color}
+                  value={shape}
+                  shapes={AVATAR_SHAPES}
+                  onChange={setShape}
+                />
               </div>
             </div>
             <label className="field">
@@ -187,8 +196,12 @@ export function Onboarding() {
               />
             </label>
             <label className="field">
-              <span>Job</span>
-              <input value={title} onChange={(e) => setTitle(e.target.value)} />
+              <span>Job (optional)</span>
+              <input
+                value={title}
+                placeholder="Talent Scout"
+                onChange={(e) => setTitle(e.target.value)}
+              />
             </label>
             <label className="field">
               <span>How it should work</span>

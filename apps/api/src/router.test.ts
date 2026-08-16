@@ -13,6 +13,7 @@ const env = {
   corsOrigins: ["http://127.0.0.1:5173"],
   sandboxProvider: "fake",
   agentRuntime: "scripted",
+  production: false,
 } as const;
 
 describe("oRPC", () => {

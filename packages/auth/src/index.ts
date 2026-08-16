@@ -10,7 +10,7 @@ import {
 } from "@grogbot/db";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { organization as organizationPlugin } from "better-auth/plugins";
+import { magicLink, organization as organizationPlugin } from "better-auth/plugins";
 
 export interface OAuthCredentials {
   clientId: string;
@@ -26,6 +26,11 @@ export function createAuth(
     cookieDomain?: string;
     google?: OAuthCredentials;
     github?: OAuthCredentials;
+    sendMagicLink: (input: {
+      email: string;
+      url: string;
+      token: string;
+    }) => Promise<void> | void;
   },
 ) {
   return betterAuth({
@@ -83,7 +88,13 @@ export function createAuth(
         requireLocalEmailVerified: false,
       },
     },
-    plugins: [organizationPlugin()],
+    plugins: [
+      organizationPlugin(),
+      magicLink({
+        expiresIn: 15 * 60,
+        sendMagicLink: opts.sendMagicLink,
+      }),
+    ],
   });
 }
 

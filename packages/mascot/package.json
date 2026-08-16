@@ -1,0 +1,21 @@
+{
+  "name": "@grogbot/mascot",
+  "version": "0.0.1",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "react": "19.2.3"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.10",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

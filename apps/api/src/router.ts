@@ -21,10 +21,12 @@ import {
 import { healthPayload } from "./health.js";
 import {
   createOfficeBot,
+  createRoutine,
   getComputer,
   getOffice,
   listBots,
   listComputers,
+  listRoutines,
   sendMessage,
   setComputerControl,
   stopBotRuns,
@@ -159,9 +161,13 @@ export const appRouter = os.router({
     }),
   },
   routines: {
-    list: os.routines.list.handler(async ({ context }) => {
-      await requireActor(context);
-      return [];
+    list: os.routines.list.handler(async ({ context, input }) => {
+      const actor = await requireActor(context);
+      return listRoutines(context, actor, input.botId);
+    }),
+    create: os.routines.create.handler(async ({ context, input }) => {
+      const actor = await requireActor(context);
+      return createRoutine(context, actor, input);
     }),
   },
 });
