@@ -44,7 +44,7 @@ export const JOBS = [
 export const FAQS = [
   {
     q: "How is this different from a chatbot?",
-    a: "Each Bot is a named teammate with a job, a thread, and a real computer. They work in your tools the way you would, then come back when they need approval.",
+    a: "Each Bot is a named teammate with a thread and a real computer. Job title is optional. They work in your tools the way you would, then come back when they need approval.",
   },
   {
     q: "Do I need a workflow builder?",
@@ -52,7 +52,7 @@ export const FAQS = [
   },
   {
     q: "Where does the computer live?",
-    a: "Workspace Desk is shared by default — files and logins, one mouse. Give a Bot a new computer when the logins should stay private. Closing the pane does not stop the work.",
+    a: "Teammates share the workspace default computer — files and logins, one mouse. Give a Bot a new computer when the logins should stay private. Closing the pane does not stop the work.",
   },
   {
     q: "Who hosts it?",

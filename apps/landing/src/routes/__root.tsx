@@ -7,9 +7,9 @@ import {
 import type { ReactNode } from "react";
 import appCss from "../styles.css?url";
 
-const title = "Grogbot — AI teammates you host";
+const title = "Grogbot — Create a Bot, message it, grant access as needed.";
 const description =
-  "Create a Bot, message it, grant access as needed. No workflow builder. Open-source Grok Bot with a real computer, shared Desk, and bring-your-own keys.";
+  "No workflow builder. Open-source Grok Bot with a real computer, a shared default computer, and bring-your-own keys.";
 
 export const Route = createRootRoute({
   head: () => ({
