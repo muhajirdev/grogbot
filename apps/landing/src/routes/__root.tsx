@@ -40,7 +40,7 @@ function RootComponent() {
 
 function RootDocument(props: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="dark">
       <head>
         <HeadContent />
       </head>
