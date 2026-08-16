@@ -48,6 +48,14 @@ describe("model catalog", () => {
         (item) => item.provider === "cloudflare",
       ),
     ).toBe(true);
+    expect(
+      catalogForRuntime("flue").map((item) => item.id),
+    ).toEqual(
+      expect.arrayContaining([
+        "cloudflare-ai-gateway/workers-ai/@cf/deepseek-ai/deepseek-v4-flash-0731",
+        "cloudflare-ai-gateway/workers-ai/@cf/deepseek-ai/deepseek-v4-pro-0813",
+      ]),
+    );
   });
 
   it("requires a matching provider key", () => {

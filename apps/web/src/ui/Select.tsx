@@ -103,7 +103,7 @@ export function Chip(props: {
     <button
       type={props.type ?? "button"}
       className={cn(
-        "rounded-pill border border-line bg-card px-3 py-2 text-[13px] text-ink cursor-pointer",
+        "inline-flex items-center gap-1.5 rounded-pill border border-line bg-card px-3 py-2 text-[13px] text-ink cursor-pointer",
         props.selected && "border-ink bg-ink text-bg",
         props.className,
       )}

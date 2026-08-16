@@ -90,6 +90,16 @@ export const MODEL_CATALOG = [
     provider: "openai" as const,
   },
   {
+    id: "cloudflare-ai-gateway/workers-ai/@cf/deepseek-ai/deepseek-v4-flash-0731",
+    label: "DeepSeek V4 Flash (Workers AI)",
+    provider: "cloudflare" as const,
+  },
+  {
+    id: "cloudflare-ai-gateway/workers-ai/@cf/deepseek-ai/deepseek-v4-pro-0813",
+    label: "DeepSeek V4 Pro (Workers AI)",
+    provider: "cloudflare" as const,
+  },
+  {
     id: "cloudflare-ai-gateway/workers-ai/@cf/moonshotai/kimi-k2.6",
     label: "Kimi K2.6 (Workers AI)",
     provider: "cloudflare" as const,

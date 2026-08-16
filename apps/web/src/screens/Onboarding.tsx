@@ -19,7 +19,14 @@ import { client } from "../lib/rpc";
 import { cacheCreatedBot } from "../lib/session";
 import { Button, Chip, Field, Input, Select, Textarea } from "../ui";
 
-const TOOLS = ["Gmail", "Slack", "GitHub", "Calendar", "Drive", "Linear"];
+const TOOLS = [
+  { name: "Gmail", logo: "https://logos.composio.dev/api/gmail" },
+  { name: "Slack", logo: "https://logos.composio.dev/api/slack" },
+  { name: "GitHub", logo: "https://logos.composio.dev/api/github" },
+  { name: "Calendar", logo: "https://logos.composio.dev/api/googlecalendar" },
+  { name: "Drive", logo: "https://logos.composio.dev/api/googledrive" },
+  { name: "Linear", logo: "https://logos.composio.dev/api/linear" },
+] as const;
 
 const PROVIDER_ORDER: ModelProvider[] = [
   "openrouter",
@@ -263,19 +270,20 @@ export function Onboarding() {
               the Bot hits a wall.
             </p>
             <div className="flex flex-wrap gap-2">
-              {TOOLS.map((tool) => (
+              {TOOLS.map(({ name, Icon }) => (
                 <Chip
-                  key={tool}
-                  selected={tools.includes(tool)}
+                  key={name}
+                  selected={tools.includes(name)}
                   onClick={() =>
                     setTools(
-                      tools.includes(tool)
-                        ? tools.filter((item) => item !== tool)
-                        : [...tools, tool],
+                      tools.includes(name)
+                        ? tools.filter((item) => item !== name)
+                        : [...tools, name],
                     )
                   }
                 >
-                  {tool}
+                  <Icon />
+                  {name}
                 </Chip>
               ))}
             </div>
