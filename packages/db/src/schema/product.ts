@@ -187,7 +187,7 @@ export const runs = pgTable("runs", {
     .defaultNow(),
 });
 
-/** Cron metadata. Firing is the bot actor (`routine.wakeup`), not Postgres. */
+/** Cron metadata. The worker fires it (`routine.wakeup`); Postgres does not. */
 export const routines = pgTable("routines", {
   id: text("id").primaryKey(),
   workspaceId: text("workspace_id")

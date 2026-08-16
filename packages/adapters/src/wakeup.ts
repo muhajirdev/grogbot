@@ -8,8 +8,8 @@ interface BotActor {
 }
 
 /**
- * In-process stand-in for one actor per bot: serial queue + named delayed
- * schedules. Swap the body for a Cloudflare Durable Object later.
+ * In-process queue per bot: serial runs + named delayed schedules.
+ * Cron lives in the worker (croner) and enqueues onto this driver.
  */
 export class InProcessWakeupDriver implements WakeupDriver {
   private handlers: Record<string, Handler> = {};

@@ -56,7 +56,7 @@ export const GROGBOT_STACK = [
   "Marketing site: TanStack Start on Cloudflare Workers",
   "oRPC contract in @grogbot/contracts, client in @grogbot/rpc",
   "Postgres + Drizzle for team data",
-  "One actor per bot (Durable Object on Cloudflare; in-process locally) for wakeup, serial runs, and cron",
+  "Flue + Pi on Node; one wakeup queue per bot; Postgres for team data",
   "Better Auth (magic-link email, Google, GitHub)",
   "Sandboxes: Docker locally, E2B hosted, desktop on a trusted machine only",
 ] as const;
