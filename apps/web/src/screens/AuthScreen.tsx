@@ -1,59 +1,48 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link, useNavigate, useRouter } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { authClient } from "../lib/auth";
 import { orpc } from "../lib/orpc";
 
 type OAuthId = "google" | "github";
 
-function randomPassword() {
-  const bytes = new Uint8Array(24);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join(
-    "",
-  );
-}
-
 export function AuthScreen(props: { errorFromUrl?: string }) {
-  const router = useRouter();
-  const navigate = useNavigate();
   const health = useQuery(orpc.health.queryOptions());
   const [mode, setMode] = useState<"in" | "up">("up");
   const [emailOpen, setEmailOpen] = useState(false);
+  const [sentTo, setSentTo] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState(props.errorFromUrl ?? "");
   const [busy, setBusy] = useState(false);
   const emailRef = useRef<HTMLInputElement>(null);
   const oauth: OAuthId[] = health.data?.oauth ?? ["google", "github"];
+  const mail = health.data?.mail ?? "log";
 
   useEffect(() => {
     if (props.errorFromUrl) setError(props.errorFromUrl);
   }, [props.errorFromUrl]);
 
   useEffect(() => {
-    if (emailOpen) emailRef.current?.focus();
-  }, [emailOpen]);
+    if (emailOpen && !sentTo) emailRef.current?.focus();
+  }, [emailOpen, sentTo]);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     setBusy(true);
     setError("");
-    const result =
-      mode === "up"
-        ? await authClient.signUp.email({
-            name: email.split("@")[0] || "You",
-            email,
-            password: randomPassword(),
-          })
-        : await authClient.signIn.email({ email, password });
+    const result = await authClient.signIn.magicLink({
+      email,
+      name: email.split("@")[0] || "You",
+      callbackURL: "/",
+      newUserCallbackURL: "/",
+      errorCallbackURL: "/login",
+    });
     setBusy(false);
     if (result.error) {
-      setError(result.error.message ?? "Could not continue");
+      setError(result.error.message ?? "Could not send the sign-in link");
       return;
     }
-    await router.invalidate();
-    await navigate({ to: "/" });
+    setSentTo(email);
   }
 
   async function social(provider: OAuthId) {
@@ -83,7 +72,7 @@ export function AuthScreen(props: { errorFromUrl?: string }) {
         <p className="kicker">Grogbot</p>
         <h1>{mode === "up" ? "Create your workspace" : "Welcome back"}</h1>
         <p className="lede">
-          Google, GitHub, or email. This stays on your machine.
+          Google, GitHub, or a link we email you.
         </p>
         <div className="oauth">
           <button
@@ -106,44 +95,44 @@ export function AuthScreen(props: { errorFromUrl?: string }) {
             className="btn ghost"
             type="button"
             disabled={busy}
-            onClick={() => setEmailOpen(true)}
+            onClick={() => {
+              setEmailOpen(true);
+              setSentTo("");
+            }}
           >
             Continue with email
           </button>
         </div>
-        {emailOpen ? (
-          <>
-            <label className="field">
-              <span>Email</span>
-              <input
-                ref={emailRef}
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-              />
-            </label>
-            {mode === "in" ? (
-              <label className="field">
-                <span>Password</span>
-                <input
-                  type="password"
-                  required
-                  minLength={8}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
-                />
-              </label>
-            ) : null}
-          </>
+        {emailOpen && sentTo ? (
+          <p className="lede" style={{ marginTop: 16 }}>
+            Check {sentTo}. The sign-in link expires in 15 minutes.
+            {mail === "log"
+              ? " No Cloudflare mailer in .env — the link is in the API terminal."
+              : ""}
+          </p>
+        ) : null}
+        {emailOpen && !sentTo ? (
+          <label className="field">
+            <span>Email</span>
+            <input
+              ref={emailRef}
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+            />
+          </label>
         ) : null}
         {error ? <p className="error">{error}</p> : null}
         <div className="row auth-actions">
           {emailOpen ? (
-            <button className="btn" type="submit" disabled={busy}>
-              {busy ? "Working…" : mode === "up" ? "Continue" : "Sign in"}
+            <button className="btn" type="submit" disabled={busy || !email.trim()}>
+              {busy
+                ? "Sending…"
+                : sentTo
+                  ? "Send again"
+                  : "Email me a link"}
             </button>
           ) : null}
           <Link to="/" className="btn ghost">
@@ -155,7 +144,7 @@ export function AuthScreen(props: { errorFromUrl?: string }) {
           type="button"
           onClick={() => {
             setMode(mode === "up" ? "in" : "up");
-            setPassword("");
+            setSentTo("");
             setError("");
           }}
         >

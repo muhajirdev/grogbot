@@ -26,6 +26,7 @@ export const appContract = oc.router({
       sandbox: z.string(),
       wakeup: z.string(),
       oauth: z.array(z.enum(["google", "github"])),
+      mail: z.enum(["cloudflare", "log"]),
     }),
   ),
   me: oc.output(MeSchema),

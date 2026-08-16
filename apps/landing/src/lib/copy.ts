@@ -1,41 +1,49 @@
 export const JOBS = [
   {
     title: "Sales Outbound",
+    slug: "sales-outbound",
     pitch:
       "Draft follow-ups from the account list. Do not send mail. Ask before anything leaves the thread.",
   },
   {
     title: "Talent Scout",
+    slug: "talent-scout",
     pitch:
       "Source candidates from the brief. Never email anyone without approval. End with a shortlist and why.",
   },
   {
     title: "Paid Media",
+    slug: "paid-media",
     pitch:
       "Pull spend and results from the sources you name. Cite the sheet. Never change live campaigns.",
   },
   {
     title: "Expense Manager",
+    slug: "expense-manager",
     pitch:
       "Read receipts and statements. Flag anything over policy. Never submit or pay. Return a table of exceptions.",
   },
   {
     title: "Product Performance",
+    slug: "founder-analytics",
     pitch:
       "Pull the numbers you name. Cite the source. Never change production dashboards. Five bullets, then open questions.",
   },
   {
     title: "Bug Reproduction",
+    slug: "bug-reproduction",
     pitch:
       "Reproduce the bug from the report. Write steps, expected vs actual, and a minimal fixture. Do not change production.",
   },
   {
     title: "Account Health",
+    slug: "account-health",
     pitch:
       "Watch the accounts you name. Flag churn risk with evidence. Do not message the customer until you say so.",
   },
   {
     title: "Chief of Staff",
+    slug: "chief-of-staff",
     pitch:
       "Turn messy notes into decisions, owners, and dates. Stop if you would need to message anyone outside.",
   },
@@ -56,7 +64,7 @@ export const FAQS = [
   },
   {
     q: "Who hosts it?",
-    a: "You do. Grogbot is open source. Bring your own model keys. Optional Composio for Gmail, Slack, and GitHub. First tasks can be a file summary with no connector at all.",
+    a: "You do. Self-host for your team is free. Bring your own model keys. Optional Composio for Gmail, Slack, and GitHub. First tasks can be a file summary with no connector at all. Hosted grogbot.com is the cloud product.",
   },
   {
     q: "Where do I talk to a Bot?",

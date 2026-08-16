@@ -21,6 +21,10 @@ export interface Env {
   googleClientSecret?: string;
   githubClientId?: string;
   githubClientSecret?: string;
+  emailFrom?: string;
+  cloudflareAccountId?: string;
+  cloudflareEmailToken?: string;
+  production: boolean;
 }
 
 function pair(
@@ -101,5 +105,9 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     googleClientSecret: source.GOOGLE_CLIENT_SECRET,
     githubClientId: source.GITHUB_CLIENT_ID,
     githubClientSecret: source.GITHUB_CLIENT_SECRET,
+    emailFrom: source.EMAIL_FROM,
+    cloudflareAccountId: source.CLOUDFLARE_ACCOUNT_ID,
+    cloudflareEmailToken: source.CLOUDFLARE_EMAIL_API_TOKEN,
+    production: source.NODE_ENV === "production",
   };
 }

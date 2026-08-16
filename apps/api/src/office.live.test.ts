@@ -51,6 +51,7 @@ describe.skipIf(!dbUp)("office loop", () => {
     corsOrigins: [origin],
     sandboxProvider: "fake",
     agentRuntime: "scripted",
+    production: false,
   };
 
   let handles: AppHandles;

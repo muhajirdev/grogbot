@@ -1,6 +1,6 @@
 # Architecture
 
-**Grogbot** is open-core **Grok Bot**: named teammates with a real computer. Message them like people. Composio for Gmail/Slack/GitHub. Workspace-shared context and skills. BYOK models.
+**Grogbot** is fair-code **Grok Bot**: named teammates with a real computer. Message them like people. Composio for Gmail/Slack/GitHub. Workspace-shared context and skills. BYOK models. Self-host for your organization is free; grogbot.com is the hosted cloud.
 
 UI: copy Grok Bot simplicity — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md). Rooms later: [docs/rooms-plan.md](./docs/rooms-plan.md).
 
@@ -32,7 +32,7 @@ The **workspace** (Better Auth org) also has:
 | UI | Messaging app. **Web first** (SPA). Marketing is **TanStack Start** at grogbot.com. Packaged desktop loads app.grogbot.com (API: api.grogbot.com). Dev desktop loads local Vite. Mobile = Expo later |
 | API | **oRPC** — contract in `@grogbot/contracts`, client in `@grogbot/rpc` |
 | Web | **Vite + React 19 + TanStack Router** (SPA). oRPC queries via `@orpc/tanstack-query`. Not TanStack Start — API stays Hono so Electron can load the same origin. |
-| Landing | **TanStack Start** marketing site. SSR for grogbot.com. CTAs go to the office SPA. |
+| Landing | **TanStack Start** on **Cloudflare Workers** (`apps/landing/wrangler.jsonc`). SSR for grogbot.com. CTAs go to the office SPA. |
 | Actor | **One Rivet actor per bot** |
 | Computer | **Workspace default computer.** New computer = isolated sandbox. GUI serialized per computer. |
 | Shared data | **One Postgres** — auth, bots, threads, messages, skills, artifacts |
@@ -40,7 +40,7 @@ The **workspace** (Better Auth org) also has:
 | First cloud | **Fly or Railway** — Node API + actor host (worker) |
 | Cloudflare later | **Rivet’s Durable Object driver** |
 | ORM | **Drizzle** + Postgres |
-| Auth | **Better Auth** — email/password, Google, GitHub. Organizations = workspaces |
+| Auth | **Better Auth** — magic-link email (Cloudflare Email Sending REST), Google, GitHub. Organizations = workspaces |
 | Models | **Pi** catalog + BYOK |
 | Sandbox | `docker` local · `e2b` hosted · `desktop` trusted machine only · `fake` tests |
 | Homes | Disk v1 · `HomeStore` → R2 later |
@@ -48,6 +48,7 @@ The **workspace** (Better Auth org) also has:
 | Plugins | **Composio** (optional) |
 | Rooms v1 | Bot’s office. Multi-bot rooms: plan only |
 | Hosted billing | **Later.** Polar research: [docs/polar-integration.md](./docs/polar-integration.md). Self-host stays free. Not v1. |
+| License | **Fair-code** (Apache 2.0 + no competing hosted cloud). [LICENSE](./LICENSE). Not MIT. |
 
 ## Wakeup (Rivet)
 

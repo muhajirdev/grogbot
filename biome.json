@@ -17,7 +17,8 @@
       "*.json",
       "!**/routeTree.gen.ts",
       "!**/dist",
-      "!**/.output"
+      "!**/.output",
+      "!apps/landing/src/data/composio-toolkits.json"
     ]
   }
 }

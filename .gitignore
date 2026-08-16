@@ -5,7 +5,8 @@ dist
 .DS_Store
 .env
 .env.local
-data
+.dev.vars
+/data
 *.log
 coverage
 .vite

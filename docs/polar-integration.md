@@ -8,7 +8,7 @@ Polar docs index: [polar.sh/docs/llms.txt](https://polar.sh/docs/llms.txt). Prim
 
 ## Why Polar (for hosted cloud)
 
-Grogbot is MIT, workspace-scoped, BYOK by default, and will eventually charge for **hosted** compute (E2B, Fly/Railway), not for the source.
+Grogbot is fair-code (Apache 2.0 plus no competing hosted cloud), workspace-scoped, BYOK by default, and will eventually charge for **hosted** compute (E2B, Fly/Railway), not for the source. Self-host for your own organization stays free; offering Grogbot as a cloud to third parties needs a commercial license.
 
 | Need | Polar | Stripe-as-PSP |
 | --- | --- | --- |
@@ -168,7 +168,7 @@ Keep Polar out of the Better Auth client. Add to `packages/contracts`:
 
 ## What to sell (product, not Polar objects)
 
-Self-host: MIT, BYOK, Docker computers, Polar off.
+Self-host: fair-code license, BYOK, Docker computers, Polar off. Your organization only — not a public grogbot.com clone.
 
 Hosted grogbot.com (strawman — pricing TBD):
 

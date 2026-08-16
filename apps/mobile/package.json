@@ -1,7 +1,7 @@
 {
   "name": "@grogbot/mobile",
   "version": "0.0.1",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "private": true,
   "main": "index.ts",
   "scripts": {

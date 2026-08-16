@@ -5,29 +5,28 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { NotFoundPage } from "../components/NotFound";
 import appCss from "../styles.css?url";
-
-const title = "Grogbot — Create a Bot, message it, grant access as needed.";
-const description =
-  "No workflow builder. Open-source Grok Bot with a real computer, a shared default computer, and bring-your-own keys.";
+import { DEFAULT_DESCRIPTION, DEFAULT_TITLE } from "../lib/site";
 
 export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title },
-      { name: "description", content: description },
-      { name: "og:title", content: title },
-      { name: "og:description", content: description },
+      { title: DEFAULT_TITLE },
+      { name: "description", content: DEFAULT_DESCRIPTION },
+      { name: "og:title", content: DEFAULT_TITLE },
+      { name: "og:description", content: DEFAULT_DESCRIPTION },
       { name: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: title },
-      { name: "twitter:description", content: description },
+      { name: "twitter:title", content: DEFAULT_TITLE },
+      { name: "twitter:description", content: DEFAULT_DESCRIPTION },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
   component: RootComponent,
+  notFoundComponent: NotFoundPage,
 });
 
 function RootComponent() {

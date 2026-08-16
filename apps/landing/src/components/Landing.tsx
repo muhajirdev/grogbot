@@ -1,28 +1,13 @@
 import { MascotMark } from "@grogbot/mascot";
+import { Link } from "@tanstack/react-router";
 import { type ReactNode, useState } from "react";
 import { FAQS, JOBS, SOURCE_REPO } from "../lib/copy";
+import { HOME_INTEGRATIONS, HOME_USE_CASES } from "../lib/teasers";
+import { SiteChrome } from "./SiteChrome";
 
 export function Landing(props: { startUrl: string }) {
   return (
-    <div className="page">
-      <header className="nav">
-        <a className="brand" href="#top">
-          <MascotMark name="Grogbot" color="#e45c9a" shape="circle" size="sm" />
-          Grogbot
-        </a>
-        <nav className="nav-links" aria-label="Page">
-          <a href="#how">How it works</a>
-          <a href="#jobs">Jobs</a>
-          <a href="#faq">FAQ</a>
-          <a href={SOURCE_REPO} target="_blank" rel="noreferrer">
-            GitHub
-          </a>
-          <a className="btn" href={props.startUrl}>
-            Get started
-          </a>
-        </nav>
-      </header>
-
+    <SiteChrome startUrl={props.startUrl}>
       <main id="top">
         <section className="hero">
           <p className="kicker">Grogbot</p>
@@ -84,6 +69,51 @@ export function Landing(props: { startUrl: string }) {
 
         <JobsShowcase />
 
+        <section className="band">
+          <p className="kicker">Integrations</p>
+          <h2>Composio for the giants. A computer for the indie stack.</h2>
+          <p className="lede tight">
+            Gmail, Slack, GitHub, Typefully via Composio. DataFast, Postiz, and
+            Post Bridge on the Bot&apos;s computer — Marc Lou, Jack Friks, and
+            the rest of Twitter, no Zapier cartoon.
+          </p>
+          <div className="chips">
+            {HOME_INTEGRATIONS.map((item) => (
+              <Link
+                key={item.slug}
+                className="chip"
+                to="/integrations/$slug"
+                params={{ slug: item.slug }}
+              >
+                {item.name}
+              </Link>
+            ))}
+            <Link className="chip" to="/integrations">
+              All integrations
+            </Link>
+          </div>
+        </section>
+
+        <section className="band">
+          <p className="kicker">Use cases</p>
+          <h2>The jobs people actually hire.</h2>
+          <div className="chips">
+            {HOME_USE_CASES.map((item) => (
+              <Link
+                key={item.slug}
+                className="chip"
+                to="/use-cases/$slug"
+                params={{ slug: item.slug }}
+              >
+                {item.title}
+              </Link>
+            ))}
+            <Link className="chip" to="/use-cases">
+              All use cases
+            </Link>
+          </div>
+        </section>
+
         <section className="band split">
           <div>
             <p className="kicker">Yours</p>
@@ -129,14 +159,7 @@ export function Landing(props: { startUrl: string }) {
           </a>
         </section>
       </main>
-
-      <footer className="foot">
-        <span>Grogbot — Grok, then grog. MIT.</span>
-        <a href={SOURCE_REPO} target="_blank" rel="noreferrer">
-          GitHub
-        </a>
-      </footer>
-    </div>
+    </SiteChrome>
   );
 }
 
@@ -279,6 +302,7 @@ function PreviewConv(props: {
 function JobsShowcase() {
   const first: (typeof JOBS)[number] = JOBS[0] ?? {
     title: "Sales Outbound",
+    slug: "sales-outbound",
     pitch:
       "Draft follow-ups from the account list. Do not send mail. Ask before anything leaves the thread.",
   };
@@ -305,6 +329,11 @@ function JobsShowcase() {
         ))}
       </div>
       <p className="job-pitch">{active.pitch}</p>
+      <p className="job-more">
+        <Link to="/use-cases/$slug" params={{ slug: active.slug }}>
+          How this job works
+        </Link>
+      </p>
     </section>
   );
 }

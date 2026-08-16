@@ -2,6 +2,8 @@
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md) for locked decisions (Rivet actor per bot, Postgres for team data, oRPC, web-first clients).
 
+Contributions are under the [Grogbot License](./LICENSE): self-host for your organization is free; the authors may use contributions in grogbot.com and may tighten or relax the license.
+
 ```bash
 pnpm install
 pnpm test
