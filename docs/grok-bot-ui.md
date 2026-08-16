@@ -30,7 +30,7 @@ Quote they highlight: *“There wasn’t anything to learn. It was just like bri
 Copy this:
 
 - First action is **talk**, not configure a graph.
-- A Bot is a **contact**: name, title, description, avatar, one thread.
+- A Bot is a **contact**: name, optional job, description, avatar, one thread.
 - Computer is a **pane you can ignore**. Work continues if you close it.
 - Plugins exist, but first task can be “summarize this file” with no connector.
 - Sign-in to tools happens **when the Bot hits a wall**, via computer takeover — not a 20-field setup wizard.
@@ -89,7 +89,7 @@ Docs examples: **Talent Scout**, **Expense Manager**, **Bug Reproduction**. Avoi
 ## Visual style
 
 - **Messaging app**, not a dashboard. No kanban of agents as the home screen.
-- Each Bot: **short name**, **job title**, **description**, **avatar**.
+- Each Bot: **short name**, optional **job**, **description**, **avatar**.
 - Avatar onboarding: pick a **color and shape** (geometric, not a photoreal face). Sidebar shows that mark like a contact photo.
 - Appearance: Follow system / Light / Dark (`Cmd/Ctrl+,`).
 - Attention in the list:
@@ -128,7 +128,7 @@ Desktop ([get started](https://docs.x.ai/grok-bot/get-started)):
 Create-your-own fields (example from docs):
 
 - **Name:** Piper
-- **Job:** Product performance
+- **Job:** Product performance (optional)
 - **Description:** operational rules — sources, output shape, **never** change production.
 
 After that, **New** / `Cmd+N` → **Create new agent** → opens **New Agent** → **Bot actions → Edit Profile** (name, title, description, avatar) → give a task.

@@ -15,7 +15,7 @@ export function Onboarding() {
   const [step, setStep] = useState(0);
   const [tools, setTools] = useState<string[]>([]);
   const [name, setName] = useState("Piper");
-  const [title, setTitle] = useState("Product performance");
+  const [title, setTitle] = useState("");
   const [description, setDescription] = useState(
     "Operational rules — sources, output shape, never change production.",
   );
@@ -146,7 +146,7 @@ export function Onboarding() {
         ) : null}
         {step === 4 ? (
           <>
-            <h1>Name + job + how it should work.</h1>
+            <h1>Name + how it should work.</h1>
             <div
               style={{
                 display: "flex",
@@ -187,8 +187,12 @@ export function Onboarding() {
               />
             </label>
             <label className="field">
-              <span>Job</span>
-              <input value={title} onChange={(e) => setTitle(e.target.value)} />
+              <span>Job (optional)</span>
+              <input
+                value={title}
+                placeholder="Talent Scout"
+                onChange={(e) => setTitle(e.target.value)}
+              />
             </label>
             <label className="field">
               <span>How it should work</span>

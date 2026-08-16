@@ -219,7 +219,7 @@ export async function createOfficeBot(
   actor: Actor,
   input: {
     name: string;
-    title: string;
+    title?: string;
     description: string;
     instructions: string;
     avatarColor: string;
@@ -241,7 +241,7 @@ export async function createOfficeBot(
     userId: actor.userId,
     computerId: computer.id,
     name: input.name,
-    title: input.title,
+    title: input.title?.trim() ?? "",
     description: input.description,
     instructions: input.instructions,
     avatarColor: input.avatarColor,
@@ -293,7 +293,7 @@ export async function updateOfficeBot(
     .update(bots)
     .set({
       name: input.name ?? bot.name,
-      title: input.title ?? bot.title,
+      title: input.title !== undefined ? input.title.trim() : bot.title,
       description: input.description ?? bot.description,
       instructions: input.instructions ?? bot.instructions,
       avatarColor: input.avatarColor ?? bot.avatarColor,

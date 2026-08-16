@@ -242,7 +242,7 @@ export function Office(props: { botId: string }) {
               />
               <span>
                 <div className="name">{item.name}</div>
-                <div className="title">{item.title || "Teammate"}</div>
+                {item.title ? <div className="title">{item.title}</div> : null}
                 {item.computerName ? (
                   <div className="title">{item.computerName}</div>
                 ) : null}
@@ -265,7 +265,7 @@ export function Office(props: { botId: string }) {
         <div className="thread-head">
           <div>
             <strong className="ui">{bot?.name ?? "—"}</strong>
-            <div className="title">{bot?.title}</div>
+            {bot?.title ? <div className="title">{bot.title}</div> : null}
           </div>
           <div className="row">
             {working ? (
@@ -510,8 +510,12 @@ function ProfileModal(props: {
         <input value={name} onChange={(e) => setName(e.target.value)} />
       </label>
       <label className="field">
-        <span>Job</span>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} />
+        <span>Job (optional)</span>
+        <input
+          value={title}
+          placeholder="Talent Scout"
+          onChange={(e) => setTitle(e.target.value)}
+        />
       </label>
       <label className="field">
         <span>How it should work</span>
@@ -666,8 +670,12 @@ function NewBotModal(props: {
         <input value={name} onChange={(e) => setName(e.target.value)} />
       </label>
       <label className="field">
-        <span>Job</span>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} />
+        <span>Job (optional)</span>
+        <input
+          value={title}
+          placeholder="Talent Scout"
+          onChange={(e) => setTitle(e.target.value)}
+        />
       </label>
       <label className="field">
         <span>How it should work</span>

@@ -119,6 +119,9 @@ describe.skipIf(!dbUp)("office loop", () => {
     });
     expect(bot.name).toBe("Piper");
 
+    const nameless = await rpc.bots.create({ name: "Scout" });
+    expect(nameless.title).toBe("");
+
     const listed = await rpc.bots.list();
     expect(listed.some((item) => item.id === bot.id)).toBe(true);
 
