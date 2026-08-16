@@ -41,7 +41,7 @@ The **workspace** (Better Auth org) also has:
 | Cloudflare later | **Rivet’s Durable Object driver** |
 | ORM | **Drizzle** + Postgres |
 | Auth | **Better Auth** — magic-link email (Cloudflare Email Sending REST), Google, GitHub. Organizations = workspaces |
-| Models | **Pi** catalog + BYOK |
+| Models | **AI Gateway** (Cloudflare + OpenRouter), default DeepSeek v4 Flash. Pi catalog + BYOK later |
 | Sandbox | `docker` local · `e2b` hosted · `desktop` trusted machine only · `fake` tests |
 | Homes | Disk v1 · `HomeStore` → R2 later |
 | Realtime | oRPC event iterator now · actor WebSocket later if needed |
@@ -77,9 +77,9 @@ Mobile (Expo) ────┘          │
                              │
            ┌─────────────────┼─────────────────┐
            ▼                 ▼                 ▼
-      Pi (BYOK)         Sandbox            Composio
-      + workspace       docker/e2b         (if key set)
-        skills
+           ▼                 ▼                 ▼
+      AI Gateway        Sandbox            Composio
+      CF / OpenRouter   docker/e2b         (if key set)
 
 Landing (Start :5174) ──► CTAs to the web office (no oRPC)
 ```
@@ -122,7 +122,7 @@ The Rivet actor is still the bot. If the guest is offline, the run stays queued 
 1. Monorepo, schema, auth, health, Rivet wakeup stub, oRPC contract *(this)*
 2. `threads.send` → bot actor → scripted runtime
 3. Docker computer
-4. Pi + BYOK
+4. AI Gateway (Cloudflare / OpenRouter) + DeepSeek v4 Flash
 5. Thin **web** shell — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md)
 6. Workspace context + skills in the system prompt
 7. Composio plugins UI

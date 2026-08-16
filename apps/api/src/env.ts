@@ -1,3 +1,4 @@
+import type { GatewayEnv } from "@grogbot/adapters";
 import {
   CLOUD_API_ORIGIN,
   CLOUD_LANDING_ORIGIN,
@@ -21,8 +22,13 @@ export interface Env {
   googleClientSecret?: string;
   githubClientId?: string;
   githubClientSecret?: string;
-  emailFrom?: string;
+  aiGatewayProvider?: string;
+  aiGatewayModel?: string;
   cloudflareAccountId?: string;
+  cloudflareApiToken?: string;
+  cloudflareAiGatewayId?: string;
+  openrouterApiKey?: string;
+  emailFrom?: string;
   cloudflareEmailToken?: string;
   production: boolean;
 }
@@ -105,9 +111,27 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     googleClientSecret: source.GOOGLE_CLIENT_SECRET,
     githubClientId: source.GITHUB_CLIENT_ID,
     githubClientSecret: source.GITHUB_CLIENT_SECRET,
-    emailFrom: source.EMAIL_FROM,
+    aiGatewayProvider: source.AI_GATEWAY_PROVIDER,
+    aiGatewayModel: source.AI_GATEWAY_MODEL,
     cloudflareAccountId: source.CLOUDFLARE_ACCOUNT_ID,
+    cloudflareApiToken:
+      source.CLOUDFLARE_API_TOKEN ?? source.CLOUDFLARE_AUTH_TOKEN,
+    cloudflareAiGatewayId: source.CLOUDFLARE_AI_GATEWAY_ID,
+    openrouterApiKey: source.OPENROUTER_API_KEY,
+    emailFrom: source.EMAIL_FROM,
     cloudflareEmailToken: source.CLOUDFLARE_EMAIL_API_TOKEN,
     production: source.NODE_ENV === "production",
+  };
+}
+
+export function gatewaySource(env: Env): GatewayEnv {
+  return {
+    AI_GATEWAY_PROVIDER: env.aiGatewayProvider,
+    AI_GATEWAY_MODEL: env.aiGatewayModel,
+    CLOUDFLARE_ACCOUNT_ID: env.cloudflareAccountId,
+    CLOUDFLARE_API_TOKEN: env.cloudflareApiToken,
+    CLOUDFLARE_AI_GATEWAY_ID: env.cloudflareAiGatewayId,
+    OPENROUTER_API_KEY: env.openrouterApiKey,
+    WEB_ORIGIN: env.webOrigin,
   };
 }

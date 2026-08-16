@@ -4,6 +4,20 @@ import type {
   AgentRuntime,
   AgentRuntimeEvent,
 } from "@grogbot/adapter-kit";
+import {
+  chatMessages,
+  deltaText,
+  type GatewayConfig,
+  type GatewayEnv,
+  type GatewayProvider,
+  gatewayChatUrl,
+  gatewayErrorMessage,
+  gatewayHeaders,
+  isGatewayProvider,
+  loadGatewayConfig,
+  readSseData,
+  unwrapGatewayPayload,
+} from "./gateway.js";
 
 export class ScriptedAgentRuntime implements AgentRuntime {
   private running = new Map<string, AbortController>();
@@ -18,11 +32,12 @@ export class ScriptedAgentRuntime implements AgentRuntime {
   ): AsyncIterable<AgentRuntimeEvent> {
     const controller = new AbortController();
     this.running.set(request.runId, controller);
-    const signal = context.signal ?? controller.signal;
+    const signal = mergeSignals(context.signal, controller.signal);
     yield { type: "progress", text: "working…" };
     await new Promise((resolve) => setTimeout(resolve, 450));
     if (signal.aborted) {
       yield { type: "done", text: "stopped" };
+      this.running.delete(request.runId);
       return;
     }
     const reply = `Echo: ${request.prompt}`;
@@ -30,4 +45,158 @@ export class ScriptedAgentRuntime implements AgentRuntime {
     yield { type: "done", text: reply };
     this.running.delete(request.runId);
   }
+}
+
+export class GatewayAgentRuntime implements AgentRuntime {
+  private running = new Map<string, AbortController>();
+
+  constructor(private readonly config: GatewayConfig) {}
+
+  async abort(runId: string): Promise<void> {
+    this.running.get(runId)?.abort();
+  }
+
+  async *run(
+    request: AgentRunRequest,
+    context: AdapterContext,
+  ): AsyncIterable<AgentRuntimeEvent> {
+    const controller = new AbortController();
+    this.running.set(request.runId, controller);
+    const signal = mergeSignals(context.signal, controller.signal);
+    yield { type: "progress", text: "working…" };
+    let reply = "";
+    try {
+      const response = await this.config.fetch(gatewayChatUrl(this.config), {
+        method: "POST",
+        headers: gatewayHeaders(this.config),
+        body: JSON.stringify({
+          model: this.config.model,
+          stream: true,
+          messages: chatMessages(request),
+        }),
+        signal,
+      });
+      const raw = await readResponseBody(response);
+      if (!response.ok) {
+        const text =
+          raw.text || (raw.stream ? await new Response(raw.stream).text() : "");
+        throw new Error(gatewayErrorMessage(response.status, text));
+      }
+      if (raw.stream) {
+        for await (const data of readSseData(raw.stream, signal)) {
+          if (signal.aborted) break;
+          let payload: unknown;
+          try {
+            payload = JSON.parse(data) as unknown;
+          } catch {
+            continue;
+          }
+          const chunk = deltaText(payload);
+          if (!chunk) continue;
+          reply += chunk;
+          yield { type: "progress", text: reply };
+        }
+      } else {
+        reply = completionText(raw.text);
+      }
+      if (signal.aborted) {
+        yield { type: "done", text: reply || "stopped" };
+        return;
+      }
+      if (!reply.trim()) {
+        throw new Error("AI gateway returned an empty reply");
+      }
+      yield { type: "text", text: reply };
+      yield { type: "done", text: reply };
+    } catch (error) {
+      if (isAbortError(error) || signal.aborted) {
+        yield { type: "done", text: reply || "stopped" };
+        return;
+      }
+      const message =
+        error instanceof Error ? error.message : "AI gateway failed";
+      yield { type: "error", text: message };
+    } finally {
+      this.running.delete(request.runId);
+    }
+  }
+}
+
+function completionText(body: string): string {
+  try {
+    const payload = unwrapGatewayPayload(JSON.parse(body) as unknown);
+    return deltaText(payload).trim();
+  } catch {
+    return body.trim();
+  }
+}
+
+async function readResponseBody(response: Response): Promise<{
+  text: string;
+  stream?: ReadableStream<Uint8Array>;
+}> {
+  const contentType = response.headers.get("content-type") ?? "";
+  if (contentType.includes("event-stream") && response.body) {
+    return { text: "", stream: response.body };
+  }
+  const text = await response.text();
+  if (looksLikeSse(text)) {
+    return { text, stream: encodedStream(text) };
+  }
+  return { text };
+}
+
+function looksLikeSse(text: string): boolean {
+  return /^\s*data:/m.test(text) || text.includes("data: [DONE]");
+}
+
+function encodedStream(text: string): ReadableStream<Uint8Array> {
+  const bytes = new TextEncoder().encode(text);
+  return new ReadableStream({
+    start(controller) {
+      controller.enqueue(bytes);
+      controller.close();
+    },
+  });
+}
+
+function mergeSignals(
+  left: AbortSignal | undefined,
+  right: AbortSignal,
+): AbortSignal {
+  if (!left) return right;
+  return AbortSignal.any([left, right]);
+}
+
+function isAbortError(error: unknown): boolean {
+  return (
+    (error instanceof Error && error.name === "AbortError") ||
+    (typeof DOMException !== "undefined" &&
+      error instanceof DOMException &&
+      error.name === "AbortError")
+  );
+}
+
+export function createAgentRuntime(
+  kind = "scripted",
+  source: GatewayEnv = process.env,
+  fetchImpl?: typeof fetch,
+): AgentRuntime {
+  const runtime = kind.trim() || "scripted";
+  if (runtime === "scripted") return new ScriptedAgentRuntime();
+  if (
+    runtime === "gateway" ||
+    runtime === "openrouter" ||
+    runtime === "cloudflare"
+  ) {
+    const provider: GatewayProvider | undefined = isGatewayProvider(runtime)
+      ? runtime
+      : undefined;
+    return new GatewayAgentRuntime(
+      loadGatewayConfig(source, { provider, fetch: fetchImpl }),
+    );
+  }
+  throw new Error(
+    `Unknown AGENT_RUNTIME "${kind}". Use scripted, gateway, openrouter, or cloudflare.`,
+  );
 }

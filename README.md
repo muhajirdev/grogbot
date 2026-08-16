@@ -52,6 +52,8 @@ Email sign-in sends a magic link through **Cloudflare Email Sending** (REST). Th
 
 The scripted runtime echoes so you can test the loop without model keys.
 
+For live model replies, set `AGENT_RUNTIME=gateway`. That uses an OpenAI-compatible **AI Gateway**: **Cloudflare AI Gateway** by default (`@cf/deepseek-ai/deepseek-v4-flash-0731` on Workers AI), or **OpenRouter** (`AI_GATEWAY_PROVIDER=openrouter`, `deepseek/deepseek-v4-flash-0731`). Put `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` (and optional `CLOUDFLARE_AI_GATEWAY_ID`, default `default`) or `OPENROUTER_API_KEY` in `.env`. Tests stay on `scripted`.
+
 Landing (marketing site, TanStack Start):
 
 ```bash
