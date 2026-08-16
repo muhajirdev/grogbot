@@ -1,7 +1,9 @@
 import type { Bot, ComputerStatus, GuestAgentKind } from "@grogbot/contracts";
-import { MODEL_CATALOG } from "@grogbot/contracts";
+import { PROVIDER_META } from "@grogbot/contracts";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { AVATAR_COLORS, AVATAR_SHAPES } from "../lib/jobs";
+import { orpc } from "../lib/orpc";
 import { readNotify, writeNotify } from "../lib/prefs";
 import { client } from "../lib/rpc";
 import { AvatarMark, ShapePicks } from "./Avatar";
@@ -28,14 +30,21 @@ export function BotSettingsPane(props: {
     command: string;
     kind: string;
   } | null>(null);
-  const listed = MODEL_CATALOG.some((item) => item.id === bot.model);
+  const modelsQuery = useQuery(orpc.models.get.queryOptions());
+  const catalog = modelsQuery.data?.catalog ?? [];
+  const defaultLabel =
+    modelsQuery.data?.catalog.find(
+      (item) => item.id === modelsQuery.data?.defaultModelId,
+    )?.label ?? "workspace default";
+  const listed = catalog.some((item) => item.id === bot.model);
   const [model, setModel] = useState(
     listed || !bot.model ? bot.model : "custom",
   );
   const [customModel, setCustomModel] = useState(listed ? "" : bot.model);
 
   useEffect(() => {
-    const inCatalog = MODEL_CATALOG.some((item) => item.id === bot.model);
+    const ids = modelsQuery.data?.catalog ?? [];
+    const inCatalog = ids.some((item) => item.id === bot.model);
     setName(bot.name);
     setTitle(bot.title);
     setDescription(bot.description);
@@ -47,7 +56,7 @@ export function BotSettingsPane(props: {
     setIssued(null);
     setGuestError("");
     setAdvancedOpen(bot.guestKind !== "off");
-  }, [bot]);
+  }, [bot, modelsQuery.data]);
 
   async function save(patch: {
     name?: string;
@@ -159,12 +168,23 @@ export function BotSettingsPane(props: {
               if (next !== "custom") void save({ model: next });
             }}
           >
-            <option value="">Workspace default</option>
-            {MODEL_CATALOG.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.label}
-              </option>
-            ))}
+            <option value="">Workspace default ({defaultLabel})</option>
+            {(["openrouter", "anthropic", "openai", "cloudflare"] as const)
+              .filter((provider) =>
+                catalog.some((item) => item.provider === provider),
+              )
+              .map((provider) => (
+                <optgroup key={provider} label={PROVIDER_META[provider].label}>
+                  {catalog
+                    .filter((item) => item.provider === provider)
+                    .map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.label}
+                        {item.available ? "" : " — needs key"}
+                      </option>
+                    ))}
+                </optgroup>
+              ))}
             <option value="custom">Custom…</option>
           </select>
         </label>

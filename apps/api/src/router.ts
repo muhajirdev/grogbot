@@ -1,18 +1,19 @@
 import { isOfflineAgentRuntime } from "@grogbot/adapters";
-import { appContract } from "@grogbot/contracts";
+import { appContract, labelForModel } from "@grogbot/contracts";
 import {
   encryptionSecret,
   getBotComputer,
   listEventsAfter,
   loadModelSettings,
+  ModelSettingsError,
   saveModelSettings,
   sleep,
   toBotDto,
   userHasModelCredentials,
 } from "@grogbot/core";
 import { guestConnectors, userModelCredentials } from "@grogbot/db";
-import { implement } from "@orpc/server";
-import { and, eq } from "drizzle-orm";
+import { implement, ORPCError } from "@orpc/server";
+import { eq } from "drizzle-orm";
 import type { RpcContext } from "./context.js";
 import { agentRuntimeSource } from "./env.js";
 import {
@@ -44,15 +45,19 @@ export const appRouter = os.router({
   health: os.health.handler(async ({ context }) => healthPayload(context.env)),
   me: os.me.handler(async ({ context }) => {
     const actor = await requireActor(context);
+    const source = agentRuntimeSource(context.env);
+    const secret = encryptionSecret(
+      {
+        ENCRYPTION_KEY: context.env.encryptionKey,
+        BETTER_AUTH_SECRET: context.env.authSecret,
+      },
+      context.env.production,
+    );
+    const settings = await loadModelSettings(context.db, actor, source, secret);
     const creds = await context.db
       .select()
       .from(userModelCredentials)
-      .where(
-        and(
-          eq(userModelCredentials.userId, actor.userId),
-          eq(userModelCredentials.workspaceId, actor.workspaceId),
-        ),
-      )
+      .where(eq(userModelCredentials.workspaceId, actor.workspaceId))
       .limit(1);
     return {
       userId: actor.userId,
@@ -62,7 +67,9 @@ export const appRouter = os.router({
       isDeploymentOwner: actor.isDeploymentOwner,
       needsModel:
         !isOfflineAgentRuntime(context.env.agentRuntime) &&
-        !userHasModelCredentials(creds.length, agentRuntimeSource(context.env)),
+        !userHasModelCredentials(creds.length, source),
+      defaultModel: settings.defaultModelId,
+      defaultModelLabel: labelForModel(settings.defaultModelId),
     };
   }),
   models: {
@@ -72,24 +79,37 @@ export const appRouter = os.router({
         context.db,
         actor,
         agentRuntimeSource(context.env),
-        encryptionSecret({
-          ENCRYPTION_KEY: context.env.encryptionKey,
-          BETTER_AUTH_SECRET: context.env.authSecret,
-        }),
+        encryptionSecret(
+          {
+            ENCRYPTION_KEY: context.env.encryptionKey,
+            BETTER_AUTH_SECRET: context.env.authSecret,
+          },
+          context.env.production,
+        ),
       );
     }),
     save: os.models.save.handler(async ({ context, input }) => {
       const actor = await requireActor(context);
-      return saveModelSettings(
-        context.db,
-        actor,
-        input,
-        encryptionSecret({
-          ENCRYPTION_KEY: context.env.encryptionKey,
-          BETTER_AUTH_SECRET: context.env.authSecret,
-        }),
-        agentRuntimeSource(context.env),
-      );
+      try {
+        return await saveModelSettings(
+          context.db,
+          actor,
+          input,
+          encryptionSecret(
+            {
+              ENCRYPTION_KEY: context.env.encryptionKey,
+              BETTER_AUTH_SECRET: context.env.authSecret,
+            },
+            context.env.production,
+          ),
+          agentRuntimeSource(context.env),
+        );
+      } catch (caught) {
+        if (caught instanceof ModelSettingsError) {
+          throw new ORPCError("BAD_REQUEST", { message: caught.message });
+        }
+        throw caught;
+      }
     }),
   },
   bots: {

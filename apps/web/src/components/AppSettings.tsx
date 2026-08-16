@@ -1,5 +1,5 @@
-import type { Me, ModelProvider } from "@grogbot/contracts";
-import { MODEL_CATALOG } from "@grogbot/contracts";
+import type { Me, ModelCatalogItem, ModelProvider } from "@grogbot/contracts";
+import { isGatewayRuntime, PROVIDER_META } from "@grogbot/contracts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { orpc } from "../lib/orpc";
@@ -207,27 +207,11 @@ export function AppSettings(props: {
   );
 }
 
-const KEY_FIELDS: Array<{
-  provider: ModelProvider;
-  label: string;
-  placeholder: string;
-}> = [
-  {
-    provider: "anthropic",
-    label: "Anthropic",
-    placeholder: "sk-ant-…",
-  },
-  { provider: "openai", label: "OpenAI", placeholder: "sk-…" },
-  {
-    provider: "openrouter",
-    label: "OpenRouter",
-    placeholder: "sk-or-…",
-  },
-  {
-    provider: "cloudflare",
-    label: "Cloudflare API token",
-    placeholder: "Workers AI / AI Gateway token",
-  },
+const PROVIDER_ORDER: ModelProvider[] = [
+  "openrouter",
+  "anthropic",
+  "openai",
+  "cloudflare",
 ];
 
 function ModelsTab() {
@@ -237,8 +221,8 @@ function ModelsTab() {
   const [drafts, setDrafts] = useState<Partial<Record<ModelProvider, string>>>(
     {},
   );
-  const [accountId, setAccountId] = useState("");
-  const [gatewayId, setGatewayId] = useState("");
+  const [accountId, setAccountId] = useState<string>();
+  const [gatewayId, setGatewayId] = useState<string>();
   const [defaultModel, setDefaultModel] = useState<string>();
   const [customModel, setCustomModel] = useState<string>();
   const [busy, setBusy] = useState(false);
@@ -247,6 +231,28 @@ function ModelsTab() {
 
   const selectedModel = defaultModel ?? settings?.defaultModel ?? "";
   const custom = customModel ?? settings?.customModel ?? "";
+  const cf = settings?.keys.find((item) => item.provider === "cloudflare");
+  const cfAccount = accountId ?? cf?.accountId ?? "";
+  const cfGateway = gatewayId ?? cf?.gatewayId ?? "";
+  const providers = PROVIDER_ORDER.filter(
+    (provider) =>
+      provider !== "cloudflare" || isGatewayRuntime(settings?.runtime),
+  );
+  const grouped = new Map<ModelProvider, ModelCatalogItem[]>();
+  for (const item of settings?.catalog ?? []) {
+    const list = grouped.get(item.provider) ?? [];
+    list.push(item);
+    grouped.set(item.provider, list);
+  }
+  const selectedMeta = settings?.catalog.find(
+    (item) => item.id === selectedModel,
+  );
+  const warning =
+    selectedModel === "custom"
+      ? settings?.warning
+      : selectedMeta && !selectedMeta.available
+        ? `${selectedMeta.label} needs a ${PROVIDER_META[selectedMeta.provider].label} key.`
+        : settings?.warning;
 
   async function save() {
     if (!settings) return;
@@ -257,24 +263,22 @@ function ModelsTab() {
       const next = await client.models.save({
         defaultModel: selectedModel || "custom",
         customModel: custom,
-        keys: KEY_FIELDS.map(({ provider }) => ({
+        keys: providers.map((provider) => ({
           provider,
           secret: drafts[provider]?.trim() || undefined,
           accountId:
             provider === "cloudflare"
-              ? accountId.trim() || undefined
+              ? cfAccount.trim() || undefined
               : undefined,
           gatewayId:
             provider === "cloudflare"
-              ? gatewayId.trim() || undefined
+              ? cfGateway.trim() || undefined
               : undefined,
         })),
       });
       queryClient.setQueryData(orpc.models.get.queryOptions().queryKey, next);
       await queryClient.invalidateQueries({ queryKey: orpc.me.key() });
       setDrafts({});
-      setAccountId("");
-      setGatewayId("");
       setSaved(true);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not save");
@@ -285,6 +289,7 @@ function ModelsTab() {
 
   async function clear(provider: ModelProvider) {
     if (!settings) return;
+    if (!window.confirm("Remove this key from the office?")) return;
     setBusy(true);
     setError("");
     try {
@@ -295,6 +300,10 @@ function ModelsTab() {
       });
       queryClient.setQueryData(orpc.models.get.queryOptions().queryKey, next);
       await queryClient.invalidateQueries({ queryKey: orpc.me.key() });
+      if (provider === "cloudflare") {
+        setAccountId("");
+        setGatewayId("");
+      }
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not clear");
     } finally {
@@ -312,16 +321,24 @@ function ModelsTab() {
     <>
       <section className="set-block">
         <p className="group-label">Default model</p>
+        <p className="hint">
+          Every teammate uses this unless you override it on that bot.
+        </p>
         <label className="field">
           <span>Model</span>
           <select
             value={selectedModel}
             onChange={(e) => setDefaultModel(e.target.value)}
           >
-            {MODEL_CATALOG.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.label}
-              </option>
+            {[...grouped.entries()].map(([provider, items]) => (
+              <optgroup key={provider} label={PROVIDER_META[provider].label}>
+                {items.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.label}
+                    {item.available ? "" : " — needs key"}
+                  </option>
+                ))}
+              </optgroup>
             ))}
             <option value="custom">Custom…</option>
           </select>
@@ -331,71 +348,90 @@ function ModelsTab() {
             <span>Model id</span>
             <input
               value={custom}
-              placeholder="anthropic/claude-sonnet-4-6"
+              placeholder="openrouter/deepseek/deepseek-v4-flash-0731"
+              spellCheck={false}
+              autoComplete="off"
               onChange={(e) => setCustomModel(e.target.value)}
             />
           </label>
         ) : null}
+        {warning ? <p className="model-warn">{warning}</p> : null}
         {settings.fromEnv ? (
           <p className="hint">
-            Keys are also set in this machine’s environment. Saving here stores
-            workspace keys for the office.
+            This machine also has keys in the environment. Saving here stores
+            office keys for everyone in the workspace.
           </p>
         ) : null}
       </section>
       <section className="set-block">
         <p className="group-label">Provider keys</p>
         <p className="hint">
-          Bring your own keys. They are stored encrypted and never shown again.
+          Bring your own keys. They are encrypted at rest and never shown again.
+          OpenRouter is enough to start.
         </p>
-        {KEY_FIELDS.map((field) => {
+        {providers.map((provider) => {
+          const meta = PROVIDER_META[provider];
           const status = settings.keys.find(
-            (item) => item.provider === field.provider,
+            (item) => item.provider === provider,
           );
           return (
-            <label key={field.provider} className="field">
+            <label key={provider} className="field">
               <span>
-                {field.label}
+                {meta.label}
+                {meta.recommended ? (
+                  <em className="muted"> · recommended</em>
+                ) : null}
                 {status?.configured ? (
                   <em className="muted"> · {status.hint}</em>
                 ) : null}
               </span>
+              <p className="hint">
+                {meta.hint}{" "}
+                <a href={meta.docsUrl} target="_blank" rel="noreferrer">
+                  Get a key
+                </a>
+              </p>
               <input
                 type="password"
-                autoComplete="off"
+                autoComplete="new-password"
+                spellCheck={false}
                 placeholder={
-                  status?.configured ? "Leave blank to keep" : field.placeholder
+                  status?.configured ? "Leave blank to keep" : meta.placeholder
                 }
-                value={drafts[field.provider] ?? ""}
+                value={drafts[provider] ?? ""}
                 onChange={(e) =>
                   setDrafts((current) => ({
                     ...current,
-                    [field.provider]: e.target.value,
+                    [provider]: e.target.value,
                   }))
                 }
               />
-              {field.provider === "cloudflare" ? (
+              {provider === "cloudflare" ? (
                 <>
                   <input
                     style={{ marginTop: 8 }}
                     placeholder="Cloudflare account id"
-                    value={accountId}
+                    spellCheck={false}
+                    autoComplete="off"
+                    value={cfAccount}
                     onChange={(e) => setAccountId(e.target.value)}
                   />
                   <input
                     style={{ marginTop: 8 }}
                     placeholder="AI Gateway id (optional)"
-                    value={gatewayId}
+                    spellCheck={false}
+                    autoComplete="off"
+                    value={cfGateway}
                     onChange={(e) => setGatewayId(e.target.value)}
                   />
                 </>
               ) : null}
-              {status?.configured ? (
+              {status?.source === "workspace" ? (
                 <button
                   className="text-btn"
                   type="button"
                   disabled={busy}
-                  onClick={() => void clear(field.provider)}
+                  onClick={() => void clear(provider)}
                 >
                   Remove key
                 </button>

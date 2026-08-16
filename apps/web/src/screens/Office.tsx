@@ -231,6 +231,12 @@ export function Office(props: { botId: string }) {
   async function send(event: FormEvent) {
     event.preventDefault();
     if (!bot || !draft.trim()) return;
+    if (me?.needsModel) {
+      setSettingsTab("models");
+      setSettingsOpen(true);
+      setError("Add a model key to talk to teammates.");
+      return;
+    }
     const text = draft.trim();
     setDraft("");
     setWorking("working…");
@@ -537,11 +543,13 @@ export function Office(props: { botId: string }) {
               rows={1}
               value={draft}
               placeholder={
-                messages.length === 0
-                  ? FIRST_TASK
-                  : bot
-                    ? `Message ${bot.name}`
-                    : "Message"
+                me?.needsModel
+                  ? "Add a model key to send"
+                  : messages.length === 0
+                    ? FIRST_TASK
+                    : bot
+                      ? `Message ${bot.name}`
+                      : "Message"
               }
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(event) => {

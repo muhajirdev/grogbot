@@ -150,5 +150,6 @@ export function agentRuntimeSource(env: Env): NodeJS.ProcessEnv {
     GROGBOT_MODEL: env.grogbotModel,
     ANTHROPIC_API_KEY: env.anthropicApiKey,
     OPENAI_API_KEY: env.openaiApiKey,
+    AGENT_RUNTIME: env.agentRuntime,
   };
 }

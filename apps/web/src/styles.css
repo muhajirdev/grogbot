@@ -568,8 +568,19 @@ a.btn {
   font-size: 13px;
 }
 
-.model-banner .text-btn {
-  flex-shrink: 0;
+.model-warn {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--danger, #c45c26);
+}
+
+.settings-body .field .hint {
+  margin: 4px 0 8px;
+  font-size: 12px;
+}
+
+.settings-body .field .hint a {
+  color: inherit;
 }
 
 .thread-who {

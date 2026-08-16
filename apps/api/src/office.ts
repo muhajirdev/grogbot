@@ -1,3 +1,4 @@
+import { isOfflineAgentRuntime } from "@grogbot/adapters";
 import {
   type Bot,
   type ComputerListItem,
@@ -8,11 +9,14 @@ import {
 import {
   appendEvent,
   computerStatusForBot,
+  encryptionSecret,
   fanoutComputerUpdated,
   getBotComputer,
+  missingModelMessage,
   newId,
   nextSeq,
   previewFromBlocks,
+  resolveRunModel,
   sandboxKind,
   toBotDto,
   toComputerListItem,
@@ -33,6 +37,7 @@ import {
 import { ORPCError } from "@orpc/server";
 import { and, count, desc, eq, inArray } from "drizzle-orm";
 import type { RpcContext } from "./context.js";
+import { agentRuntimeSource } from "./env.js";
 import type { Actor } from "./session.js";
 
 const STALE_MS = 60_000;
@@ -390,6 +395,25 @@ export async function sendMessage(
   text: string,
 ) {
   const { bot, thread } = await getOffice(context, actor, botId);
+  if (!isOfflineAgentRuntime(context.env.agentRuntime)) {
+    const overlay = await resolveRunModel(
+      context.db,
+      bot,
+      agentRuntimeSource(context.env),
+      encryptionSecret(
+        {
+          ENCRYPTION_KEY: context.env.encryptionKey,
+          BETTER_AUTH_SECRET: context.env.authSecret,
+        },
+        context.env.production,
+      ),
+    );
+    if (!overlay.configured) {
+      throw new ORPCError("PRECONDITION_FAILED", {
+        message: missingModelMessage(overlay.model),
+      });
+    }
+  }
   const seq = await nextSeq(context.db, messages, thread.id);
   const messageId = newId();
   const taskId = newId();

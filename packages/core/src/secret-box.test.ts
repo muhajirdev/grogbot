@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { decryptSecret, encryptSecret, secretHint } from "./secret-box.js";
+import {
+  decryptSecret,
+  encryptSecret,
+  redactSecrets,
+  secretHint,
+} from "./secret-box.js";
 
 describe("secret-box", () => {
   const secret = "test-encryption-secret-32bytes!!";
@@ -11,5 +16,11 @@ describe("secret-box", () => {
 
   it("hints the last four characters", () => {
     expect(secretHint("sk-or-v1-hello-world")).toBe("••••orld");
+  });
+
+  it("redacts provider keys in error text", () => {
+    expect(
+      redactSecrets("upstream 401 sk-or-v1-abcdefghijklmnopqrstuvwxyz"),
+    ).toBe("upstream 401 sk-or-…");
   });
 });

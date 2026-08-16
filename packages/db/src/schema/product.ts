@@ -258,13 +258,7 @@ export const secrets = pgTable(
       .notNull()
       .defaultNow(),
   },
-  (t) => [
-    uniqueIndex("secrets_user_workspace_kind").on(
-      t.userId,
-      t.workspaceId,
-      t.kind,
-    ),
-  ],
+  (t) => [uniqueIndex("secrets_workspace_kind").on(t.workspaceId, t.kind)],
 );
 
 /** Outbound guest (Hermes/OpenClaw) connector for one bot. Token shown once. */
@@ -314,10 +308,23 @@ export const userModelCredentials = pgTable(
       .defaultNow(),
   },
   (t) => [
-    uniqueIndex("user_model_credentials_user_workspace_provider").on(
-      t.userId,
+    uniqueIndex("user_model_credentials_workspace_provider").on(
       t.workspaceId,
       t.provider,
     ),
   ],
 );
+
+/** Workspace default model. Not a secret — keys live in `secrets`. */
+export const workspaceModels = pgTable("workspace_models", {
+  workspaceId: text("workspace_id")
+    .primaryKey()
+    .references(() => organization.id, { onDelete: "cascade" }),
+  defaultModel: text("default_model").notNull(),
+  updatedBy: text("updated_by")
+    .notNull()
+    .references(() => user.id),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});

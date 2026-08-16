@@ -164,5 +164,7 @@ export const MeSchema = z.object({
   workspaceId: Id,
   isDeploymentOwner: z.boolean(),
   needsModel: z.boolean(),
+  defaultModel: z.string(),
+  defaultModelLabel: z.string(),
 });
 export type Me = z.infer<typeof MeSchema>;

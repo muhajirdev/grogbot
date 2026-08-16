@@ -19,9 +19,14 @@ import {
 import type { GuestHub } from "./guest-hub.js";
 import { GuestAgentRuntime } from "./guest-runtime.js";
 import { newId } from "./ids.js";
-import { encryptionSecret, resolveRunModel } from "./models.js";
+import {
+  encryptionSecret,
+  missingModelMessage,
+  resolveRunModel,
+} from "./models.js";
 import { appendEvent, nextSeq } from "./office.js";
 import { assertTransition } from "./run-state.js";
+import { redactSecrets } from "./secret-box.js";
 
 async function setRunStatus(
   db: Database,
@@ -146,10 +151,23 @@ export async function continueRun(opts: {
     process.env,
     encryptionSecret(process.env),
   );
-  const bound =
-    opts.bindRuntime && overlay.configured
-      ? opts.bindRuntime(overlay)
-      : opts.runtime;
+  if (!overlay.configured) {
+    const message = missingModelMessage(overlay.model);
+    current = await setRunStatus(db, current, "failed", {
+      error: message,
+      completedAt: new Date(),
+    });
+    await appendEvent(db, {
+      workspaceId: run.workspaceId,
+      threadId: run.threadId,
+      botId: run.botId,
+      type: "run.updated",
+      payload: { runId, status: "failed", text: message },
+      runId,
+    });
+    return;
+  }
+  const bound = opts.bindRuntime ? opts.bindRuntime(overlay) : opts.runtime;
   const runner = guestEnabled && guests ? new GuestAgentRuntime(guests) : bound;
   try {
     for await (const event of runner.run(
@@ -186,7 +204,9 @@ export async function continueRun(opts: {
       if (event.type === "error") throw new Error(event.text);
     }
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Run failed";
+    const message = redactSecrets(
+      error instanceof Error ? error.message : "Run failed",
+    );
     await setRunStatus(db, current, "failed", {
       error: message,
       completedAt: new Date(),
