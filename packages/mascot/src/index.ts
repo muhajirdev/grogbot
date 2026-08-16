@@ -25,3 +25,9 @@ export {
   seedFromName,
 } from "./geometry.js";
 export { MascotMark } from "./MascotMark.js";
+export {
+  GROGBOT_MARK_COLOR,
+  type MascotMarkSvgOptions,
+  mascotMarkElements,
+  mascotMarkSvg,
+} from "./svg.js";

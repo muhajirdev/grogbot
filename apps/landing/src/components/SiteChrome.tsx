@@ -13,6 +13,7 @@ export function SiteHeader(props: { startUrl: string }) {
       <nav className="nav-links" aria-label="Site">
         <Link to="/integrations">Integrations</Link>
         <Link to="/use-cases">Use cases</Link>
+        <Link to="/press">Press</Link>
         <a href={SOURCE_REPO} target="_blank" rel="noreferrer">
           GitHub
         </a>
@@ -31,6 +32,7 @@ export function SiteFooter() {
       <nav className="foot-links" aria-label="Footer">
         <Link to="/integrations">Integrations</Link>
         <Link to="/use-cases">Use cases</Link>
+        <Link to="/press">Press</Link>
         <a href={SOURCE_REPO} target="_blank" rel="noreferrer">
           GitHub
         </a>
@@ -39,10 +41,7 @@ export function SiteFooter() {
   );
 }
 
-export function SiteChrome(props: {
-  startUrl: string;
-  children: ReactNode;
-}) {
+export function SiteChrome(props: { startUrl: string; children: ReactNode }) {
   return (
     <div className="page">
       <SiteHeader startUrl={props.startUrl} />

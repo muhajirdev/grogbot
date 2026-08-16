@@ -20,14 +20,18 @@ describe("discovery documents", () => {
     const txt = llmsTxt(origins);
     expect(txt.startsWith("# Grogbot\n")).toBe(true);
     expect(txt).toContain(`](${CLOUD_LANDING_ORIGIN}/llms.txt)`);
+    expect(txt).toContain("/press");
     expect(identityJson(origins).name).toBe("Grogbot");
     expect(aiJson(origins).name).toBe("Grogbot");
+    const pages = identityJson(origins).sitePages as Array<{ name: string }>;
+    expect(pages.some((page) => page.name === "Press kit")).toBe(true);
   });
 
   it("lists public pages in the sitemap and allows AI crawlers", () => {
     const sitemap = sitemapXml(origins);
     expect(sitemap).toContain(`${CLOUD_LANDING_ORIGIN}/llms.txt`);
     expect(sitemap).toContain(`${CLOUD_LANDING_ORIGIN}/mcp`);
+    expect(sitemap).toContain(`${CLOUD_LANDING_ORIGIN}/press`);
     expect(robotsTxt(origins)).toContain("User-agent: GPTBot");
     expect(robotsTxt(origins)).toContain("Allow: /llms.txt");
   });

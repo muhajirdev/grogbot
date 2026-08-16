@@ -10,39 +10,118 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AiDotjsonRouteImport } from './routes/ai[.]json'
+import { Route as AiDottxtRouteImport } from './routes/ai[.]txt'
+import { Route as BrandDottxtRouteImport } from './routes/brand[.]txt'
+import { Route as DeveloperAiDottxtRouteImport } from './routes/developer-ai[.]txt'
+import { Route as FaqAiDottxtRouteImport } from './routes/faq-ai[.]txt'
+import { Route as IdentityDotjsonRouteImport } from './routes/identity[.]json'
+import { Route as IndexDotmdRouteImport } from './routes/index[.]md'
+import { Route as LlmDottxtRouteImport } from './routes/llm[.]txt'
+import { Route as LlmsFullDottxtRouteImport } from './routes/llms-full[.]txt'
+import { Route as LlmsDothtmlRouteImport } from './routes/llms[.]html'
 import { Route as LlmsDottxtRouteImport } from './routes/llms[.]txt'
+import { Route as McpRouteImport } from './routes/mcp'
+import { Route as McpDotjsonRouteImport } from './routes/mcp[.]json'
+import { Route as PressKitRouteImport } from './routes/press-kit'
+import { Route as PressDotmdRouteImport } from './routes/press[.]md'
+import { Route as RobotsAiDottxtRouteImport } from './routes/robots-ai[.]txt'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as IntegrationsIndexRouteImport } from './routes/integrations/index'
 import { Route as IntegrationsSlugRouteImport } from './routes/integrations/$slug'
+import { Route as PressIndexRouteImport } from './routes/press/index'
+import { Route as PressFileRouteImport } from './routes/press/$file'
 import { Route as UseCasesIndexRouteImport } from './routes/use-cases/index'
 import { Route as UseCasesSlugRouteImport } from './routes/use-cases/$slug'
 import { Route as IntegrationsCategoryCategoryRouteImport } from './routes/integrations/category/$category'
-import { Route as LlmDottxtRouteImport } from './routes/llm[.]txt'
-import { Route as LlmsDothhtmlRouteImport } from './routes/llms[.]html'
-import { Route as LlmsFullDottxtRouteImport } from './routes/llms-full[.]txt'
-import { Route as AiDottxtRouteImport } from './routes/ai[.]txt'
-import { Route as AiDotjsonRouteImport } from './routes/ai[.]json'
-import { Route as IdentityDotjsonRouteImport } from './routes/identity[.]json'
-import { Route as BrandDottxtRouteImport } from './routes/brand[.]txt'
-import { Route as FaqAiDottxtRouteImport } from './routes/faq-ai[.]txt'
-import { Route as DeveloperAiDottxtRouteImport } from './routes/developer-ai[.]txt'
-import { Route as RobotsAiDottxtRouteImport } from './routes/robots-ai[.]txt'
-import { Route as IndexDotmdRouteImport } from './routes/index[.]md'
-import { Route as McpDotjsonRouteImport } from './routes/mcp[.]json'
-import { Route as McpRouteImport } from './routes/mcp'
+import { Route as WellKnownApiCatalogRouteImport } from './routes/.well-known/api-catalog'
 import { Route as WellKnownMcpDotjsonRouteImport } from './routes/.well-known/mcp[.]json'
 import { Route as WellKnownMcpServerCardDotjsonRouteImport } from './routes/.well-known/mcp/server-card[.]json'
-import { Route as WellKnownApiCatalogRouteImport } from './routes/.well-known/api-catalog'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AiDotjsonRoute = AiDotjsonRouteImport.update({
+  id: '/ai.json',
+  path: '/ai.json',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiDottxtRoute = AiDottxtRouteImport.update({
+  id: '/ai.txt',
+  path: '/ai.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BrandDottxtRoute = BrandDottxtRouteImport.update({
+  id: '/brand.txt',
+  path: '/brand.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeveloperAiDottxtRoute = DeveloperAiDottxtRouteImport.update({
+  id: '/developer-ai.txt',
+  path: '/developer-ai.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqAiDottxtRoute = FaqAiDottxtRouteImport.update({
+  id: '/faq-ai.txt',
+  path: '/faq-ai.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IdentityDotjsonRoute = IdentityDotjsonRouteImport.update({
+  id: '/identity.json',
+  path: '/identity.json',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexDotmdRoute = IndexDotmdRouteImport.update({
+  id: '/index.md',
+  path: '/index.md',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LlmDottxtRoute = LlmDottxtRouteImport.update({
+  id: '/llm.txt',
+  path: '/llm.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LlmsFullDottxtRoute = LlmsFullDottxtRouteImport.update({
+  id: '/llms-full.txt',
+  path: '/llms-full.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LlmsDothtmlRoute = LlmsDothtmlRouteImport.update({
+  id: '/llms.html',
+  path: '/llms.html',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LlmsDottxtRoute = LlmsDottxtRouteImport.update({
   id: '/llms.txt',
   path: '/llms.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpDotjsonRoute = McpDotjsonRouteImport.update({
+  id: '/mcp.json',
+  path: '/mcp.json',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PressKitRoute = PressKitRouteImport.update({
+  id: '/press-kit',
+  path: '/press-kit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PressDotmdRoute = PressDotmdRouteImport.update({
+  id: '/press.md',
+  path: '/press.md',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RobotsAiDottxtRoute = RobotsAiDottxtRouteImport.update({
+  id: '/robots-ai.txt',
+  path: '/robots-ai.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
@@ -65,6 +144,16 @@ const IntegrationsSlugRoute = IntegrationsSlugRouteImport.update({
   path: '/integrations/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PressIndexRoute = PressIndexRouteImport.update({
+  id: '/press/',
+  path: '/press/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PressFileRoute = PressFileRouteImport.update({
+  id: '/press/$file',
+  path: '/press/$file',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UseCasesIndexRoute = UseCasesIndexRouteImport.update({
   id: '/use-cases/',
   path: '/use-cases/',
@@ -81,69 +170,9 @@ const IntegrationsCategoryCategoryRoute =
     path: '/integrations/category/$category',
     getParentRoute: () => rootRouteImport,
   } as any)
-const LlmDottxtRoute = LlmDottxtRouteImport.update({
-  id: '/llm.txt',
-  path: '/llm.txt',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LlmsDothhtmlRoute = LlmsDothhtmlRouteImport.update({
-  id: '/llms.html',
-  path: '/llms.html',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LlmsFullDottxtRoute = LlmsFullDottxtRouteImport.update({
-  id: '/llms-full.txt',
-  path: '/llms-full.txt',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AiDottxtRoute = AiDottxtRouteImport.update({
-  id: '/ai.txt',
-  path: '/ai.txt',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AiDotjsonRoute = AiDotjsonRouteImport.update({
-  id: '/ai.json',
-  path: '/ai.json',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IdentityDotjsonRoute = IdentityDotjsonRouteImport.update({
-  id: '/identity.json',
-  path: '/identity.json',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BrandDottxtRoute = BrandDottxtRouteImport.update({
-  id: '/brand.txt',
-  path: '/brand.txt',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FaqAiDottxtRoute = FaqAiDottxtRouteImport.update({
-  id: '/faq-ai.txt',
-  path: '/faq-ai.txt',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DeveloperAiDottxtRoute = DeveloperAiDottxtRouteImport.update({
-  id: '/developer-ai.txt',
-  path: '/developer-ai.txt',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RobotsAiDottxtRoute = RobotsAiDottxtRouteImport.update({
-  id: '/robots-ai.txt',
-  path: '/robots-ai.txt',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexDotmdRoute = IndexDotmdRouteImport.update({
-  id: '/index.md',
-  path: '/index.md',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const McpDotjsonRoute = McpDotjsonRouteImport.update({
-  id: '/mcp.json',
-  path: '/mcp.json',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const McpRoute = McpRouteImport.update({
-  id: '/mcp',
-  path: '/mcp',
+const WellKnownApiCatalogRoute = WellKnownApiCatalogRouteImport.update({
+  id: '/.well-known/api-catalog',
+  path: '/.well-known/api-catalog',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WellKnownMcpDotjsonRoute = WellKnownMcpDotjsonRouteImport.update({
@@ -151,209 +180,233 @@ const WellKnownMcpDotjsonRoute = WellKnownMcpDotjsonRouteImport.update({
   path: '/.well-known/mcp.json',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WellKnownMcpServerCardDotjsonRoute = WellKnownMcpServerCardDotjsonRouteImport.update({
-  id: '/.well-known/mcp/server-card.json',
-  path: '/.well-known/mcp/server-card.json',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const WellKnownApiCatalogRoute = WellKnownApiCatalogRouteImport.update({
-  id: '/.well-known/api-catalog',
-  path: '/.well-known/api-catalog',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const WellKnownMcpServerCardDotjsonRoute =
+  WellKnownMcpServerCardDotjsonRouteImport.update({
+    id: '/.well-known/mcp/server-card.json',
+    path: '/.well-known/mcp/server-card.json',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ai.json': typeof AiDotjsonRoute
+  '/ai.txt': typeof AiDottxtRoute
+  '/brand.txt': typeof BrandDottxtRoute
+  '/developer-ai.txt': typeof DeveloperAiDottxtRoute
+  '/faq-ai.txt': typeof FaqAiDottxtRoute
+  '/identity.json': typeof IdentityDotjsonRoute
+  '/index.md': typeof IndexDotmdRoute
+  '/llm.txt': typeof LlmDottxtRoute
+  '/llms-full.txt': typeof LlmsFullDottxtRoute
+  '/llms.html': typeof LlmsDothtmlRoute
   '/llms.txt': typeof LlmsDottxtRoute
+  '/mcp': typeof McpRoute
+  '/mcp.json': typeof McpDotjsonRoute
+  '/press-kit': typeof PressKitRoute
+  '/press.md': typeof PressDotmdRoute
+  '/robots-ai.txt': typeof RobotsAiDottxtRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/integrations/$slug': typeof IntegrationsSlugRoute
+  '/press/$file': typeof PressFileRoute
   '/use-cases/$slug': typeof UseCasesSlugRoute
   '/integrations/': typeof IntegrationsIndexRoute
+  '/press/': typeof PressIndexRoute
   '/use-cases/': typeof UseCasesIndexRoute
   '/integrations/category/$category': typeof IntegrationsCategoryCategoryRoute
-  '/llm.txt': typeof LlmDottxtRoute
-  '/llms.html': typeof LlmsDothhtmlRoute
-  '/llms-full.txt': typeof LlmsFullDottxtRoute
-  '/ai.txt': typeof AiDottxtRoute
-  '/ai.json': typeof AiDotjsonRoute
-  '/identity.json': typeof IdentityDotjsonRoute
-  '/brand.txt': typeof BrandDottxtRoute
-  '/faq-ai.txt': typeof FaqAiDottxtRoute
-  '/developer-ai.txt': typeof DeveloperAiDottxtRoute
-  '/robots-ai.txt': typeof RobotsAiDottxtRoute
-  '/index.md': typeof IndexDotmdRoute
-  '/mcp.json': typeof McpDotjsonRoute
-  '/mcp': typeof McpRoute
+  '/.well-known/api-catalog': typeof WellKnownApiCatalogRoute
   '/.well-known/mcp.json': typeof WellKnownMcpDotjsonRoute
   '/.well-known/mcp/server-card.json': typeof WellKnownMcpServerCardDotjsonRoute
-  '/.well-known/api-catalog': typeof WellKnownApiCatalogRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ai.json': typeof AiDotjsonRoute
+  '/ai.txt': typeof AiDottxtRoute
+  '/brand.txt': typeof BrandDottxtRoute
+  '/developer-ai.txt': typeof DeveloperAiDottxtRoute
+  '/faq-ai.txt': typeof FaqAiDottxtRoute
+  '/identity.json': typeof IdentityDotjsonRoute
+  '/index.md': typeof IndexDotmdRoute
+  '/llm.txt': typeof LlmDottxtRoute
+  '/llms-full.txt': typeof LlmsFullDottxtRoute
+  '/llms.html': typeof LlmsDothtmlRoute
   '/llms.txt': typeof LlmsDottxtRoute
+  '/mcp': typeof McpRoute
+  '/mcp.json': typeof McpDotjsonRoute
+  '/press-kit': typeof PressKitRoute
+  '/press.md': typeof PressDotmdRoute
+  '/robots-ai.txt': typeof RobotsAiDottxtRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/integrations/$slug': typeof IntegrationsSlugRoute
+  '/press/$file': typeof PressFileRoute
   '/use-cases/$slug': typeof UseCasesSlugRoute
   '/integrations': typeof IntegrationsIndexRoute
+  '/press': typeof PressIndexRoute
   '/use-cases': typeof UseCasesIndexRoute
   '/integrations/category/$category': typeof IntegrationsCategoryCategoryRoute
-  '/llm.txt': typeof LlmDottxtRoute
-  '/llms.html': typeof LlmsDothhtmlRoute
-  '/llms-full.txt': typeof LlmsFullDottxtRoute
-  '/ai.txt': typeof AiDottxtRoute
-  '/ai.json': typeof AiDotjsonRoute
-  '/identity.json': typeof IdentityDotjsonRoute
-  '/brand.txt': typeof BrandDottxtRoute
-  '/faq-ai.txt': typeof FaqAiDottxtRoute
-  '/developer-ai.txt': typeof DeveloperAiDottxtRoute
-  '/robots-ai.txt': typeof RobotsAiDottxtRoute
-  '/index.md': typeof IndexDotmdRoute
-  '/mcp.json': typeof McpDotjsonRoute
-  '/mcp': typeof McpRoute
+  '/.well-known/api-catalog': typeof WellKnownApiCatalogRoute
   '/.well-known/mcp.json': typeof WellKnownMcpDotjsonRoute
   '/.well-known/mcp/server-card.json': typeof WellKnownMcpServerCardDotjsonRoute
-  '/.well-known/api-catalog': typeof WellKnownApiCatalogRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ai.json': typeof AiDotjsonRoute
+  '/ai.txt': typeof AiDottxtRoute
+  '/brand.txt': typeof BrandDottxtRoute
+  '/developer-ai.txt': typeof DeveloperAiDottxtRoute
+  '/faq-ai.txt': typeof FaqAiDottxtRoute
+  '/identity.json': typeof IdentityDotjsonRoute
+  '/index.md': typeof IndexDotmdRoute
+  '/llm.txt': typeof LlmDottxtRoute
+  '/llms-full.txt': typeof LlmsFullDottxtRoute
+  '/llms.html': typeof LlmsDothtmlRoute
   '/llms.txt': typeof LlmsDottxtRoute
+  '/mcp': typeof McpRoute
+  '/mcp.json': typeof McpDotjsonRoute
+  '/press-kit': typeof PressKitRoute
+  '/press.md': typeof PressDotmdRoute
+  '/robots-ai.txt': typeof RobotsAiDottxtRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/integrations/$slug': typeof IntegrationsSlugRoute
+  '/press/$file': typeof PressFileRoute
   '/use-cases/$slug': typeof UseCasesSlugRoute
   '/integrations/': typeof IntegrationsIndexRoute
+  '/press/': typeof PressIndexRoute
   '/use-cases/': typeof UseCasesIndexRoute
   '/integrations/category/$category': typeof IntegrationsCategoryCategoryRoute
-  '/llm.txt': typeof LlmDottxtRoute
-  '/llms.html': typeof LlmsDothhtmlRoute
-  '/llms-full.txt': typeof LlmsFullDottxtRoute
-  '/ai.txt': typeof AiDottxtRoute
-  '/ai.json': typeof AiDotjsonRoute
-  '/identity.json': typeof IdentityDotjsonRoute
-  '/brand.txt': typeof BrandDottxtRoute
-  '/faq-ai.txt': typeof FaqAiDottxtRoute
-  '/developer-ai.txt': typeof DeveloperAiDottxtRoute
-  '/robots-ai.txt': typeof RobotsAiDottxtRoute
-  '/index.md': typeof IndexDotmdRoute
-  '/mcp.json': typeof McpDotjsonRoute
-  '/mcp': typeof McpRoute
+  '/.well-known/api-catalog': typeof WellKnownApiCatalogRoute
   '/.well-known/mcp.json': typeof WellKnownMcpDotjsonRoute
   '/.well-known/mcp/server-card.json': typeof WellKnownMcpServerCardDotjsonRoute
-  '/.well-known/api-catalog': typeof WellKnownApiCatalogRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ai.json'
+    | '/ai.txt'
+    | '/brand.txt'
+    | '/developer-ai.txt'
+    | '/faq-ai.txt'
+    | '/identity.json'
+    | '/index.md'
+    | '/llm.txt'
+    | '/llms-full.txt'
+    | '/llms.html'
     | '/llms.txt'
+    | '/mcp'
+    | '/mcp.json'
+    | '/press-kit'
+    | '/press.md'
+    | '/robots-ai.txt'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/integrations/$slug'
+    | '/press/$file'
     | '/use-cases/$slug'
     | '/integrations/'
+    | '/press/'
     | '/use-cases/'
     | '/integrations/category/$category'
-    | '/llm.txt'
-    | '/llms.html'
-    | '/llms-full.txt'
-    | '/ai.txt'
-    | '/ai.json'
-    | '/identity.json'
-    | '/brand.txt'
-    | '/faq-ai.txt'
-    | '/developer-ai.txt'
-    | '/robots-ai.txt'
-    | '/index.md'
-    | '/mcp.json'
-    | '/mcp'
+    | '/.well-known/api-catalog'
     | '/.well-known/mcp.json'
     | '/.well-known/mcp/server-card.json'
-    | '/.well-known/api-catalog'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ai.json'
+    | '/ai.txt'
+    | '/brand.txt'
+    | '/developer-ai.txt'
+    | '/faq-ai.txt'
+    | '/identity.json'
+    | '/index.md'
+    | '/llm.txt'
+    | '/llms-full.txt'
+    | '/llms.html'
     | '/llms.txt'
+    | '/mcp'
+    | '/mcp.json'
+    | '/press-kit'
+    | '/press.md'
+    | '/robots-ai.txt'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/integrations/$slug'
+    | '/press/$file'
     | '/use-cases/$slug'
     | '/integrations'
+    | '/press'
     | '/use-cases'
     | '/integrations/category/$category'
-    | '/llm.txt'
-    | '/llms.html'
-    | '/llms-full.txt'
-    | '/ai.txt'
-    | '/ai.json'
-    | '/identity.json'
-    | '/brand.txt'
-    | '/faq-ai.txt'
-    | '/developer-ai.txt'
-    | '/robots-ai.txt'
-    | '/index.md'
-    | '/mcp.json'
-    | '/mcp'
+    | '/.well-known/api-catalog'
     | '/.well-known/mcp.json'
     | '/.well-known/mcp/server-card.json'
-    | '/.well-known/api-catalog'
   id:
     | '__root__'
     | '/'
+    | '/ai.json'
+    | '/ai.txt'
+    | '/brand.txt'
+    | '/developer-ai.txt'
+    | '/faq-ai.txt'
+    | '/identity.json'
+    | '/index.md'
+    | '/llm.txt'
+    | '/llms-full.txt'
+    | '/llms.html'
     | '/llms.txt'
+    | '/mcp'
+    | '/mcp.json'
+    | '/press-kit'
+    | '/press.md'
+    | '/robots-ai.txt'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/integrations/$slug'
+    | '/press/$file'
     | '/use-cases/$slug'
     | '/integrations/'
+    | '/press/'
     | '/use-cases/'
     | '/integrations/category/$category'
-    | '/llm.txt'
-    | '/llms.html'
-    | '/llms-full.txt'
-    | '/ai.txt'
-    | '/ai.json'
-    | '/identity.json'
-    | '/brand.txt'
-    | '/faq-ai.txt'
-    | '/developer-ai.txt'
-    | '/robots-ai.txt'
-    | '/index.md'
-    | '/mcp.json'
-    | '/mcp'
+    | '/.well-known/api-catalog'
     | '/.well-known/mcp.json'
     | '/.well-known/mcp/server-card.json'
-    | '/.well-known/api-catalog'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AiDotjsonRoute: typeof AiDotjsonRoute
+  AiDottxtRoute: typeof AiDottxtRoute
+  BrandDottxtRoute: typeof BrandDottxtRoute
+  DeveloperAiDottxtRoute: typeof DeveloperAiDottxtRoute
+  FaqAiDottxtRoute: typeof FaqAiDottxtRoute
+  IdentityDotjsonRoute: typeof IdentityDotjsonRoute
+  IndexDotmdRoute: typeof IndexDotmdRoute
+  LlmDottxtRoute: typeof LlmDottxtRoute
+  LlmsFullDottxtRoute: typeof LlmsFullDottxtRoute
+  LlmsDothtmlRoute: typeof LlmsDothtmlRoute
   LlmsDottxtRoute: typeof LlmsDottxtRoute
+  McpRoute: typeof McpRoute
+  McpDotjsonRoute: typeof McpDotjsonRoute
+  PressKitRoute: typeof PressKitRoute
+  PressDotmdRoute: typeof PressDotmdRoute
+  RobotsAiDottxtRoute: typeof RobotsAiDottxtRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   IntegrationsSlugRoute: typeof IntegrationsSlugRoute
+  PressFileRoute: typeof PressFileRoute
   UseCasesSlugRoute: typeof UseCasesSlugRoute
   IntegrationsIndexRoute: typeof IntegrationsIndexRoute
+  PressIndexRoute: typeof PressIndexRoute
   UseCasesIndexRoute: typeof UseCasesIndexRoute
   IntegrationsCategoryCategoryRoute: typeof IntegrationsCategoryCategoryRoute
-  LlmDottxtRoute: typeof LlmDottxtRoute
-  LlmsDothhtmlRoute: typeof LlmsDothhtmlRoute
-  LlmsFullDottxtRoute: typeof LlmsFullDottxtRoute
-  AiDottxtRoute: typeof AiDottxtRoute
-  AiDotjsonRoute: typeof AiDotjsonRoute
-  IdentityDotjsonRoute: typeof IdentityDotjsonRoute
-  BrandDottxtRoute: typeof BrandDottxtRoute
-  FaqAiDottxtRoute: typeof FaqAiDottxtRoute
-  DeveloperAiDottxtRoute: typeof DeveloperAiDottxtRoute
-  RobotsAiDottxtRoute: typeof RobotsAiDottxtRoute
-  IndexDotmdRoute: typeof IndexDotmdRoute
-  McpDotjsonRoute: typeof McpDotjsonRoute
-  McpRoute: typeof McpRoute
+  WellKnownApiCatalogRoute: typeof WellKnownApiCatalogRoute
   WellKnownMcpDotjsonRoute: typeof WellKnownMcpDotjsonRoute
   WellKnownMcpServerCardDotjsonRoute: typeof WellKnownMcpServerCardDotjsonRoute
-  WellKnownApiCatalogRoute: typeof WellKnownApiCatalogRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -365,11 +418,116 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ai.json': {
+      id: '/ai.json'
+      path: '/ai.json'
+      fullPath: '/ai.json'
+      preLoaderRoute: typeof AiDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai.txt': {
+      id: '/ai.txt'
+      path: '/ai.txt'
+      fullPath: '/ai.txt'
+      preLoaderRoute: typeof AiDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/brand.txt': {
+      id: '/brand.txt'
+      path: '/brand.txt'
+      fullPath: '/brand.txt'
+      preLoaderRoute: typeof BrandDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/developer-ai.txt': {
+      id: '/developer-ai.txt'
+      path: '/developer-ai.txt'
+      fullPath: '/developer-ai.txt'
+      preLoaderRoute: typeof DeveloperAiDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq-ai.txt': {
+      id: '/faq-ai.txt'
+      path: '/faq-ai.txt'
+      fullPath: '/faq-ai.txt'
+      preLoaderRoute: typeof FaqAiDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/identity.json': {
+      id: '/identity.json'
+      path: '/identity.json'
+      fullPath: '/identity.json'
+      preLoaderRoute: typeof IdentityDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/index.md': {
+      id: '/index.md'
+      path: '/index.md'
+      fullPath: '/index.md'
+      preLoaderRoute: typeof IndexDotmdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/llm.txt': {
+      id: '/llm.txt'
+      path: '/llm.txt'
+      fullPath: '/llm.txt'
+      preLoaderRoute: typeof LlmDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/llms-full.txt': {
+      id: '/llms-full.txt'
+      path: '/llms-full.txt'
+      fullPath: '/llms-full.txt'
+      preLoaderRoute: typeof LlmsFullDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/llms.html': {
+      id: '/llms.html'
+      path: '/llms.html'
+      fullPath: '/llms.html'
+      preLoaderRoute: typeof LlmsDothtmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/llms.txt': {
       id: '/llms.txt'
       path: '/llms.txt'
       fullPath: '/llms.txt'
       preLoaderRoute: typeof LlmsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp.json': {
+      id: '/mcp.json'
+      path: '/mcp.json'
+      fullPath: '/mcp.json'
+      preLoaderRoute: typeof McpDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/press-kit': {
+      id: '/press-kit'
+      path: '/press-kit'
+      fullPath: '/press-kit'
+      preLoaderRoute: typeof PressKitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/press.md': {
+      id: '/press.md'
+      path: '/press.md'
+      fullPath: '/press.md'
+      preLoaderRoute: typeof PressDotmdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/robots-ai.txt': {
+      id: '/robots-ai.txt'
+      path: '/robots-ai.txt'
+      fullPath: '/robots-ai.txt'
+      preLoaderRoute: typeof RobotsAiDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/robots.txt': {
@@ -400,6 +558,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IntegrationsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/press/': {
+      id: '/press/'
+      path: '/press'
+      fullPath: '/press/'
+      preLoaderRoute: typeof PressIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/press/$file': {
+      id: '/press/$file'
+      path: '/press/$file'
+      fullPath: '/press/$file'
+      preLoaderRoute: typeof PressFileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/use-cases/': {
       id: '/use-cases/'
       path: '/use-cases'
@@ -421,111 +593,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IntegrationsCategoryCategoryRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/llm.txt': {
-      id: '/llm.txt'
-      path: '/llm.txt'
-      fullPath: '/llm.txt'
-      preLoaderRoute: typeof LlmDottxtRouteImport
-      parentRoute: typeof rootRouteImport
-    },
-    '/llms.html': {
-      id: '/llms.html'
-      path: '/llms.html'
-      fullPath: '/llms.html'
-      preLoaderRoute: typeof LlmsDothhtmlRouteImport
-      parentRoute: typeof rootRouteImport
-    },
-    '/llms-full.txt': {
-      id: '/llms-full.txt'
-      path: '/llms-full.txt'
-      fullPath: '/llms-full.txt'
-      preLoaderRoute: typeof LlmsFullDottxtRouteImport
-      parentRoute: typeof rootRouteImport
-    },
-    '/ai.txt': {
-      id: '/ai.txt'
-      path: '/ai.txt'
-      fullPath: '/ai.txt'
-      preLoaderRoute: typeof AiDottxtRouteImport
-      parentRoute: typeof rootRouteImport
-    },
-    '/ai.json': {
-      id: '/ai.json'
-      path: '/ai.json'
-      fullPath: '/ai.json'
-      preLoaderRoute: typeof AiDotjsonRouteImport
-      parentRoute: typeof rootRouteImport
-    },
-    '/identity.json': {
-      id: '/identity.json'
-      path: '/identity.json'
-      fullPath: '/identity.json'
-      preLoaderRoute: typeof IdentityDotjsonRouteImport
-      parentRoute: typeof rootRouteImport
-    },
-    '/brand.txt': {
-      id: '/brand.txt'
-      path: '/brand.txt'
-      fullPath: '/brand.txt'
-      preLoaderRoute: typeof BrandDottxtRouteImport
-      parentRoute: typeof rootRouteImport
-    },
-    '/faq-ai.txt': {
-      id: '/faq-ai.txt'
-      path: '/faq-ai.txt'
-      fullPath: '/faq-ai.txt'
-      preLoaderRoute: typeof FaqAiDottxtRouteImport
-      parentRoute: typeof rootRouteImport
-    },
-    '/developer-ai.txt': {
-      id: '/developer-ai.txt'
-      path: '/developer-ai.txt'
-      fullPath: '/developer-ai.txt'
-      preLoaderRoute: typeof DeveloperAiDottxtRouteImport
-      parentRoute: typeof rootRouteImport
-    },
-    '/robots-ai.txt': {
-      id: '/robots-ai.txt'
-      path: '/robots-ai.txt'
-      fullPath: '/robots-ai.txt'
-      preLoaderRoute: typeof RobotsAiDottxtRouteImport
-      parentRoute: typeof rootRouteImport
-    },
-    '/index.md': {
-      id: '/index.md'
-      path: '/index.md'
-      fullPath: '/index.md'
-      preLoaderRoute: typeof IndexDotmdRouteImport
-      parentRoute: typeof rootRouteImport
-    },
-    '/mcp.json': {
-      id: '/mcp.json'
-      path: '/mcp.json'
-      fullPath: '/mcp.json'
-      preLoaderRoute: typeof McpDotjsonRouteImport
-      parentRoute: typeof rootRouteImport
-    },
-    '/mcp': {
-      id: '/mcp'
-      path: '/mcp'
-      fullPath: '/mcp'
-      preLoaderRoute: typeof McpRouteImport
-      parentRoute: typeof rootRouteImport
-    },
-    '/.well-known/mcp.json': {
-      id: '/.well-known/mcp.json'
-      path: '/.well-known/mcp.json'
-      fullPath: '/.well-known/mcp.json'
-      preLoaderRoute: typeof WellKnownMcpDotjsonRouteImport
-      parentRoute: typeof rootRouteImport
-    },
-    '/.well-known/mcp/server-card.json': {
-      id: '/.well-known/mcp/server-card.json'
-      path: '/.well-known/mcp/server-card.json'
-      fullPath: '/.well-known/mcp/server-card.json'
-      preLoaderRoute: typeof WellKnownMcpServerCardDotjsonRouteImport
-      parentRoute: typeof rootRouteImport
-    },
     '/.well-known/api-catalog': {
       id: '/.well-known/api-catalog'
       path: '/.well-known/api-catalog'
@@ -533,35 +600,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WellKnownApiCatalogRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.well-known/mcp.json': {
+      id: '/.well-known/mcp.json'
+      path: '/.well-known/mcp.json'
+      fullPath: '/.well-known/mcp.json'
+      preLoaderRoute: typeof WellKnownMcpDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/mcp/server-card.json': {
+      id: '/.well-known/mcp/server-card.json'
+      path: '/.well-known/mcp/server-card.json'
+      fullPath: '/.well-known/mcp/server-card.json'
+      preLoaderRoute: typeof WellKnownMcpServerCardDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AiDotjsonRoute: AiDotjsonRoute,
+  AiDottxtRoute: AiDottxtRoute,
+  BrandDottxtRoute: BrandDottxtRoute,
+  DeveloperAiDottxtRoute: DeveloperAiDottxtRoute,
+  FaqAiDottxtRoute: FaqAiDottxtRoute,
+  IdentityDotjsonRoute: IdentityDotjsonRoute,
+  IndexDotmdRoute: IndexDotmdRoute,
+  LlmDottxtRoute: LlmDottxtRoute,
+  LlmsFullDottxtRoute: LlmsFullDottxtRoute,
+  LlmsDothtmlRoute: LlmsDothtmlRoute,
   LlmsDottxtRoute: LlmsDottxtRoute,
+  McpRoute: McpRoute,
+  McpDotjsonRoute: McpDotjsonRoute,
+  PressKitRoute: PressKitRoute,
+  PressDotmdRoute: PressDotmdRoute,
+  RobotsAiDottxtRoute: RobotsAiDottxtRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   IntegrationsSlugRoute: IntegrationsSlugRoute,
+  PressFileRoute: PressFileRoute,
   UseCasesSlugRoute: UseCasesSlugRoute,
   IntegrationsIndexRoute: IntegrationsIndexRoute,
+  PressIndexRoute: PressIndexRoute,
   UseCasesIndexRoute: UseCasesIndexRoute,
   IntegrationsCategoryCategoryRoute: IntegrationsCategoryCategoryRoute,
-  LlmDottxtRoute: LlmDottxtRoute,
-  LlmsDothhtmlRoute: LlmsDothhtmlRoute,
-  LlmsFullDottxtRoute: LlmsFullDottxtRoute,
-  AiDottxtRoute: AiDottxtRoute,
-  AiDotjsonRoute: AiDotjsonRoute,
-  IdentityDotjsonRoute: IdentityDotjsonRoute,
-  BrandDottxtRoute: BrandDottxtRoute,
-  FaqAiDottxtRoute: FaqAiDottxtRoute,
-  DeveloperAiDottxtRoute: DeveloperAiDottxtRoute,
-  RobotsAiDottxtRoute: RobotsAiDottxtRoute,
-  IndexDotmdRoute: IndexDotmdRoute,
-  McpDotjsonRoute: McpDotjsonRoute,
-  McpRoute: McpRoute,
+  WellKnownApiCatalogRoute: WellKnownApiCatalogRoute,
   WellKnownMcpDotjsonRoute: WellKnownMcpDotjsonRoute,
   WellKnownMcpServerCardDotjsonRoute: WellKnownMcpServerCardDotjsonRoute,
-  WellKnownApiCatalogRoute: WellKnownApiCatalogRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

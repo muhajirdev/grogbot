@@ -22,6 +22,7 @@ import {
   type McpDocument,
   mcpServerCard,
 } from "./mcp.js";
+import { pressMarkdown } from "./press.js";
 
 export const TEXT_PLAIN = "text/plain; charset=utf-8";
 export const TEXT_MARKDOWN = "text/markdown; charset=utf-8";
@@ -64,6 +65,11 @@ export function discoveryDocuments(
       body: jsonBody(identityJson(origins)),
     },
     { path: "/brand.txt", contentType: TEXT_PLAIN, body: brandTxt(origins) },
+    {
+      path: "/press.md",
+      contentType: TEXT_MARKDOWN,
+      body: pressMarkdown(origins),
+    },
     { path: "/faq-ai.txt", contentType: TEXT_PLAIN, body: faqAiTxt(origins) },
     {
       path: "/developer-ai.txt",
