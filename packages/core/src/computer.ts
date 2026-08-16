@@ -2,7 +2,7 @@ import type { ComputerListItem, ComputerStatus } from "@grogbot/contracts";
 import { ControlHolder } from "@grogbot/contracts";
 import { bots, computers, type Database, runs, threads } from "@grogbot/db";
 import { and, eq, inArray, ne } from "drizzle-orm";
-import { appendEvent, sandboxKind, toComputerStatus } from "./office.js";
+import { appendEvent, sandboxKind, toComputerStatus } from "./threads.js";
 
 export const ACTIVE_RUN_STATUSES = [
   "queued",
@@ -85,25 +85,25 @@ export async function fanoutComputerUpdated(
   viewingBotId: string,
   runId?: string | null,
 ): Promise<ComputerStatus> {
-  const offices = await listComputerAgents(db, computer.id);
+  const agents = await listComputerAgents(db, computer.id);
   const usingBotId =
     computer.controlHolder === "bot" ? computer.controlHolderId : null;
   const usingBotName =
-    offices.find((row) => row.id === usingBotId)?.name ?? null;
-  const teammates = offices.map((row) => ({ id: row.id, name: row.name }));
+    agents.find((row) => row.id === usingBotId)?.name ?? null;
+  const teammates = agents.map((row) => ({ id: row.id, name: row.name }));
   let viewing: ComputerStatus | undefined;
-  for (const office of offices) {
+  for (const agent of agents) {
     const status = toComputerStatus(computer, {
-      viewingBotId: office.id,
+      viewingBotId: agent.id,
       usingBotId,
       usingBotName,
       teammates,
     });
-    if (office.id === viewingBotId) viewing = status;
+    if (agent.id === viewingBotId) viewing = status;
     await appendEvent(db, {
       workspaceId: computer.workspaceId,
-      threadId: office.threadId,
-      botId: office.id,
+      threadId: agent.threadId,
+      botId: agent.id,
       type: "computer.updated",
       payload: status as unknown as Record<string, unknown>,
       runId,

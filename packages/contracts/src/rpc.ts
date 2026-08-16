@@ -12,6 +12,7 @@ import {
   RoutineSchema,
   UpdateBotInput,
 } from "./domain.js";
+import { ModelSettingsSchema, SaveModelSettingsInput } from "./models.js";
 import { ProductEventSchema } from "./events.js";
 import { GuestAgentKind, Id } from "./ids.js";
 
@@ -30,6 +31,10 @@ export const appContract = oc.router({
     }),
   ),
   me: oc.output(MeSchema),
+  models: {
+    get: oc.output(ModelSettingsSchema),
+    save: oc.input(SaveModelSettingsInput).output(ModelSettingsSchema),
+  },
   bots: {
     list: oc.output(z.array(BotSchema)),
     get: oc.input(botId).output(BotSchema),

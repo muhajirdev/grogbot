@@ -43,6 +43,8 @@ export interface AgentRunRequest {
   prompt: string;
   instructions: string;
   history: Array<{ role: "user" | "assistant" | "system"; content: string }>;
+  model?: string;
+  providerEnv?: Record<string, string>;
 }
 
 export type AgentRuntimeEvent =

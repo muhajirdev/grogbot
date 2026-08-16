@@ -42,7 +42,7 @@ function cookieHeader(response: Response, previous = ""): string {
     .join("; ");
 }
 
-describe.skipIf(!dbUp)("office loop", () => {
+describe.skipIf(!dbUp)("bot thread loop", () => {
   const env: Env = {
     databaseUrl,
     authSecret: "development-only-change-me-please-32ch",

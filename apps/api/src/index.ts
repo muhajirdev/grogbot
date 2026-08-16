@@ -23,6 +23,8 @@ async function main() {
         runtime,
         wakeup: handles.wakeup,
         guests: handles.guests,
+        bindRuntime: (overlay) =>
+          createAgentRuntime(env.agentRuntime, overlay.env),
       }),
     );
   }

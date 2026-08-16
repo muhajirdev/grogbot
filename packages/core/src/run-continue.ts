@@ -19,8 +19,14 @@ import {
 import type { GuestHub } from "./guest-hub.js";
 import { GuestAgentRuntime } from "./guest-runtime.js";
 import { newId } from "./ids.js";
-import { appendEvent, nextSeq } from "./office.js";
+import {
+  encryptionSecret,
+  missingModelMessage,
+  resolveRunModel,
+} from "./models.js";
 import { assertTransition } from "./run-state.js";
+import { redactSecrets } from "./secret-box.js";
+import { appendEvent, nextSeq } from "./threads.js";
 
 async function setRunStatus(
   db: Database,
@@ -43,8 +49,12 @@ export async function continueRun(opts: {
   runtime: AgentRuntime;
   runId: string;
   guests?: GuestHub;
+  bindRuntime?: (overlay: {
+    env: NodeJS.ProcessEnv;
+    model: string;
+  }) => AgentRuntime;
 }): Promise<void> {
-  const { db, runtime, runId, guests } = opts;
+  const { db, runId, guests } = opts;
   const [run] = await db.select().from(runs).where(eq(runs.id, runId)).limit(1);
   if (!run) return;
   if (run.status !== "queued") return;
@@ -135,8 +145,30 @@ export async function continueRun(opts: {
 
   const controller = new AbortController();
   let reply = "";
-  const runner =
-    guestEnabled && guests ? new GuestAgentRuntime(guests) : runtime;
+  const overlay = await resolveRunModel(
+    db,
+    bot,
+    process.env,
+    encryptionSecret(process.env),
+  );
+  if (!overlay.configured) {
+    const message = missingModelMessage(overlay.model);
+    current = await setRunStatus(db, current, "failed", {
+      error: message,
+      completedAt: new Date(),
+    });
+    await appendEvent(db, {
+      workspaceId: run.workspaceId,
+      threadId: run.threadId,
+      botId: run.botId,
+      type: "run.updated",
+      payload: { runId, status: "failed", text: message },
+      runId,
+    });
+    return;
+  }
+  const bound = opts.bindRuntime ? opts.bindRuntime(overlay) : opts.runtime;
+  const runner = guestEnabled && guests ? new GuestAgentRuntime(guests) : bound;
   try {
     for await (const event of runner.run(
       {
@@ -146,6 +178,7 @@ export async function continueRun(opts: {
         prompt: task.prompt,
         instructions: bot.instructions || bot.description,
         history,
+        model: overlay.model,
       },
       {
         operationId: newId(),
@@ -171,7 +204,9 @@ export async function continueRun(opts: {
       if (event.type === "error") throw new Error(event.text);
     }
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Run failed";
+    const message = redactSecrets(
+      error instanceof Error ? error.message : "Run failed",
+    );
     await setRunStatus(db, current, "failed", {
       error: message,
       completedAt: new Date(),

@@ -555,6 +555,34 @@ a.btn {
   padding: 12px 20px;
 }
 
+.model-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 20px 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  font-size: 13px;
+}
+
+.model-warn {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--danger, #c45c26);
+}
+
+.settings-body .field .hint {
+  margin: 4px 0 8px;
+  font-size: 12px;
+}
+
+.settings-body .field .hint a {
+  color: inherit;
+}
+
 .thread-who {
   display: flex;
   align-items: center;

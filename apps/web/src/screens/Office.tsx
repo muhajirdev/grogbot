@@ -29,6 +29,7 @@ import {
 } from "../components/Icons";
 import { PluginsModal } from "../components/PluginsModal";
 import { authClient } from "../lib/auth";
+import { isModelSetupError, userFacingError } from "../lib/errors";
 import { AVATAR_COLORS, FIRST_TASK } from "../lib/jobs";
 import { orpc } from "../lib/orpc";
 import { client } from "../lib/rpc";
@@ -93,6 +94,9 @@ export function Office(props: { botId: string }) {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<"general" | "models">(
+    "general",
+  );
   const [pluginsOpen, setPluginsOpen] = useState(false);
   const [newOpen, setNewOpen] = useState(false);
   const [paneMode, setPaneMode] = useState<"computer" | "settings" | null>(
@@ -156,6 +160,7 @@ export function Office(props: { botId: string }) {
       }
       if ((event.metaKey || event.ctrlKey) && event.key === ",") {
         event.preventDefault();
+        setSettingsTab("general");
         setSettingsOpen(true);
       }
     };
@@ -227,13 +232,27 @@ export function Office(props: { botId: string }) {
   async function send(event: FormEvent) {
     event.preventDefault();
     if (!bot || !draft.trim()) return;
+    if (me?.needsModel) {
+      setSettingsTab("models");
+      setSettingsOpen(true);
+      setError("Add a model key to talk to teammates.");
+      return;
+    }
     const text = draft.trim();
     setDraft("");
     setWorking("working…");
+    setError("");
     try {
       await client.threads.send({ botId: bot.id, text });
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not send");
+      setDraft(text);
+      setWorking("");
+      const message = userFacingError(caught, "Could not send");
+      setError(message);
+      if (isModelSetupError(message)) {
+        setSettingsTab("models");
+        setSettingsOpen(true);
+      }
     }
   }
 
@@ -344,7 +363,10 @@ export function Office(props: { botId: string }) {
           <button
             className="foot-item"
             type="button"
-            onClick={() => setSettingsOpen(true)}
+            onClick={() => {
+              setSettingsTab("general");
+              setSettingsOpen(true);
+            }}
           >
             <span
               className="avatar circle"
@@ -420,6 +442,25 @@ export function Office(props: { botId: string }) {
             ) : null}
           </div>
         </div>
+        {me?.needsModel || me?.modelWarning ? (
+          <div className="model-banner">
+            <span>
+              {me?.needsModel
+                ? "Add a model key to talk to teammates."
+                : me?.modelWarning}
+            </span>
+            <button
+              className="text-btn"
+              type="button"
+              onClick={() => {
+                setSettingsTab("models");
+                setSettingsOpen(true);
+              }}
+            >
+              Open models
+            </button>
+          </div>
+        ) : null}
         <div className="transcript" ref={scroller}>
           {messages.map((message, index) => {
             const prev = messages[index - 1];
@@ -515,11 +556,13 @@ export function Office(props: { botId: string }) {
               rows={1}
               value={draft}
               placeholder={
-                messages.length === 0
-                  ? FIRST_TASK
-                  : bot
-                    ? `Message ${bot.name}`
-                    : "Message"
+                me?.needsModel
+                  ? "Add a model key to send"
+                  : messages.length === 0
+                    ? FIRST_TASK
+                    : bot
+                      ? `Message ${bot.name}`
+                      : "Message"
               }
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(event) => {
@@ -592,11 +635,15 @@ export function Office(props: { botId: string }) {
         <AppSettings
           me={me}
           theme={theme}
+          initialTab={settingsTab}
           onTheme={(value) => {
             setTheme(value);
             applyTheme(value);
           }}
-          onClose={() => setSettingsOpen(false)}
+          onClose={() => {
+            setSettingsOpen(false);
+            setSettingsTab("general");
+          }}
           onSignOut={() => {
             void (async () => {
               await authClient.signOut();

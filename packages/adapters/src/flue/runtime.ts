@@ -113,7 +113,7 @@ export class FlueAgentRuntime implements AgentRuntime {
     const signal = mergeSignals(context.signal, controller.signal);
     yield { type: "progress", text: "working…" };
     try {
-      const model = this.resolvedModel();
+      const model = request.model?.trim() || this.resolvedModel();
       await this.ensureStarted();
       setTeammateTurn(instanceId, {
         instructions: request.instructions,
@@ -170,19 +170,55 @@ export class FlueAgentRuntime implements AgentRuntime {
 }
 
 let shared: FlueAgentRuntime | undefined;
+const pool = new Map<string, FlueAgentRuntime>();
+
+function envFingerprint(echo: boolean, env: NodeJS.ProcessEnv): string {
+  const material = [
+    echo ? "echo" : "live",
+    env.GROGBOT_MODEL ?? "",
+    env.ANTHROPIC_API_KEY ?? "",
+    env.OPENAI_API_KEY ?? "",
+    env.OPENROUTER_API_KEY ?? "",
+    env.CLOUDFLARE_ACCOUNT_ID ?? "",
+    env.CLOUDFLARE_API_TOKEN ?? "",
+    env.CLOUDFLARE_AI_GATEWAY_ID ?? "",
+  ].join("\0");
+  return material;
+}
+
+const MAX_POOL = 4;
+
+export function flueRuntimePoolSize(): number {
+  return pool.size;
+}
 
 export function getFlueAgentRuntime(
   echo: boolean,
   env: NodeJS.ProcessEnv = process.env,
 ): FlueAgentRuntime {
-  shared ??= new FlueAgentRuntime({ echo, env });
-  return shared;
+  const key = envFingerprint(echo, env);
+  const cached = pool.get(key);
+  if (cached) return cached;
+  while (pool.size >= MAX_POOL) {
+    const oldest = pool.keys().next().value;
+    if (!oldest) break;
+    const evicted = pool.get(oldest);
+    pool.delete(oldest);
+    if (evicted === shared) shared = undefined;
+    void evicted?.stop();
+  }
+  const created = new FlueAgentRuntime({ echo, env });
+  pool.set(key, created);
+  shared ??= created;
+  return created;
 }
 
 export async function stopFlueAgentRuntime(): Promise<void> {
-  if (!shared) return;
-  await shared.stop();
+  const runtimes = new Set(pool.values());
+  if (shared) runtimes.add(shared);
+  pool.clear();
   shared = undefined;
+  await Promise.all([...runtimes].map((runtime) => runtime.stop()));
 }
 
 function mergeSignals(

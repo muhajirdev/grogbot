@@ -36,6 +36,20 @@
       "when": 1786820000000,
       "tag": "0004_default_computer_name",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786867200000,
+      "tag": "0005_bot_model",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1786870800000,
+      "tag": "0006_workspace_models",
+      "breakpoints": true
     }
   ]
 }

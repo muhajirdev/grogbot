@@ -1,6 +1,9 @@
 import type { Bot, ComputerStatus, GuestAgentKind } from "@grogbot/contracts";
+import { PROVIDER_META } from "@grogbot/contracts";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { AVATAR_COLORS, AVATAR_SHAPES } from "../lib/jobs";
+import { orpc } from "../lib/orpc";
 import { readNotify, writeNotify } from "../lib/prefs";
 import { client } from "../lib/rpc";
 import { AvatarMark, ShapePicks } from "./Avatar";
@@ -27,18 +30,33 @@ export function BotSettingsPane(props: {
     command: string;
     kind: string;
   } | null>(null);
+  const modelsQuery = useQuery(orpc.models.get.queryOptions());
+  const catalog = modelsQuery.data?.catalog ?? [];
+  const defaultLabel =
+    modelsQuery.data?.catalog.find(
+      (item) => item.id === modelsQuery.data?.defaultModelId,
+    )?.label ?? "workspace default";
+  const listed = catalog.some((item) => item.id === bot.model);
+  const [model, setModel] = useState(
+    listed || !bot.model ? bot.model : "custom",
+  );
+  const [customModel, setCustomModel] = useState(listed ? "" : bot.model);
 
   useEffect(() => {
+    const ids = modelsQuery.data?.catalog ?? [];
+    const inCatalog = ids.some((item) => item.id === bot.model);
     setName(bot.name);
     setTitle(bot.title);
     setDescription(bot.description);
     setColor(bot.avatarColor);
     setShape(bot.avatarShape);
     setNotify(readNotify(bot.id));
+    setModel(inCatalog || !bot.model ? bot.model : "custom");
+    setCustomModel(inCatalog ? "" : bot.model);
     setIssued(null);
     setGuestError("");
     setAdvancedOpen(bot.guestKind !== "off");
-  }, [bot]);
+  }, [bot, modelsQuery.data]);
 
   async function save(patch: {
     name?: string;
@@ -46,6 +64,7 @@ export function BotSettingsPane(props: {
     description?: string;
     avatarColor?: string;
     avatarShape?: typeof shape;
+    model?: string;
   }) {
     await client.bots.update({
       botId: bot.id,
@@ -139,6 +158,50 @@ export function BotSettingsPane(props: {
             }}
           />
         </label>
+        <label className="field">
+          <span>Model</span>
+          <select
+            value={model}
+            onChange={(e) => {
+              const next = e.target.value;
+              setModel(next);
+              if (next !== "custom") void save({ model: next });
+            }}
+          >
+            <option value="">Workspace default ({defaultLabel})</option>
+            {(["openrouter", "anthropic", "openai", "cloudflare"] as const)
+              .filter((provider) =>
+                catalog.some((item) => item.provider === provider),
+              )
+              .map((provider) => (
+                <optgroup key={provider} label={PROVIDER_META[provider].label}>
+                  {catalog
+                    .filter((item) => item.provider === provider)
+                    .map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.label}
+                        {item.available ? "" : " — needs key"}
+                      </option>
+                    ))}
+                </optgroup>
+              ))}
+            <option value="custom">Custom…</option>
+          </select>
+        </label>
+        {model === "custom" ? (
+          <label className="field">
+            <span>Model id</span>
+            <input
+              value={customModel}
+              placeholder="anthropic/claude-sonnet-4-6"
+              onChange={(e) => setCustomModel(e.target.value)}
+              onBlur={() => {
+                const next = customModel.trim();
+                if (next && next !== bot.model) void save({ model: next });
+              }}
+            />
+          </label>
+        ) : null}
         <section className="set-block">
           <p className="group-label">Notifications</p>
           <label className="toggle-row">

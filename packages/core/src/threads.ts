@@ -89,6 +89,7 @@ export function toBotDto(
     computerName: extras?.computerName ?? DEFAULT_COMPUTER_NAME,
     guestKind: guestKind.success ? guestKind.data : "off",
     guestOnline: extras?.online ?? false,
+    model: bot.model ?? "",
     lastPreview: extras?.lastPreview ?? "",
     lastAt,
     createdAt: bot.createdAt.toISOString(),

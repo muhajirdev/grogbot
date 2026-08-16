@@ -1,0 +1,595 @@
+import type {
+  ModelKeyStatus,
+  ModelProvider,
+  ModelSettings,
+  SaveModelSettingsInput,
+} from "@grogbot/contracts";
+import {
+  catalogForRuntime,
+  isOfflineRuntime,
+  missingProviderMessage,
+  modelIsRunnable,
+  PROVIDER_META,
+  providerForModel,
+  resolveStoredModelId,
+  SUGGESTED_STARTER_MODEL,
+  validateCloudflareAccountId,
+  validateModelId,
+  validateProviderSecret,
+} from "@grogbot/contracts";
+import type { Database } from "@grogbot/db";
+import { secrets, userModelCredentials, workspaceModels } from "@grogbot/db";
+import { eq } from "drizzle-orm";
+import { newId } from "./ids.js";
+import { decryptSecret, encryptSecret, secretHint } from "./secret-box.js";
+
+const PROVIDERS: ModelProvider[] = [
+  "openrouter",
+  "anthropic",
+  "openai",
+  "cloudflare",
+];
+
+const DEV_FALLBACK = "development-only-change-me-please-32ch";
+
+export const PROVIDER_ENV: Record<
+  Exclude<ModelProvider, "cloudflare">,
+  string
+> = {
+  anthropic: "ANTHROPIC_API_KEY",
+  openai: "OPENAI_API_KEY",
+  openrouter: "OPENROUTER_API_KEY",
+};
+
+export interface ModelOverlay {
+  env: NodeJS.ProcessEnv;
+  model: string;
+  configured: boolean;
+}
+
+export class ModelSettingsError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ModelSettingsError";
+  }
+}
+
+export function encryptionSecret(
+  source: NodeJS.ProcessEnv,
+  production = source.NODE_ENV === "production",
+): string {
+  const explicit = source.ENCRYPTION_KEY?.trim();
+  if (explicit) {
+    if (production && explicit.length < 32) {
+      throw new Error(
+        "ENCRYPTION_KEY must be at least 32 characters in production",
+      );
+    }
+    return explicit;
+  }
+  const auth = source.BETTER_AUTH_SECRET?.trim();
+  if (auth && auth !== DEV_FALLBACK) {
+    if (production && auth.length < 32) {
+      throw new Error(
+        "BETTER_AUTH_SECRET must be at least 32 characters in production",
+      );
+    }
+    return auth;
+  }
+  if (production) {
+    throw new Error(
+      "ENCRYPTION_KEY or BETTER_AUTH_SECRET is required in production",
+    );
+  }
+  return DEV_FALLBACK;
+}
+
+function envKeyConfigured(
+  provider: ModelProvider,
+  env: NodeJS.ProcessEnv,
+): boolean {
+  if (provider === "cloudflare") {
+    return Boolean(
+      env.CLOUDFLARE_ACCOUNT_ID?.trim() &&
+        (env.CLOUDFLARE_API_TOKEN?.trim() || env.CLOUDFLARE_AUTH_TOKEN?.trim()),
+    );
+  }
+  return Boolean(env[PROVIDER_ENV[provider]]?.trim());
+}
+
+function parseCloudflareSecret(raw: string): {
+  accountId?: string;
+  apiToken?: string;
+  gatewayId?: string;
+} {
+  try {
+    const parsed = JSON.parse(raw) as {
+      accountId?: string;
+      apiToken?: string;
+      gatewayId?: string;
+    };
+    if (parsed && typeof parsed === "object") return parsed;
+  } catch {
+    // stored as a bare token
+  }
+  return { apiToken: raw };
+}
+
+function configuredProviders(
+  keys: ModelKeyStatus[],
+  runtime: string | undefined,
+): ModelProvider[] {
+  return keys
+    .filter((item) => item.configured)
+    .filter(
+      (item) =>
+        item.provider !== "cloudflare" ||
+        runtime === "gateway" ||
+        runtime === "cloudflare",
+    )
+    .map((item) => item.provider);
+}
+
+export async function loadModelSettings(
+  db: Database,
+  actor: { userId: string; workspaceId: string },
+  env: NodeJS.ProcessEnv,
+  secret: string,
+): Promise<ModelSettings> {
+  const runtime = env.AGENT_RUNTIME?.trim() || "flue";
+  const creds = await db
+    .select()
+    .from(userModelCredentials)
+    .where(eq(userModelCredentials.workspaceId, actor.workspaceId));
+  const secretRows = await db
+    .select()
+    .from(secrets)
+    .where(eq(secrets.workspaceId, actor.workspaceId));
+  const [workspace] = await db
+    .select()
+    .from(workspaceModels)
+    .where(eq(workspaceModels.workspaceId, actor.workspaceId))
+    .limit(1);
+  const secretById = new Map(secretRows.map((row) => [row.id, row]));
+  const byProvider = new Map(creds.map((row) => [row.provider, row]));
+
+  const keys: ModelKeyStatus[] = PROVIDERS.map((provider) => {
+    const row = byProvider.get(provider);
+    if (!row) {
+      const fromEnv = envKeyConfigured(provider, env);
+      return {
+        provider,
+        configured: fromEnv,
+        source: fromEnv ? ("env" as const) : ("none" as const),
+        hint: fromEnv ? "on this machine" : null,
+        accountId:
+          provider === "cloudflare" && fromEnv
+            ? (env.CLOUDFLARE_ACCOUNT_ID?.trim() ?? null)
+            : null,
+        gatewayId:
+          provider === "cloudflare" && fromEnv
+            ? (env.CLOUDFLARE_AI_GATEWAY_ID?.trim() ?? "default")
+            : null,
+      };
+    }
+    const packed = secretById.get(row.secretId)?.ciphertext;
+    let hint: string | null = "••••";
+    let accountId: string | null = null;
+    let gatewayId: string | null = null;
+    if (packed) {
+      try {
+        const plain = decryptSecret(packed, secret);
+        if (provider === "cloudflare") {
+          const parsed = parseCloudflareSecret(plain);
+          hint = secretHint(parsed.apiToken ?? plain);
+          accountId = parsed.accountId?.trim() || null;
+          gatewayId = parsed.gatewayId?.trim() || "default";
+        } else {
+          hint = secretHint(plain);
+        }
+      } catch {
+        hint = "••••";
+      }
+    }
+    return {
+      provider,
+      configured: true,
+      source: "workspace" as const,
+      hint,
+      accountId,
+      gatewayId,
+    };
+  });
+
+  const choice = secretRows.find((row) => row.kind === "model:choice");
+  let legacyChoice = "";
+  if (choice) {
+    try {
+      legacyChoice = decryptSecret(choice.ciphertext, secret).trim();
+    } catch {
+      legacyChoice = "";
+    }
+  }
+  const available = configuredProviders(keys, runtime);
+  const stored =
+    workspace?.defaultModel.trim() ||
+    legacyChoice ||
+    creds.find((row) => row.isDefault)?.defaultModel?.trim() ||
+    env.GROGBOT_MODEL?.trim() ||
+    "";
+  const fallback =
+    catalogForRuntime(runtime).find((item) =>
+      modelIsRunnable(item.id, available),
+    )?.id ?? SUGGESTED_STARTER_MODEL;
+  const defaultModelId = stored || fallback;
+  const listed = catalogForRuntime(runtime).some(
+    (item) => item.id === defaultModelId,
+  );
+  const catalog = catalogForRuntime(runtime).map((item) => ({
+    id: item.id,
+    label: item.label,
+    provider: item.provider,
+    available: modelIsRunnable(item.id, available),
+  }));
+  const warning =
+    available.length > 0 && !modelIsRunnable(defaultModelId, available)
+      ? missingProviderMessage(defaultModelId)
+      : null;
+
+  return {
+    keys,
+    defaultModel: listed ? defaultModelId : "custom",
+    customModel: listed ? "" : defaultModelId,
+    defaultModelId,
+    fromEnv: creds.length === 0 && keys.some((item) => item.source === "env"),
+    runtime,
+    catalog,
+    warning,
+  };
+}
+
+export async function saveModelSettings(
+  db: Database,
+  actor: { userId: string; workspaceId: string },
+  input: SaveModelSettingsInput,
+  secret: string,
+  env: NodeJS.ProcessEnv = {},
+): Promise<ModelSettings> {
+  const defaultModel = resolveStoredModelId(input);
+  if (!defaultModel) {
+    throw new ModelSettingsError("Pick a default model.");
+  }
+  if (input.defaultModel === "custom" && !input.customModel?.trim()) {
+    throw new ModelSettingsError("Enter a custom model id.");
+  }
+  const modelProblem = validateModelId(defaultModel);
+  if (modelProblem) throw new ModelSettingsError(modelProblem);
+
+  for (const item of input.keys) {
+    if (item.clear) continue;
+    const incoming = item.secret?.trim();
+    if (incoming) {
+      const problem = validateProviderSecret(item.provider, incoming);
+      if (problem) throw new ModelSettingsError(problem);
+    }
+    if (item.provider === "cloudflare" && item.accountId?.trim()) {
+      const problem = validateCloudflareAccountId(item.accountId);
+      if (problem) throw new ModelSettingsError(problem);
+    }
+  }
+
+  const now = new Date();
+  await db.transaction(async (tx) => {
+    const existingCreds = await tx
+      .select()
+      .from(userModelCredentials)
+      .where(eq(userModelCredentials.workspaceId, actor.workspaceId));
+    const existingSecrets = await tx
+      .select()
+      .from(secrets)
+      .where(eq(secrets.workspaceId, actor.workspaceId));
+    const credByProvider = new Map(
+      existingCreds.map((row) => [row.provider, row]),
+    );
+    const secretByKind = new Map(existingSecrets.map((row) => [row.kind, row]));
+
+    for (const item of input.keys) {
+      const kind = `model:${item.provider}`;
+      if (item.clear) {
+        const cred = credByProvider.get(item.provider);
+        if (cred) {
+          await tx
+            .delete(userModelCredentials)
+            .where(eq(userModelCredentials.id, cred.id));
+        }
+        const row = secretByKind.get(kind);
+        if (row) await tx.delete(secrets).where(eq(secrets.id, row.id));
+        continue;
+      }
+      const incoming = item.secret?.trim();
+      if (item.provider === "cloudflare") {
+        const token = incoming;
+        const accountId = item.accountId?.trim();
+        if (!token && !accountId && !item.gatewayId?.trim()) continue;
+        const previous = secretByKind.get(kind);
+        let parsed: {
+          accountId?: string;
+          apiToken?: string;
+          gatewayId?: string;
+        } = {};
+        if (previous) {
+          try {
+            parsed = parseCloudflareSecret(
+              decryptSecret(previous.ciphertext, secret),
+            );
+          } catch {
+            parsed = {};
+          }
+        }
+        const next = {
+          accountId: accountId || parsed.accountId || "",
+          apiToken: token || parsed.apiToken || "",
+          gatewayId: item.gatewayId?.trim() || parsed.gatewayId || "default",
+        };
+        if (!next.accountId || !next.apiToken) {
+          if (token || accountId) {
+            throw new ModelSettingsError(
+              "Cloudflare needs both an account id and an API token.",
+            );
+          }
+          continue;
+        }
+        await upsertSecret(tx, actor, kind, JSON.stringify(next), secret, now);
+        await upsertCredential(
+          tx,
+          actor,
+          item.provider,
+          kind,
+          defaultModel,
+          now,
+          credByProvider.get(item.provider),
+        );
+        continue;
+      }
+      if (!incoming) continue;
+      await upsertSecret(tx, actor, kind, incoming, secret, now);
+      await upsertCredential(
+        tx,
+        actor,
+        item.provider,
+        kind,
+        defaultModel,
+        now,
+        credByProvider.get(item.provider),
+      );
+    }
+
+    const [existingWorkspace] = await tx
+      .select()
+      .from(workspaceModels)
+      .where(eq(workspaceModels.workspaceId, actor.workspaceId))
+      .limit(1);
+    if (existingWorkspace) {
+      await tx
+        .update(workspaceModels)
+        .set({
+          defaultModel,
+          updatedBy: actor.userId,
+          updatedAt: now,
+        })
+        .where(eq(workspaceModels.workspaceId, actor.workspaceId));
+    } else {
+      await tx.insert(workspaceModels).values({
+        workspaceId: actor.workspaceId,
+        defaultModel,
+        updatedBy: actor.userId,
+        updatedAt: now,
+      });
+    }
+
+    const creds = await tx
+      .select()
+      .from(userModelCredentials)
+      .where(eq(userModelCredentials.workspaceId, actor.workspaceId));
+    for (const row of creds) {
+      await tx
+        .update(userModelCredentials)
+        .set({
+          defaultModel,
+          isDefault: providerForModel(defaultModel) === row.provider,
+          updatedAt: now,
+        })
+        .where(eq(userModelCredentials.id, row.id));
+    }
+
+    const staleChoice = secretByKind.get("model:choice");
+    if (staleChoice) {
+      await tx.delete(secrets).where(eq(secrets.id, staleChoice.id));
+    }
+  });
+
+  return loadModelSettings(db, actor, env, secret);
+}
+
+type DbLike = {
+  select: Database["select"];
+  update: Database["update"];
+  insert: Database["insert"];
+};
+
+async function upsertSecret(
+  db: DbLike,
+  actor: { userId: string; workspaceId: string },
+  kind: string,
+  plain: string,
+  secret: string,
+  now: Date,
+): Promise<string> {
+  const rows = await db
+    .select()
+    .from(secrets)
+    .where(eq(secrets.workspaceId, actor.workspaceId));
+  const found = rows.find((row) => row.kind === kind);
+  const ciphertext = encryptSecret(plain, secret);
+  if (found) {
+    await db
+      .update(secrets)
+      .set({ ciphertext, userId: actor.userId })
+      .where(eq(secrets.id, found.id));
+    return found.id;
+  }
+  const id = newId();
+  await db.insert(secrets).values({
+    id,
+    userId: actor.userId,
+    workspaceId: actor.workspaceId,
+    kind,
+    ciphertext,
+    createdAt: now,
+  });
+  return id;
+}
+
+async function upsertCredential(
+  db: DbLike,
+  actor: { userId: string; workspaceId: string },
+  provider: ModelProvider,
+  kind: string,
+  defaultModel: string,
+  now: Date,
+  existing: typeof userModelCredentials.$inferSelect | undefined,
+): Promise<void> {
+  const secretRows = await db
+    .select()
+    .from(secrets)
+    .where(eq(secrets.workspaceId, actor.workspaceId));
+  const secretId = secretRows.find((row) => row.kind === kind)?.id;
+  if (!secretId) return;
+  const label = PROVIDER_META[provider].label;
+  if (existing) {
+    await db
+      .update(userModelCredentials)
+      .set({
+        secretId,
+        label,
+        defaultModel,
+        userId: actor.userId,
+        updatedAt: now,
+      })
+      .where(eq(userModelCredentials.id, existing.id));
+    return;
+  }
+  await db.insert(userModelCredentials).values({
+    id: newId(),
+    userId: actor.userId,
+    workspaceId: actor.workspaceId,
+    provider,
+    label,
+    secretId,
+    isDefault: false,
+    defaultModel,
+    createdAt: now,
+    updatedAt: now,
+  });
+}
+
+export async function resolveRunModel(
+  db: Database,
+  bot: { userId: string; workspaceId: string; model?: string | null },
+  baseEnv: NodeJS.ProcessEnv,
+  secret: string,
+): Promise<ModelOverlay> {
+  const env: NodeJS.ProcessEnv = { ...baseEnv };
+  const settings = await loadStoredEnv(db, bot.workspaceId, secret);
+  Object.assign(env, settings.env);
+  const botModel = bot.model?.trim();
+  const model =
+    botModel ||
+    settings.defaultModel ||
+    env.GROGBOT_MODEL?.trim() ||
+    defaultModelForEnv(env);
+  if (model) env.GROGBOT_MODEL = model;
+  const providers: ModelProvider[] = PROVIDERS.filter((provider) =>
+    envKeyConfigured(provider, env),
+  );
+  const configured =
+    isOfflineRuntime(env.AGENT_RUNTIME) || modelIsRunnable(model, providers);
+  return { env, model, configured };
+}
+
+async function loadStoredEnv(
+  db: Database,
+  workspaceId: string,
+  secret: string,
+): Promise<{ env: NodeJS.ProcessEnv; defaultModel: string }> {
+  const creds = await db
+    .select()
+    .from(userModelCredentials)
+    .where(eq(userModelCredentials.workspaceId, workspaceId));
+  const env: NodeJS.ProcessEnv = {};
+  const secretRows = await db
+    .select()
+    .from(secrets)
+    .where(eq(secrets.workspaceId, workspaceId));
+  const [workspace] = await db
+    .select()
+    .from(workspaceModels)
+    .where(eq(workspaceModels.workspaceId, workspaceId))
+    .limit(1);
+  let defaultModel = workspace?.defaultModel.trim() || "";
+  if (!defaultModel) {
+    const stored = secretRows.find((row) => row.kind === "model:choice");
+    if (stored) {
+      try {
+        defaultModel = decryptSecret(stored.ciphertext, secret).trim();
+      } catch {
+        defaultModel = "";
+      }
+    }
+  }
+  const byId = new Map(secretRows.map((row) => [row.id, row]));
+  for (const row of creds) {
+    const packed = byId.get(row.secretId);
+    if (!packed) continue;
+    let plain: string;
+    try {
+      plain = decryptSecret(packed.ciphertext, secret);
+    } catch {
+      continue;
+    }
+    const provider = row.provider as ModelProvider;
+    if (provider === "cloudflare") {
+      const parsed = parseCloudflareSecret(plain);
+      if (parsed.accountId) env.CLOUDFLARE_ACCOUNT_ID = parsed.accountId;
+      if (parsed.apiToken) env.CLOUDFLARE_API_TOKEN = parsed.apiToken;
+      if (parsed.gatewayId) env.CLOUDFLARE_AI_GATEWAY_ID = parsed.gatewayId;
+    } else if (provider in PROVIDER_ENV) {
+      env[PROVIDER_ENV[provider as Exclude<ModelProvider, "cloudflare">]] =
+        plain;
+    }
+    if (!defaultModel && row.defaultModel) defaultModel = row.defaultModel;
+  }
+  return { env, defaultModel };
+}
+
+function defaultModelForEnv(env: NodeJS.ProcessEnv): string {
+  if (env.ANTHROPIC_API_KEY) return "anthropic/claude-sonnet-4-6";
+  if (env.OPENAI_API_KEY) return "openai/gpt-4o-mini";
+  if (env.OPENROUTER_API_KEY) return SUGGESTED_STARTER_MODEL;
+  if (env.CLOUDFLARE_ACCOUNT_ID && env.CLOUDFLARE_API_TOKEN) {
+    return "@cf/deepseek-ai/deepseek-v4-flash-0731";
+  }
+  return SUGGESTED_STARTER_MODEL;
+}
+
+export function userHasModelCredentials(
+  count: number,
+  env: NodeJS.ProcessEnv,
+): boolean {
+  if (count > 0) return true;
+  return PROVIDERS.some((provider) => envKeyConfigured(provider, env));
+}
+
+export function missingModelMessage(model: string): string {
+  return `${missingProviderMessage(model)} Open Settings → Models.`;
+}

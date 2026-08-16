@@ -4,6 +4,8 @@ import { ECHO_MODEL } from "./echo.js";
 import {
   FlueAgentRuntime,
   flueConfigured,
+  flueRuntimePoolSize,
+  getFlueAgentRuntime,
   resolveFlueModel,
   stopFlueAgentRuntime,
 } from "./runtime.js";
@@ -72,5 +74,27 @@ describe("FlueAgentRuntime", () => {
       type: "done",
       text: "Echo: summarize the handoff",
     });
+  });
+
+  it("honors a per-turn model id", async () => {
+    const runtime = createAgentRuntime("flue-echo");
+    const events = [];
+    for await (const event of runtime.run(
+      { ...runRequest, model: "grogbot-echo/echo" },
+      adapterContext,
+    )) {
+      events.push(event);
+    }
+    expect(events.at(-1)).toMatchObject({ type: "done" });
+  });
+
+  it("caps the live runtime pool", async () => {
+    await stopFlueAgentRuntime();
+    for (let i = 0; i < 6; i += 1) {
+      getFlueAgentRuntime(true, { GROGBOT_MODEL: `echo-${i}` });
+    }
+    expect(flueRuntimePoolSize()).toBeLessThanOrEqual(4);
+    await stopFlueAgentRuntime();
+    expect(flueRuntimePoolSize()).toBe(0);
   });
 });

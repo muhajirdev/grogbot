@@ -1,14 +1,32 @@
-import { agentRuntimeNeedsModel } from "@grogbot/adapters";
-import { appContract } from "@grogbot/contracts";
+import { isOfflineAgentRuntime } from "@grogbot/adapters";
+import { appContract, labelForModel } from "@grogbot/contracts";
 import {
+  encryptionSecret,
   getBotComputer,
   listEventsAfter,
+  loadModelSettings,
+  ModelSettingsError,
+  saveModelSettings,
   sleep,
   toBotDto,
+  userHasModelCredentials,
 } from "@grogbot/core";
 import { guestConnectors, userModelCredentials } from "@grogbot/db";
-import { implement } from "@orpc/server";
+import { implement, ORPCError } from "@orpc/server";
 import { eq } from "drizzle-orm";
+import {
+  createBot,
+  createRoutine,
+  getBotThread,
+  getComputer,
+  listBots,
+  listComputers,
+  listRoutines,
+  sendMessage,
+  setComputerControl,
+  stopBotRuns,
+  updateBot,
+} from "./bots.js";
 import type { RpcContext } from "./context.js";
 import { agentRuntimeSource } from "./env.js";
 import {
@@ -19,19 +37,6 @@ import {
   rotateGuest,
 } from "./guests.js";
 import { healthPayload } from "./health.js";
-import {
-  createOfficeBot,
-  createRoutine,
-  getComputer,
-  getOffice,
-  listBots,
-  listComputers,
-  listRoutines,
-  sendMessage,
-  setComputerControl,
-  stopBotRuns,
-  updateOfficeBot,
-} from "./office.js";
 import { requireActor } from "./session.js";
 
 const os = implement(appContract).$context<RpcContext>();
@@ -40,10 +45,19 @@ export const appRouter = os.router({
   health: os.health.handler(async ({ context }) => healthPayload(context.env)),
   me: os.me.handler(async ({ context }) => {
     const actor = await requireActor(context);
+    const source = agentRuntimeSource(context.env);
+    const secret = encryptionSecret(
+      {
+        ENCRYPTION_KEY: context.env.encryptionKey,
+        BETTER_AUTH_SECRET: context.env.authSecret,
+      },
+      context.env.production,
+    );
+    const settings = await loadModelSettings(context.db, actor, source, secret);
     const creds = await context.db
       .select()
       .from(userModelCredentials)
-      .where(eq(userModelCredentials.userId, actor.userId))
+      .where(eq(userModelCredentials.workspaceId, actor.workspaceId))
       .limit(1);
     return {
       userId: actor.userId,
@@ -52,12 +66,53 @@ export const appRouter = os.router({
       workspaceId: actor.workspaceId,
       isDeploymentOwner: actor.isDeploymentOwner,
       needsModel:
-        agentRuntimeNeedsModel(
-          context.env.agentRuntime,
-          agentRuntimeSource(context.env),
-        ) && creds.length === 0,
+        !isOfflineAgentRuntime(context.env.agentRuntime) &&
+        !userHasModelCredentials(creds.length, source),
+      defaultModel: settings.defaultModelId,
+      defaultModelLabel: labelForModel(settings.defaultModelId),
+      modelWarning: settings.warning,
     };
   }),
+  models: {
+    get: os.models.get.handler(async ({ context }) => {
+      const actor = await requireActor(context);
+      return loadModelSettings(
+        context.db,
+        actor,
+        agentRuntimeSource(context.env),
+        encryptionSecret(
+          {
+            ENCRYPTION_KEY: context.env.encryptionKey,
+            BETTER_AUTH_SECRET: context.env.authSecret,
+          },
+          context.env.production,
+        ),
+      );
+    }),
+    save: os.models.save.handler(async ({ context, input }) => {
+      const actor = await requireActor(context);
+      try {
+        return await saveModelSettings(
+          context.db,
+          actor,
+          input,
+          encryptionSecret(
+            {
+              ENCRYPTION_KEY: context.env.encryptionKey,
+              BETTER_AUTH_SECRET: context.env.authSecret,
+            },
+            context.env.production,
+          ),
+          agentRuntimeSource(context.env),
+        );
+      } catch (caught) {
+        if (caught instanceof ModelSettingsError) {
+          throw new ORPCError("BAD_REQUEST", { message: caught.message });
+        }
+        throw caught;
+      }
+    }),
+  },
   bots: {
     list: os.bots.list.handler(async ({ context }) => {
       const actor = await requireActor(context);
@@ -65,7 +120,7 @@ export const appRouter = os.router({
     }),
     get: os.bots.get.handler(async ({ context, input }) => {
       const actor = await requireActor(context);
-      const { bot, thread } = await getOffice(context, actor, input.botId);
+      const { bot, thread } = await getBotThread(context, actor, input.botId);
       const [connector] = await context.db
         .select()
         .from(guestConnectors)
@@ -79,11 +134,11 @@ export const appRouter = os.router({
     }),
     create: os.bots.create.handler(async ({ context, input }) => {
       const actor = await requireActor(context);
-      return createOfficeBot(context, actor, input);
+      return createBot(context, actor, input);
     }),
     update: os.bots.update.handler(async ({ context, input }) => {
       const actor = await requireActor(context);
-      return updateOfficeBot(context, actor, input);
+      return updateBot(context, actor, input);
     }),
   },
   threads: {
@@ -93,7 +148,7 @@ export const appRouter = os.router({
       signal,
     }) {
       const actor = await requireActor(context);
-      const { thread } = await getOffice(context, actor, input.botId);
+      const { thread } = await getBotThread(context, actor, input.botId);
       let cursor = input.cursor;
       while (!signal?.aborted) {
         const batch = await listEventsAfter(context.db, thread.id, cursor);

@@ -202,5 +202,6 @@ Empty composer and New Agent must still work without those.
 4. Computer pane: fake/scripted first, then Docker/E2B; takeover control. Wakeup is the bot’s actor, not a queue UI.
 5. Edit profile on the Bot, not a separate admin app.
 6. First-run does not require Composio.
+7. **Settings → Models**: workspace BYOK keys (encrypted) + default model. OpenRouter is the one-key start. A bot can override. Messaging fails closed until a matching key exists.
 
 Sources: xAI Grok Bot docs dated around 11 Aug 2026, [x.ai/bot](https://x.ai/bot), [introducing grok bot](https://x.ai/news/introducing-grok-bot).
