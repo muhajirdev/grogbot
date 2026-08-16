@@ -46,6 +46,7 @@ The **workspace** (Better Auth org) also has:
 | Realtime | oRPC event iterator now · actor WebSocket later if needed |
 | Plugins | **Composio** (optional) |
 | Rooms v1 | Bot’s office. Multi-bot rooms: plan only |
+| Hosted billing | **Later.** Polar research: [docs/polar-integration.md](./docs/polar-integration.md). Self-host stays free. Not v1. |
 
 ## Wakeup (Rivet)
 
@@ -128,4 +129,6 @@ The Rivet actor is still the bot. If the guest is offline, the run stays queued 
 
 ## Out of v1
 
-Gadgets, Gatekeepers, Cloudflare Workers as the host, D1, Turso, Prisma, PGlite as product DB, store signing / Electron-builder / EAS submit, Pi subscription OAuth, Discord UI, agentOS as the default computer, multi-bot rooms.
+Gadgets, Gatekeepers, Cloudflare Workers as the host, D1, Turso, Prisma, PGlite as product DB, store signing / Electron-builder / EAS submit, Pi subscription OAuth, Discord UI, agentOS as the default computer, multi-bot rooms, Polar hosted billing.
+
+Hosted grogbot.com billing research (Polar as MoR, workspace as Polar customer, not v1): [docs/polar-integration.md](./docs/polar-integration.md).
