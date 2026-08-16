@@ -1,4 +1,4 @@
-import { ScriptedAgentRuntime } from "@grogbot/adapters";
+import { createAgentRuntime } from "@grogbot/adapters";
 import { createWakeHandlers } from "@grogbot/core";
 import { serve } from "@hono/node-server";
 import { loadRootEnv } from "./load-root-env.js";
@@ -6,14 +6,14 @@ import { loadRootEnv } from "./load-root-env.js";
 loadRootEnv();
 
 import { createApp } from "./app.js";
-import { loadEnv } from "./env.js";
+import { gatewaySource, loadEnv } from "./env.js";
 
 async function main() {
   const env = loadEnv();
   const handles = createApp(env);
 
   if (!env.workerUrl) {
-    const runtime = new ScriptedAgentRuntime();
+    const runtime = createAgentRuntime(env.agentRuntime, gatewaySource(env));
     await handles.wakeup.start(
       createWakeHandlers({
         db: handles.db,

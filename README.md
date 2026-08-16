@@ -51,6 +51,8 @@ Email/password still works with no OAuth keys.
 
 The scripted runtime echoes so you can test the loop without model keys.
 
+For live model replies, set `AGENT_RUNTIME=gateway`. That uses an OpenAI-compatible **AI Gateway**: **Cloudflare AI Gateway** by default (`@cf/deepseek-ai/deepseek-v4-flash-0731` on Workers AI), or **OpenRouter** (`AI_GATEWAY_PROVIDER=openrouter`, `deepseek/deepseek-v4-flash-0731`). Put `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` (and optional `CLOUDFLARE_AI_GATEWAY_ID`, default `default`) or `OPENROUTER_API_KEY` in `.env`. Tests stay on `scripted`.
+
 Advanced, off by default: a bot can let **Hermes** or **OpenClaw** connect outbound (`pnpm guest -- --url http://127.0.0.1:3101 --token … --kind hermes`). Enable it under Profile → Advanced. Default teammates still use the scripted/Pi runtime.
 
 Desktop (same web UI in a window):

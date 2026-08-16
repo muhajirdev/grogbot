@@ -468,6 +468,9 @@ export async function stopBotRuns(
   await context.wakeup.enqueue({
     botId,
     name: "run.abort",
-    payload: { botId },
+    payload: {
+      botId,
+      runIds: [...active, ...queued].map((run) => run.id),
+    },
   });
 }
