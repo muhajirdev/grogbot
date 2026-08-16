@@ -14,6 +14,7 @@ export function sitemapEntries(): SitemapEntry[] {
     { path: "/", changefreq: "weekly", priority: "1.0" },
     { path: "/integrations", changefreq: "weekly", priority: "0.9" },
     { path: "/use-cases", changefreq: "weekly", priority: "0.9" },
+    { path: "/press", changefreq: "monthly", priority: "0.6" },
   ];
   for (const path of DISCOVERY_SITEMAP_PATHS) {
     if (entries.some((entry) => entry.path === path)) continue;

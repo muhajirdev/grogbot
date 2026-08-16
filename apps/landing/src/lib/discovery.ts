@@ -21,6 +21,7 @@ export const DISCOVERY_SITEMAP_PATHS = [
   "/ai.json",
   "/identity.json",
   "/brand.txt",
+  "/press.md",
   "/faq-ai.txt",
   "/developer-ai.txt",
   "/robots-ai.txt",
@@ -86,6 +87,7 @@ export function landingLlmsFull(): string {
     "/index.md",
     "/ai.txt",
     "/brand.txt",
+    "/press.md",
     "/faq-ai.txt",
     "/developer-ai.txt",
   ].map((path) => lookupDiscovery(path, LANDING_ORIGINS)?.body ?? "");

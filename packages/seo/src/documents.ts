@@ -13,6 +13,7 @@ import {
   GROGBOT_UPDATED,
   GROGBOT_VERSION,
 } from "./identity.js";
+import { pressMarkdown } from "./press.js";
 
 function abs(origin: string, path: string): string {
   return `${origin.replace(/\/$/, "")}${path}`;
@@ -42,6 +43,7 @@ Product API is oRPC. Flue + Pi on Node. One wakeup queue per bot. Computers are 
 - [Markdown homepage](${abs(web, "/index.md")}): LLM-readable welcome copy
 - [Integrations](${abs(web, "/integrations")}): Composio toolkits and computer-run indie products
 - [Use cases](${abs(web, "/use-cases")}): Job-shaped first messages
+- [Press kit](${abs(web, "/press")}): Logos, naming, and boilerplate
 - [Get started](${GROGBOT_APP}/login): Sign in to the office
 - [MCP](${abs(web, "/mcp")}): Public MCP discovery and Streamable HTTP
 - [Architecture](${GROGBOT_GITHUB}/blob/main/ARCHITECTURE.md): Locked stack and actor model
@@ -56,6 +58,7 @@ Product API is oRPC. Flue + Pi on Node. One wakeup queue per bot. Computers are 
 - [ai.json](${abs(web, "/ai.json")}): Machine-parseable permissions
 - [identity.json](${abs(web, "/identity.json")}): Structured product identity
 - [brand.txt](${abs(web, "/brand.txt")}): Naming rules
+- [press.md](${abs(web, "/press.md")}): Press kit in Markdown
 - [faq-ai.txt](${abs(web, "/faq-ai.txt")}): Authoritative Q&A
 - [developer-ai.txt](${abs(web, "/developer-ai.txt")}): Stack, API, and local run
 - [robots.txt](${abs(web, "/robots.txt")}): Crawler access
@@ -202,6 +205,11 @@ Calm, direct, coworker-simple. First action is talk, not configure a graph.
 ## Citation Format
 
 Preferred: Grogbot contributors. (2026). Grogbot. ${origins.web}
+
+## Press kit
+
+Human page and SVG logos: ${abs(origins.web, "/press")}
+Markdown: ${abs(origins.web, "/press.md")}
 
 ## Contact
 
@@ -376,6 +384,8 @@ Allow: /ai.txt
 Allow: /ai.json
 Allow: /identity.json
 Allow: /brand.txt
+Allow: /press
+Allow: /press.md
 Allow: /faq-ai.txt
 Allow: /developer-ai.txt
 Allow: /robots-ai.txt
@@ -439,6 +449,8 @@ Discovery: ${abs(web, "/ai.txt")}
 Discovery: ${abs(web, "/ai.json")}
 Discovery: ${abs(web, "/identity.json")}
 Discovery: ${abs(web, "/brand.txt")}
+Discovery: ${abs(web, "/press")}
+Discovery: ${abs(web, "/press.md")}
 Discovery: ${abs(web, "/faq-ai.txt")}
 Discovery: ${abs(web, "/developer-ai.txt")}
 Discovery: ${abs(web, "/mcp")}
@@ -543,6 +555,11 @@ export function identityJson(
         name: "Integrations",
         url: abs(web, "/integrations"),
         description: "Composio toolkits and computer-run indie products",
+      },
+      {
+        name: "Press kit",
+        url: abs(web, "/press"),
+        description: "Logos, naming, and boilerplate",
       },
       {
         name: "MCP",
@@ -654,6 +671,8 @@ export const SITEMAP_PATHS = [
   "/index.md",
   "/integrations",
   "/use-cases",
+  "/press",
+  "/press.md",
   "/llms.txt",
   "/llms.html",
   "/llms-full.txt",
@@ -691,6 +710,7 @@ export function indexMarkdown(origins: DiscoveryOrigins): string {
 Create a Bot, message it, grant access as needed. No workflow builder.
 
 - [Get started](${GROGBOT_APP}/login)
+- [Press kit](${abs(origins.web, "/press")})
 - [llms.txt](${abs(origins.web, "/llms.txt")})
 - [MCP](${abs(origins.web, "/mcp")})
 - [Source](${GROGBOT_GITHUB})
@@ -821,6 +841,7 @@ export function llmsFullTxt(origins: DiscoveryOrigins): string {
     indexMarkdown(origins),
     aiTxt(origins),
     brandTxt(origins),
+    pressMarkdown(origins),
     faqAiTxt(origins),
     developerAiTxt(origins),
   ].join("\n\n---\n\n");

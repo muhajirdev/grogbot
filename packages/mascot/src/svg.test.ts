@@ -1,0 +1,22 @@
+import { describe, expect, it } from "vitest";
+import { GROGBOT_MARK_COLOR, mascotMarkSvg } from "./svg.js";
+
+describe("mascotMarkSvg", () => {
+  it("renders a still Grogbot mark with the brand pink", () => {
+    const svg = mascotMarkSvg({ name: "Grogbot" });
+    expect(svg).toContain("<svg");
+    expect(svg).toContain('viewBox="0 0 100 100"');
+    expect(svg).toContain("<title>Grogbot</title>");
+    expect(svg).toContain(GROGBOT_MARK_COLOR);
+    expect(svg).toContain("<circle");
+    expect(svg).not.toContain("animation");
+  });
+
+  it("escapes a hostile name in the title", () => {
+    const svg = mascotMarkSvg({ name: `Bot <script> & "x"` });
+    expect(svg).toContain(
+      "<title>Bot &lt;script&gt; &amp; &quot;x&quot;</title>",
+    );
+    expect(svg).not.toContain("<script>");
+  });
+});

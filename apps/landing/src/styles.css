@@ -797,6 +797,150 @@ a.chip.on .chip-count,
   text-decoration: underline;
 }
 
+.boilerplate-list {
+  display: grid;
+  gap: 12px;
+  max-width: 44rem;
+}
+
+.boilerplate {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.boilerplate-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.boilerplate-head .kicker {
+  margin: 0;
+}
+
+.boilerplate pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.fact-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.fact {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+
+.fact dt {
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.fact dd {
+  margin: 0;
+  font-size: 15px;
+}
+
+.fact a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.fact a:hover {
+  text-decoration: underline;
+}
+
+.do-dont {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.logo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.logo-tile {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+
+.logo-tile.light {
+  background: #f4f1ea;
+  color: #171614;
+}
+
+.logo-tile.light .kicker,
+.logo-tile.light p {
+  color: #6b675f;
+}
+
+.logo-tile .btn.ghost {
+  color: inherit;
+  border-color: currentColor;
+}
+
+.logo-stage {
+  min-height: 140px;
+  width: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.logo-mark {
+  width: 96px;
+  height: 96px;
+}
+
+.logo-lockup {
+  width: min(320px, 100%);
+  height: auto;
+}
+
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.swatch {
+  padding: 0 0 16px;
+  overflow: hidden;
+}
+
+.swatch-chip {
+  height: 88px;
+  margin-bottom: 12px;
+}
+
+.swatch h3,
+.swatch p {
+  padding: 0 16px;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -826,7 +970,11 @@ a.chip.on .chip-count,
 
   .cards,
   .split,
-  .int-hero {
+  .int-hero,
+  .logo-grid,
+  .swatches,
+  .do-dont,
+  .fact-list {
     grid-template-columns: 1fr;
   }
 }
