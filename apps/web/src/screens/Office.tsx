@@ -32,6 +32,7 @@ import { authClient } from "../lib/auth";
 import { AVATAR_COLORS, FIRST_TASK } from "../lib/jobs";
 import { orpc } from "../lib/orpc";
 import { client } from "../lib/rpc";
+import { cacheCreatedBot } from "../lib/session";
 import { applyTheme, readTheme, type Theme } from "../lib/theme";
 import { dayKey, formatDaySep, formatListTime } from "../lib/time";
 
@@ -132,6 +133,7 @@ export function Office(props: { botId: string }) {
           avatarColor: AVATAR_COLORS[0],
           computer: computerChoice,
         });
+        cacheCreatedBot(queryClient, created);
         await queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
         await navigate({ to: "/$botId", params: { botId: created.id } });
         setPaneMode("settings");

@@ -1,26 +1,39 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { authClient } from "../lib/auth";
 import { orpc } from "../lib/orpc";
 
 type OAuthId = "google" | "github";
+
+function randomPassword() {
+  const bytes = new Uint8Array(24);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join(
+    "",
+  );
+}
 
 export function AuthScreen(props: { errorFromUrl?: string }) {
   const router = useRouter();
   const navigate = useNavigate();
   const health = useQuery(orpc.health.queryOptions());
   const [mode, setMode] = useState<"in" | "up">("up");
-  const [name, setName] = useState("");
+  const [emailOpen, setEmailOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(props.errorFromUrl ?? "");
   const [busy, setBusy] = useState(false);
+  const emailRef = useRef<HTMLInputElement>(null);
   const oauth: OAuthId[] = health.data?.oauth ?? ["google", "github"];
 
   useEffect(() => {
     if (props.errorFromUrl) setError(props.errorFromUrl);
   }, [props.errorFromUrl]);
+
+  useEffect(() => {
+    if (emailOpen) emailRef.current?.focus();
+  }, [emailOpen]);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -29,9 +42,9 @@ export function AuthScreen(props: { errorFromUrl?: string }) {
     const result =
       mode === "up"
         ? await authClient.signUp.email({
-            name: name || email.split("@")[0] || "You",
+            name: email.split("@")[0] || "You",
             email,
-            password,
+            password: randomPassword(),
           })
         : await authClient.signIn.email({ email, password });
     setBusy(false);
@@ -89,52 +102,62 @@ export function AuthScreen(props: { errorFromUrl?: string }) {
           >
             Continue with GitHub
           </button>
-        </div>
-        <p className="or-line">or email</p>
-        {mode === "up" ? (
-          <label className="field">
-            <span>Name</span>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              autoComplete="name"
-            />
-          </label>
-        ) : null}
-        <label className="field">
-          <span>Email</span>
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
-          />
-        </label>
-        <label className="field">
-          <span>Password</span>
-          <input
-            type="password"
-            required
-            minLength={8}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete={mode === "up" ? "new-password" : "current-password"}
-          />
-        </label>
-        {error ? <p className="error">{error}</p> : null}
-        <div className="row">
-          <button className="btn" type="submit" disabled={busy}>
-            {busy ? "Working…" : mode === "up" ? "Continue" : "Sign in"}
+          <button
+            className="btn ghost"
+            type="button"
+            disabled={busy}
+            onClick={() => setEmailOpen(true)}
+          >
+            Continue with email
           </button>
+        </div>
+        {emailOpen ? (
+          <>
+            <label className="field">
+              <span>Email</span>
+              <input
+                ref={emailRef}
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+              />
+            </label>
+            {mode === "in" ? (
+              <label className="field">
+                <span>Password</span>
+                <input
+                  type="password"
+                  required
+                  minLength={8}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                />
+              </label>
+            ) : null}
+          </>
+        ) : null}
+        {error ? <p className="error">{error}</p> : null}
+        <div className="row auth-actions">
+          {emailOpen ? (
+            <button className="btn" type="submit" disabled={busy}>
+              {busy ? "Working…" : mode === "up" ? "Continue" : "Sign in"}
+            </button>
+          ) : null}
           <Link to="/" className="btn ghost">
             Back
           </Link>
         </div>
         <button
-          className="btn ghost tiny"
+          className="btn ghost tiny auth-alt"
           type="button"
-          onClick={() => setMode(mode === "up" ? "in" : "up")}
+          onClick={() => {
+            setMode(mode === "up" ? "in" : "up");
+            setPassword("");
+            setError("");
+          }}
         >
           {mode === "up" ? "I already have an account" : "Create an account"}
         </button>

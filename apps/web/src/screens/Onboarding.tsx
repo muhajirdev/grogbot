@@ -6,6 +6,7 @@ import { AvatarMark } from "../components/Avatar";
 import { AVATAR_COLORS, AVATAR_SHAPES, SUGGESTED_JOBS } from "../lib/jobs";
 import { orpc } from "../lib/orpc";
 import { client } from "../lib/rpc";
+import { cacheCreatedBot } from "../lib/session";
 
 const TOOLS = ["Gmail", "Slack", "GitHub", "Calendar", "Drive", "Linear"];
 
@@ -44,6 +45,7 @@ export function Onboarding() {
         avatarShape: shape,
       });
       localStorage.setItem("grogbot.onboarded", "1");
+      cacheCreatedBot(queryClient, bot);
       await queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
       await navigate({ to: "/$botId", params: { botId: bot.id } });
     } catch (caught) {

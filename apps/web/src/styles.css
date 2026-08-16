@@ -337,6 +337,14 @@ a.btn {
   font-size: 12px;
 }
 
+.auth-actions {
+  margin-top: 16px;
+}
+
+.auth-alt {
+  margin-top: 24px;
+}
+
 .field {
   display: grid;
   gap: 6px;
@@ -407,6 +415,7 @@ a.btn {
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr) 320px;
   background: var(--bg);
+  position: relative;
 }
 
 .office.collapsed {
@@ -476,6 +485,7 @@ a.btn {
   text-align: left;
   color: inherit;
   text-decoration: none;
+  min-width: 0;
 }
 
 .conv.on {
@@ -1062,12 +1072,25 @@ a.btn {
   .office.collapsed {
     grid-template-columns: 72px minmax(0, 1fr);
   }
-  .pane,
-  .conv .name,
-  .conv .snip,
-  .conv .when,
+  .conv-copy,
   .side-foot span,
   .search-field {
     display: none;
+  }
+  .conv {
+    grid-template-columns: 36px;
+    justify-content: center;
+    justify-items: center;
+    gap: 0;
+    padding: 8px;
+  }
+  .pane {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(320px, calc(100% - 72px));
+    z-index: 8;
+    box-shadow: var(--shadow);
   }
 }
