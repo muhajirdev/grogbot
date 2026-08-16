@@ -8,8 +8,8 @@ import { guestConnectCommand, mintGuestToken, newId } from "@grogbot/core";
 import { bots, guestConnectors } from "@grogbot/db";
 import { ORPCError } from "@orpc/server";
 import { and, eq } from "drizzle-orm";
+import { getBotThread } from "./bots.js";
 import type { RpcContext } from "./context.js";
-import { getOffice } from "./office.js";
 import type { Actor } from "./session.js";
 
 const STALE_MS = 60_000;
@@ -82,7 +82,7 @@ export async function guestStatus(
   actor: Actor,
   botId: string,
 ): Promise<GuestStatus> {
-  const { bot } = await getOffice(context, actor, botId);
+  const { bot } = await getBotThread(context, actor, botId);
   const row = await loadConnector(context, botId);
   return statusFrom(bot.id, bot.guestKind, row, guestConnectUrl(context.env));
 }
@@ -93,7 +93,7 @@ export async function enableGuest(
   botId: string,
   kind: GuestAgentKind,
 ): Promise<GuestConnect> {
-  const { bot } = await getOffice(context, actor, botId);
+  const { bot } = await getBotThread(context, actor, botId);
   const connectUrl = guestConnectUrl(context.env);
   const existing = await loadConnector(context, botId);
   const connectorId = existing?.id ?? newId();
@@ -148,7 +148,7 @@ export async function rotateGuest(
   actor: Actor,
   botId: string,
 ): Promise<GuestConnect> {
-  const { bot } = await getOffice(context, actor, botId);
+  const { bot } = await getBotThread(context, actor, botId);
   if (bot.guestKind === "off") {
     throw new ORPCError("BAD_REQUEST", {
       message: "Enable an external agent first",
@@ -163,7 +163,7 @@ export async function disableGuest(
   actor: Actor,
   botId: string,
 ): Promise<{ ok: true }> {
-  const { bot } = await getOffice(context, actor, botId);
+  const { bot } = await getBotThread(context, actor, botId);
   const session = context.guests?.getByBot(botId);
   if (session) context.guests?.bye(session.id);
   await context.wakeup.enqueue({

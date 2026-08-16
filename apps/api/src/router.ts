@@ -14,6 +14,19 @@ import {
 import { guestConnectors, userModelCredentials } from "@grogbot/db";
 import { implement, ORPCError } from "@orpc/server";
 import { eq } from "drizzle-orm";
+import {
+  createBot,
+  createRoutine,
+  getBotThread,
+  getComputer,
+  listBots,
+  listComputers,
+  listRoutines,
+  sendMessage,
+  setComputerControl,
+  stopBotRuns,
+  updateBot,
+} from "./bots.js";
 import type { RpcContext } from "./context.js";
 import { agentRuntimeSource } from "./env.js";
 import {
@@ -24,19 +37,6 @@ import {
   rotateGuest,
 } from "./guests.js";
 import { healthPayload } from "./health.js";
-import {
-  createOfficeBot,
-  createRoutine,
-  getComputer,
-  getOffice,
-  listBots,
-  listComputers,
-  listRoutines,
-  sendMessage,
-  setComputerControl,
-  stopBotRuns,
-  updateOfficeBot,
-} from "./office.js";
 import { requireActor } from "./session.js";
 
 const os = implement(appContract).$context<RpcContext>();
@@ -120,7 +120,7 @@ export const appRouter = os.router({
     }),
     get: os.bots.get.handler(async ({ context, input }) => {
       const actor = await requireActor(context);
-      const { bot, thread } = await getOffice(context, actor, input.botId);
+      const { bot, thread } = await getBotThread(context, actor, input.botId);
       const [connector] = await context.db
         .select()
         .from(guestConnectors)
@@ -134,11 +134,11 @@ export const appRouter = os.router({
     }),
     create: os.bots.create.handler(async ({ context, input }) => {
       const actor = await requireActor(context);
-      return createOfficeBot(context, actor, input);
+      return createBot(context, actor, input);
     }),
     update: os.bots.update.handler(async ({ context, input }) => {
       const actor = await requireActor(context);
-      return updateOfficeBot(context, actor, input);
+      return updateBot(context, actor, input);
     }),
   },
   threads: {
@@ -148,7 +148,7 @@ export const appRouter = os.router({
       signal,
     }) {
       const actor = await requireActor(context);
-      const { thread } = await getOffice(context, actor, input.botId);
+      const { thread } = await getBotThread(context, actor, input.botId);
       let cursor = input.cursor;
       while (!signal?.aborted) {
         const batch = await listEventsAfter(context.db, thread.id, cursor);

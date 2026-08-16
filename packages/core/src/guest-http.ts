@@ -15,7 +15,7 @@ import {
 import { and, eq } from "drizzle-orm";
 import type { GuestHub } from "./guest-hub.js";
 import { parseGuestToken, tokenMatches } from "./guest-token.js";
-import { appendEvent } from "./office.js";
+import { appendEvent } from "./threads.js";
 
 export interface GuestHttpContext {
   db: Database;

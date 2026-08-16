@@ -24,9 +24,9 @@ import {
   missingModelMessage,
   resolveRunModel,
 } from "./models.js";
-import { appendEvent, nextSeq } from "./office.js";
 import { assertTransition } from "./run-state.js";
 import { redactSecrets } from "./secret-box.js";
+import { appendEvent, nextSeq } from "./threads.js";
 
 async function setRunStatus(
   db: Database,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { previewFromBlocks } from "./office.js";
+import { previewFromBlocks } from "./threads.js";
 
 describe("previewFromBlocks", () => {
   it("joins text blocks and ignores meta", () => {

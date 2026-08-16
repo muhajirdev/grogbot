@@ -56,7 +56,7 @@ function connectorOnline(
   return Date.now() - row.lastSeenAt.getTime() < STALE_MS;
 }
 
-export async function getOffice(
+export async function getBotThread(
   context: RpcContext,
   actor: Actor,
   botId: string,
@@ -72,8 +72,7 @@ export async function getOffice(
     .from(threads)
     .where(eq(threads.botId, bot.id))
     .limit(1);
-  if (!thread)
-    throw new ORPCError("NOT_FOUND", { message: "Office thread missing" });
+  if (!thread) throw new ORPCError("NOT_FOUND", { message: "Thread missing" });
   return { bot, thread };
 }
 
@@ -86,11 +85,11 @@ export async function listBots(
     .from(bots)
     .where(eq(bots.workspaceId, actor.workspaceId))
     .orderBy(desc(bots.updatedAt));
-  const offices = await context.db
+  const threadRows = await context.db
     .select()
     .from(threads)
     .where(eq(threads.workspaceId, actor.workspaceId));
-  const threadByBot = new Map(offices.map((row) => [row.botId, row.id]));
+  const threadByBot = new Map(threadRows.map((row) => [row.botId, row.id]));
   const desks =
     rows.length === 0
       ? []
@@ -254,7 +253,7 @@ export async function listComputers(
   return rows.map((row) => toComputerListItem(row, nById.get(row.id) ?? 0));
 }
 
-export async function createOfficeBot(
+export async function createBot(
   context: RpcContext,
   actor: Actor,
   input: {
@@ -315,7 +314,7 @@ export async function createOfficeBot(
   return toBotDto(bot, threadId, { computerName: computer.name });
 }
 
-export async function updateOfficeBot(
+export async function updateBot(
   context: RpcContext,
   actor: Actor,
   input: {
@@ -329,7 +328,7 @@ export async function updateOfficeBot(
     model?: string;
   },
 ): Promise<Bot> {
-  const { bot, thread } = await getOffice(context, actor, input.botId);
+  const { bot, thread } = await getBotThread(context, actor, input.botId);
   const model = input.model !== undefined ? input.model.trim() : bot.model;
   if (input.model !== undefined && model) {
     const problem = validateModelId(model);
@@ -363,7 +362,7 @@ export async function getComputer(
   actor: Actor,
   botId: string,
 ): Promise<ComputerStatus> {
-  const { bot } = await getOffice(context, actor, botId);
+  const { bot } = await getBotThread(context, actor, botId);
   const row = await getBotComputer(context.db, bot);
   if (!row) throw new ORPCError("NOT_FOUND", { message: "Computer not found" });
   return computerStatusForBot(context.db, row, bot.id);
@@ -375,7 +374,7 @@ export async function setComputerControl(
   botId: string,
   holder: "user" | "bot" | "none",
 ): Promise<ComputerStatus> {
-  const { bot } = await getOffice(context, actor, botId);
+  const { bot } = await getBotThread(context, actor, botId);
   const row = await getBotComputer(context.db, bot);
   if (!row) throw new ORPCError("NOT_FOUND", { message: "Computer not found" });
   const [updated] = await context.db
@@ -400,7 +399,7 @@ export async function sendMessage(
   botId: string,
   text: string,
 ) {
-  const { bot, thread } = await getOffice(context, actor, botId);
+  const { bot, thread } = await getBotThread(context, actor, botId);
   if (!isOfflineAgentRuntime(context.env.agentRuntime)) {
     const overlay = await resolveRunModel(
       context.db,
@@ -503,7 +502,7 @@ export async function stopBotRuns(
   actor: Actor,
   botId: string,
 ): Promise<void> {
-  const { thread } = await getOffice(context, actor, botId);
+  const { thread } = await getBotThread(context, actor, botId);
   const active = await context.db
     .select()
     .from(runs)
@@ -546,7 +545,7 @@ export async function listRoutines(
   actor: Actor,
   botId: string,
 ): Promise<Routine[]> {
-  await getOffice(context, actor, botId);
+  await getBotThread(context, actor, botId);
   const rows = await context.db
     .select()
     .from(routines)
@@ -571,7 +570,7 @@ export async function createRoutine(
     timezone?: string;
   },
 ): Promise<Routine> {
-  await getOffice(context, actor, input.botId);
+  await getBotThread(context, actor, input.botId);
   const now = new Date();
   const [row] = await context.db
     .insert(routines)
