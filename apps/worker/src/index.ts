@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { createServer } from "node:http";
 import path from "node:path";
 import type { WakeupJob } from "@grogbot/adapter-kit";
-import { RivetWakeupDriver, ScriptedAgentRuntime } from "@grogbot/adapters";
+import { createAgentRuntime, RivetWakeupDriver } from "@grogbot/adapters";
 import {
   createWakeHandlers,
   GuestHub,
@@ -49,7 +49,7 @@ async function main() {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error("DATABASE_URL is required");
   const { db } = createDb(databaseUrl);
-  const runtime = new ScriptedAgentRuntime();
+  const runtime = createAgentRuntime(process.env.AGENT_RUNTIME ?? "scripted");
   const wakeup = new RivetWakeupDriver();
   const guests = new GuestHub();
   await wakeup.start(createWakeHandlers({ db, runtime, wakeup, guests }));
@@ -59,7 +59,13 @@ async function main() {
     void (async () => {
       if (req.method === "GET" && req.url === "/health") {
         res.writeHead(200, { "content-type": "application/json" });
-        res.end(JSON.stringify({ ok: true, wakeup: "rivet" }));
+        res.end(
+          JSON.stringify({
+            ok: true,
+            wakeup: "rivet",
+            runtime: process.env.AGENT_RUNTIME ?? "scripted",
+          }),
+        );
         return;
       }
       if (req.url?.startsWith("/guest")) {

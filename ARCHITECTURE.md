@@ -1,6 +1,6 @@
 # Architecture
 
-**Grogbot** is open-core **Grok Bot**: named teammates with a real computer. Message them like people. Composio for Gmail/Slack/GitHub. Workspace-shared context and skills. BYOK models.
+**Grogbot** is fair-code **Grok Bot**: named teammates with a real computer. Message them like people. Composio for Gmail/Slack/GitHub. Workspace-shared context and skills. BYOK models. Self-host for your organization is free; grogbot.com is the hosted cloud.
 
 UI: copy Grok Bot simplicity — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md). Rooms later: [docs/rooms-plan.md](./docs/rooms-plan.md).
 
@@ -9,12 +9,12 @@ UI: copy Grok Bot simplicity — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md). R
 Each **bot** (teammate) has:
 
 - a home **office** thread (v1 is 1:1; extra humans later)
-- a bound **computer** (sandbox) — workspace **Desk** by default, or a new isolated computer
+- a bound **computer** (sandbox) — workspace **default computer** by default, or a new isolated computer
 - memory, routines, history
 
 A **Rivet actor is the bot**. Serial queue + cron + named delayed schedules. One brain, one Pi at a time.
 
-**Computers** are a separate primitive. Many bots can share one desk (files and logins). GUI computer-use is one mouse (`control_holder`); brains still run on their own actors. A bot created with a new computer gets its own VM.
+**Computers** are a separate primitive. Many bots can share the default computer (files and logins). GUI computer-use is one mouse (`control_holder`); brains still run on their own actors. A bot created with a new computer gets its own VM.
 
 The **workspace** (Better Auth org) also has:
 
@@ -29,23 +29,26 @@ The **workspace** (Better Auth org) also has:
 | Topic | Choice |
 | --- | --- |
 | Product | Grok Bot-shaped teammates + Composio + team context/skills |
-| UI | Messaging app. **Web first.** Packaged desktop loads grogbot.com (API: api.grogbot.com). Dev desktop loads local Vite. Mobile = Expo later |
+| UI | Messaging app. **Web first** (SPA). Marketing is **TanStack Start** at grogbot.com. Packaged desktop loads app.grogbot.com (API: api.grogbot.com). Dev desktop loads local Vite. Mobile = Expo later |
 | API | **oRPC** — contract in `@grogbot/contracts`, client in `@grogbot/rpc` |
 | Web | **Vite + React 19 + TanStack Router** (SPA). oRPC queries via `@orpc/tanstack-query`. Not TanStack Start — API stays Hono so Electron can load the same origin. |
+| Landing | **TanStack Start** on **Cloudflare Workers** (`apps/landing/wrangler.jsonc`). SSR for grogbot.com. CTAs go to the office SPA. |
 | Actor | **One Rivet actor per bot** |
-| Computer | **Workspace Desk by default.** New computer = isolated sandbox. GUI serialized per desk. |
+| Computer | **Workspace default computer.** New computer = isolated sandbox. GUI serialized per computer. |
 | Shared data | **One Postgres** — auth, bots, threads, messages, skills, artifacts |
 | Wakeup | Rivet queue / `schedule` / cron on that actor |
 | First cloud | **Fly or Railway** — Node API + actor host (worker) |
 | Cloudflare later | **Rivet’s Durable Object driver** |
 | ORM | **Drizzle** + Postgres |
-| Auth | **Better Auth** — email/password, Google, GitHub. Organizations = workspaces |
-| Models | **Pi** catalog + BYOK |
+| Auth | **Better Auth** — magic-link email (Cloudflare Email Sending REST), Google, GitHub. Organizations = workspaces |
+| Models | **AI Gateway** (Cloudflare + OpenRouter), default DeepSeek v4 Flash. Pi catalog + BYOK later |
 | Sandbox | `docker` local · `e2b` hosted · `desktop` trusted machine only · `fake` tests |
 | Homes | Disk v1 · `HomeStore` → R2 later |
 | Realtime | oRPC event iterator now · actor WebSocket later if needed |
 | Plugins | **Composio** (optional) |
 | Rooms v1 | Bot’s office. Multi-bot rooms: plan only |
+| Hosted billing | **Later.** Polar research: [docs/polar-integration.md](./docs/polar-integration.md). Self-host stays free. Not v1. |
+| License | **Fair-code** (Apache 2.0 + no competing hosted cloud). [LICENSE](./LICENSE). Not MIT. |
 
 ## Wakeup (Rivet)
 
@@ -74,12 +77,14 @@ Mobile (Expo) ────┘          │
                              │
            ┌─────────────────┼─────────────────┐
            ▼                 ▼                 ▼
-      Pi (BYOK)         Sandbox            Composio
-      + workspace       docker/e2b         (if key set)
-        skills
+           ▼                 ▼                 ▼
+      AI Gateway        Sandbox            Composio
+      CF / OpenRouter   docker/e2b         (if key set)
+
+Landing (Start :5174) ──► CTAs to the web office (no oRPC)
 ```
 
-Clients share **one contract**. Web is what we build against now. Desktop loads that same web app. Expo is a later shell on the same `@grogbot/rpc` client.
+Clients share **one contract**. Web is the office we build against now. The **landing** app is marketing only (no oRPC). Desktop loads that same web app. Expo is a later shell on the same `@grogbot/rpc` client.
 
 Wake a bot with:
 
@@ -117,7 +122,7 @@ The Rivet actor is still the bot. If the guest is offline, the run stays queued 
 1. Monorepo, schema, auth, health, Rivet wakeup stub, oRPC contract *(this)*
 2. `threads.send` → bot actor → scripted runtime
 3. Docker computer
-4. Pi + BYOK
+4. AI Gateway (Cloudflare / OpenRouter) + DeepSeek v4 Flash
 5. Thin **web** shell — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md)
 6. Workspace context + skills in the system prompt
 7. Composio plugins UI
@@ -128,4 +133,6 @@ The Rivet actor is still the bot. If the guest is offline, the run stays queued 
 
 ## Out of v1
 
-Gadgets, Gatekeepers, Cloudflare Workers as the host, D1, Turso, Prisma, PGlite as product DB, store signing / Electron-builder / EAS submit, Pi subscription OAuth, Discord UI, agentOS as the default computer, multi-bot rooms.
+Gadgets, Gatekeepers, Cloudflare Workers as the host, D1, Turso, Prisma, PGlite as product DB, store signing / Electron-builder / EAS submit, Pi subscription OAuth, Discord UI, agentOS as the default computer, multi-bot rooms, Polar hosted billing.
+
+Hosted grogbot.com billing research (Polar as MoR, workspace as Polar customer, not v1): [docs/polar-integration.md](./docs/polar-integration.md).

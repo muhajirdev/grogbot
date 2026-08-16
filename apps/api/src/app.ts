@@ -9,6 +9,7 @@ import type { RpcContext } from "./context.js";
 import { mountDiscovery } from "./discovery.js";
 import { type Env, oauthCredentials } from "./env.js";
 import { healthPayload } from "./health.js";
+import { createMailer } from "./mail.js";
 import { mountRpc } from "./rpc.js";
 
 export interface AppHandles extends Omit<RpcContext, "headers"> {
@@ -19,6 +20,7 @@ export interface AppHandles extends Omit<RpcContext, "headers"> {
 export function createApp(env: Env): AppHandles {
   const { db, client } = createDb(env.databaseUrl);
   const oauth = oauthCredentials(env);
+  const mail = createMailer(env);
   const auth = createAuth(db, {
     secret: env.authSecret,
     baseURL: env.authUrl,
@@ -26,6 +28,7 @@ export function createApp(env: Env): AppHandles {
     cookieDomain: grogbotCookieDomain(env.webOrigin),
     google: oauth.google,
     github: oauth.github,
+    sendMagicLink: mail.sendMagicLink,
   });
   const wakeup = createWakeupDriver(env.workerUrl);
   const sandbox = createSandboxProvider(env.sandboxProvider);

@@ -2,11 +2,13 @@ import type {
   Bot,
   ComputerStatus,
   ProductEvent,
+  Routine,
   SandboxKind,
 } from "@grogbot/contracts";
 import {
   AvatarShape,
   ControlHolder,
+  DEFAULT_COMPUTER_NAME,
   GuestKind,
   SandboxKind as SandboxKindSchema,
 } from "@grogbot/contracts";
@@ -16,6 +18,7 @@ import {
   type Database,
   events,
   type messages,
+  type routines,
 } from "@grogbot/db";
 import { and, asc, desc, eq, gt } from "drizzle-orm";
 
@@ -23,18 +26,54 @@ export function iso(value: Date | null | undefined): string | null {
   return value ? value.toISOString() : null;
 }
 
+export function toRoutineDto(row: typeof routines.$inferSelect): Routine {
+  return {
+    id: row.id,
+    botId: row.botId,
+    name: row.name,
+    prompt: row.prompt,
+    cron: row.cron,
+    timezone: row.timezone,
+    active: row.active,
+    nextRunAt: iso(row.nextRunAt),
+  };
+}
+
 export function sandboxKind(value: string): SandboxKind {
   const parsed = SandboxKindSchema.safeParse(value);
   return parsed.success ? parsed.data : "fake";
 }
 
+export function previewFromBlocks(blocks: unknown): string {
+  if (!Array.isArray(blocks)) return "";
+  return blocks
+    .flatMap((block) => {
+      if (!block || typeof block !== "object") return [];
+      const row = block as { kind?: unknown; text?: unknown };
+      if (row.kind !== "text" || typeof row.text !== "string") return [];
+      return [row.text];
+    })
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function toBotDto(
   bot: typeof bots.$inferSelect,
   threadId: string,
-  extras?: { online?: boolean; computerName?: string },
+  extras?: {
+    online?: boolean;
+    computerName?: string;
+    lastPreview?: string;
+    lastAt?: Date | string | null;
+  },
 ): Bot {
   const shape = AvatarShape.safeParse(bot.avatarShape);
   const guestKind = GuestKind.safeParse(bot.guestKind);
+  const lastAt =
+    extras?.lastAt instanceof Date
+      ? extras.lastAt.toISOString()
+      : (extras?.lastAt ?? bot.updatedAt.toISOString());
   return {
     id: bot.id,
     workspaceId: bot.workspaceId,
@@ -47,9 +86,11 @@ export function toBotDto(
     parentBotId: bot.parentBotId,
     threadId,
     computerId: bot.computerId,
-    computerName: extras?.computerName ?? "Desk",
+    computerName: extras?.computerName ?? DEFAULT_COMPUTER_NAME,
     guestKind: guestKind.success ? guestKind.data : "off",
     guestOnline: extras?.online ?? false,
+    lastPreview: extras?.lastPreview ?? "",
+    lastAt,
     createdAt: bot.createdAt.toISOString(),
     updatedAt: bot.updatedAt.toISOString(),
   };

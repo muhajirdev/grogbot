@@ -31,7 +31,7 @@ export function mcpServerCard(
     },
     transport: {
       type: "streamable-http",
-      endpoint: `${origins.api.replace(/\/$/, "")}/mcp`,
+      endpoint: `${origins.web.replace(/\/$/, "")}/mcp`,
     },
     capabilities: {
       tools: { listChanged: false },

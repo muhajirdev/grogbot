@@ -34,9 +34,21 @@ export function createWakeHandlers(opts: {
     "run.abort": async (payload: Record<string, unknown>) => {
       const botId = String(payload.botId ?? "");
       const runId = payload.runId ? String(payload.runId) : undefined;
-      if (!botId || !opts.guests) return;
-      if (runId) opts.guests.abort(botId, runId);
-      else opts.guests.abort(botId);
+      const runIds = Array.isArray(payload.runIds)
+        ? payload.runIds.map((id) => String(id))
+        : runId
+          ? [runId]
+          : [];
+      for (const id of runIds) {
+        await opts.runtime.abort(id);
+      }
+      if (!botId) return;
+      if (!opts.guests) return;
+      if (runIds.length > 0) {
+        for (const id of runIds) opts.guests.abort(botId, id);
+      } else {
+        opts.guests.abort(botId);
+      }
     },
     "guest.drop": async (payload: Record<string, unknown>) => {
       const botId = String(payload.botId ?? "");

@@ -26,7 +26,7 @@ describe("discovery routes", () => {
     const json = mcpGetResponse("application/json", origins);
     expect(json.body).toContain("streamable-http");
     expect(lookupDiscovery("/.well-known/mcp.json", origins)?.body).toContain(
-      "https://api.grogbot.com/mcp",
+      "https://grogbot.com/mcp",
     );
     expect(lookupDiscovery("/mcp.json", origins)?.body).toContain(
       "io.grogbot/docs",

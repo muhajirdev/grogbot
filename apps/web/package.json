@@ -1,7 +1,7 @@
 {
   "name": "@grogbot/web",
   "version": "0.0.1",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@grogbot/contracts": "workspace:*",
+    "@grogbot/mascot": "workspace:*",
     "@grogbot/rpc": "workspace:*",
-    "@grogbot/seo": "workspace:*",
     "@orpc/tanstack-query": "^1.10.0",
     "@tanstack/react-query": "^5.101.4",
     "@tanstack/react-router": "^1.170.29",

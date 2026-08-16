@@ -1,6 +1,6 @@
 # Grogbot
 
-Open-source **Grok Bot** — Grok, then grog. Teammates with a real computer. Composio for Gmail/Slack/GitHub. Shared workspace context and skills. Bring your own model keys.
+Source-available **Grok Bot** — Grok, then grog. Teammates with a real computer. Composio for Gmail/Slack/GitHub. Shared workspace context and skills. Bring your own model keys. Self-host for your team is free; hosted Grogbot for others is the cloud business.
 
 Packages live under `@grogbot/*`.
 
@@ -12,7 +12,7 @@ Early scaffold: contracts, Postgres (team data), Rivet-shaped **one actor per bo
 - **oRPC** — one contract for web, desktop, and mobile
 - Postgres + Drizzle — workspaces, threads, skills
 - **Rivet actor per bot** — wakeup, serial runs, cron, idle sleep
-- Better Auth (email/password, Google, GitHub)
+- Better Auth (magic-link email, Google, GitHub)
 - Local Compose Postgres, then Fly or Railway
 - Computers: Docker locally, E2B hosted, desktop only on a trusted machine
 - Plugins: Composio (optional)
@@ -41,6 +41,7 @@ pnpm dev
 - oRPC: http://127.0.0.1:3100/rpc
 - Worker / actors: http://127.0.0.1:3101/health
 - Web: http://127.0.0.1:5173 — `/` welcome, `/login`, `/onboarding`, `/{botId}` office
+- Landing: http://127.0.0.1:5174 — marketing (TanStack Start)
 
 Public LLM / agent discovery (also on https://grogbot.com):
 
@@ -56,9 +57,24 @@ Google / GitHub need client IDs in `.env`. Use **127.0.0.1**, not localhost:
 - Google redirect: `http://127.0.0.1:5173/api/auth/callback/google`
 - GitHub callback: `http://127.0.0.1:5173/api/auth/callback/github`
 
-Email/password still works with no OAuth keys.
+Email sign-in sends a magic link through **Cloudflare Email Sending** (REST). There is no `wrangler.toml` — this API is Node, not a Worker. Set `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_EMAIL_API_TOKEN`, and `EMAIL_FROM`. Without those, local dev prints the link in the API terminal.
 
 The scripted runtime echoes so you can test the loop without model keys.
+
+For live model replies, set `AGENT_RUNTIME=gateway`. That uses an OpenAI-compatible **AI Gateway**: **Cloudflare AI Gateway** by default (`@cf/deepseek-ai/deepseek-v4-flash-0731` on Workers AI), or **OpenRouter** (`AI_GATEWAY_PROVIDER=openrouter`, `deepseek/deepseek-v4-flash-0731`). Put `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` (and optional `CLOUDFLARE_AI_GATEWAY_ID`, default `default`) or `OPENROUTER_API_KEY` in `.env`. Tests stay on `scripted`.
+
+Landing (marketing site, TanStack Start):
+
+```bash
+pnpm dev:landing
+```
+
+Deploy to Cloudflare Workers (grogbot.com). Config lives in `apps/landing/wrangler.jsonc` — no account IDs. Attach the custom domain in the dashboard.
+
+```bash
+pnpm --filter @grogbot/landing exec wrangler login
+pnpm deploy:landing
+```
 
 Advanced, off by default: a bot can let **Hermes** or **OpenClaw** connect outbound (`pnpm guest -- --url http://127.0.0.1:3101 --token … --kind hermes`). Enable it under Profile → Advanced. Default teammates still use the scripted/Pi runtime.
 
@@ -68,7 +84,7 @@ Desktop (same web UI in a window):
 pnpm dev:desktop
 ```
 
-That loads local Vite. A **packaged** desktop build opens **https://grogbot.com**, which talks to **https://api.grogbot.com**. Override with `WEB_ORIGIN` if you self-host.
+That loads local Vite. A **packaged** desktop build opens **https://app.grogbot.com**, which talks to **https://api.grogbot.com**. Override with `WEB_ORIGIN` if you self-host. The marketing site is **https://grogbot.com**.
 
 Production OAuth callbacks:
 
@@ -86,12 +102,14 @@ On a device, set `EXPO_PUBLIC_API_URL` to this machine’s LAN address.
 ## Layout
 
 ```
-apps/web desktop mobile api worker
-packages/contracts rpc adapter-kit core db auth adapters seo
+apps/web desktop mobile landing guest api worker
+packages/contracts rpc adapter-kit core db auth adapters mascot seo
 infra/compose
 docs/
 ```
 
 ## License
 
-MIT
+Fair-code (Apache 2.0 plus conditions). See [LICENSE](./LICENSE).
+
+Self-host for your own organization is free. You may not run a hosted Grogbot for third parties without a commercial license — that is grogbot.com. Not OSI-open, not MIT.

@@ -1,4 +1,4 @@
-import { CLOUD_WEB_ORIGIN } from "@grogbot/contracts";
+import { CLOUD_LANDING_ORIGIN } from "@grogbot/contracts";
 import { describe, expect, it } from "vitest";
 import {
   aiJson,
@@ -13,18 +13,18 @@ const origins = cloudOrigins();
 
 describe("discovery documents", () => {
   it("uses Grogbot as the llms.txt H1 and names identity.json the same", () => {
-    expect(cloudOrigins().web).toBe(CLOUD_WEB_ORIGIN);
+    expect(cloudOrigins().web).toBe(CLOUD_LANDING_ORIGIN);
     const txt = llmsTxt(origins);
     expect(txt.startsWith("# Grogbot\n")).toBe(true);
-    expect(txt).toContain(`](${CLOUD_WEB_ORIGIN}/llms.txt)`);
+    expect(txt).toContain(`](${CLOUD_LANDING_ORIGIN}/llms.txt)`);
     expect(identityJson(origins).name).toBe("Grogbot");
     expect(aiJson(origins).name).toBe("Grogbot");
   });
 
   it("lists public pages in the sitemap and allows AI crawlers", () => {
     const sitemap = sitemapXml(origins);
-    expect(sitemap).toContain(`${CLOUD_WEB_ORIGIN}/llms.txt`);
-    expect(sitemap).toContain(`${CLOUD_WEB_ORIGIN}/mcp`);
+    expect(sitemap).toContain(`${CLOUD_LANDING_ORIGIN}/llms.txt`);
+    expect(sitemap).toContain(`${CLOUD_LANDING_ORIGIN}/mcp`);
     expect(robotsTxt(origins)).toContain("User-agent: GPTBot");
     expect(robotsTxt(origins)).toContain("Allow: /llms.txt");
   });

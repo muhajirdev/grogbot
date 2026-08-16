@@ -2,13 +2,15 @@
   "name": "grogbot",
   "private": true,
   "version": "0.0.1",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "packageManager": "pnpm@9.15.0",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
     "dev": "turbo dev --filter=@grogbot/api --filter=@grogbot/worker --filter=@grogbot/web",
+    "dev:landing": "turbo dev --filter=@grogbot/landing",
+    "deploy:landing": "pnpm --filter @grogbot/landing deploy",
     "dev:desktop": "turbo dev --filter=@grogbot/api --filter=@grogbot/worker --filter=@grogbot/web --filter=@grogbot/desktop",
     "dev:mobile": "pnpm --filter @grogbot/mobile start",
     "build": "turbo build",

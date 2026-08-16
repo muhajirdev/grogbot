@@ -1,3 +1,4 @@
+import { gatewayConfigured } from "@grogbot/adapters";
 import { appContract } from "@grogbot/contracts";
 import {
   getBotComputer,
@@ -9,6 +10,7 @@ import { guestConnectors, userModelCredentials } from "@grogbot/db";
 import { implement } from "@orpc/server";
 import { eq } from "drizzle-orm";
 import type { RpcContext } from "./context.js";
+import { gatewaySource } from "./env.js";
 import {
   connectorOnline,
   disableGuest,
@@ -19,10 +21,12 @@ import {
 import { healthPayload } from "./health.js";
 import {
   createOfficeBot,
+  createRoutine,
   getComputer,
   getOffice,
   listBots,
   listComputers,
+  listRoutines,
   sendMessage,
   setComputerControl,
   stopBotRuns,
@@ -47,7 +51,10 @@ export const appRouter = os.router({
       name: actor.name,
       workspaceId: actor.workspaceId,
       isDeploymentOwner: actor.isDeploymentOwner,
-      needsModel: context.env.agentRuntime !== "scripted" && creds.length === 0,
+      needsModel:
+        context.env.agentRuntime !== "scripted" &&
+        !gatewayConfigured(gatewaySource(context.env)) &&
+        creds.length === 0,
     };
   }),
   bots: {
@@ -154,9 +161,13 @@ export const appRouter = os.router({
     }),
   },
   routines: {
-    list: os.routines.list.handler(async ({ context }) => {
-      await requireActor(context);
-      return [];
+    list: os.routines.list.handler(async ({ context, input }) => {
+      const actor = await requireActor(context);
+      return listRoutines(context, actor, input.botId);
+    }),
+    create: os.routines.create.handler(async ({ context, input }) => {
+      const actor = await requireActor(context);
+      return createRoutine(context, actor, input);
     }),
   },
 });

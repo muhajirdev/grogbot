@@ -2,8 +2,9 @@ import { CLOUD_WEB_ORIGIN } from "@grogbot/contracts";
 import { app, BrowserWindow } from "electron";
 
 /**
- * Packaged desktop is a thin client of the hosted web app (which talks to
- * api.grogbot.com). Dev still loads the local Vite server.
+ * Packaged desktop is a thin client of the hosted office (app.grogbot.com,
+ * which talks to api.grogbot.com). Dev still loads the local Vite server.
+ * grogbot.com is the marketing site.
  */
 function webUrl(): string {
   if (process.env.WEB_ORIGIN) return process.env.WEB_ORIGIN;
