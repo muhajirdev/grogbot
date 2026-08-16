@@ -346,7 +346,7 @@ Do not import fs, dockerode, or cloud vendor SDKs from the Pi/executor. The work
 
 ## Tests
 
-Stay offline: AGENT_RUNTIME=scripted, SANDBOX_PROVIDER=fake, in-process Rivet wakeup. No live OpenRouter/E2B/Rivet Cloud.
+Stay offline: AGENT_RUNTIME=scripted, SANDBOX_PROVIDER=fake, in-process Rivet wakeup. No live OpenRouter/E2B/Rivet Cloud. Flue+Pi is AGENT_RUNTIME=flue; flue-echo is the offline harness.
 
 ## Source layout
 

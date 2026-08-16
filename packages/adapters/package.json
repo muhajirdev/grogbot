@@ -11,6 +11,8 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@earendil-works/pi-ai": "^0.83.0",
+    "@flue/runtime": "^2.0.3",
     "@grogbot/adapter-kit": "workspace:*"
   },
   "devDependencies": {
