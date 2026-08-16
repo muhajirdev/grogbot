@@ -8,7 +8,7 @@ Polar docs index: [polar.sh/docs/llms.txt](https://polar.sh/docs/llms.txt). Prim
 
 ## Why Polar (for hosted cloud)
 
-Grogbot is fair-code (Apache 2.0 plus no competing hosted cloud), workspace-scoped, BYOK by default, and will eventually charge for **hosted** compute (E2B, Fly/Railway), not for the source. Self-host for your own organization stays free; offering Grogbot as a cloud to third parties needs a commercial license.
+Grogbot is fair-code (Apache 2.0 plus no competing hosted cloud), workspace-scoped, BYOK by default, and will eventually charge for **hosted** compute (E2B, Cloudflare), not for the source. Self-host for your own organization stays free; offering Grogbot as a cloud to third parties needs a commercial license.
 
 | Need | Polar | Stripe-as-PSP |
 | --- | --- | --- |

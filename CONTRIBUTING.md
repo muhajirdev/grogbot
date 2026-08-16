@@ -1,6 +1,6 @@
 # Contributing
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for locked decisions (Rivet actor per bot, Postgres for team data, oRPC, web-first clients).
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for locked decisions (one actor per bot, Postgres for team data, oRPC, web-first clients, Cloudflare Durable Objects when hosted).
 
 Contributions are under the [Grogbot License](./LICENSE): self-host for your organization is free; the authors may use contributions in grogbot.com and may tighten or relax the license.
 

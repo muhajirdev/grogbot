@@ -10,7 +10,7 @@ export interface AdapterContext {
 }
 
 export interface WakeupJob {
-  /** Rivet actor key — the bot, never the room. */
+  /** Actor key — the bot, never the room. */
   botId: string;
   name: string;
   payload: Record<string, unknown>;

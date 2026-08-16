@@ -31,6 +31,13 @@ describe("oRPC", () => {
     await expect(client.health()).resolves.toEqual(healthPayload(env));
   });
 
+  it("reports in-process wakeup when the worker is local", () => {
+    expect(healthPayload(env).wakeup).toBe("in-process");
+    expect(
+      healthPayload({ ...env, workerUrl: "http://127.0.0.1:3101" }).wakeup,
+    ).toBe("http");
+  });
+
   it("lists Google and GitHub when those keys are set", () => {
     expect(
       healthPayload({

@@ -12,7 +12,7 @@ Each **bot** (teammate) has:
 - a bound **computer** (sandbox) — workspace **default computer** by default, or a new isolated computer
 - memory, routines, history
 
-A **Rivet actor is the bot**. Serial queue + cron + named delayed schedules. One brain, one Pi at a time.
+A **bot actor is the bot**. Serial queue + cron + named delayed schedules. One brain, one Pi at a time. Locally that is an in-process queue; hosted it is a **Cloudflare Durable Object**.
 
 **Computers** are a separate primitive. Many bots can share the default computer (files and logins). GUI computer-use is one mouse (`control_holder`); brains still run on their own actors. A bot created with a new computer gets its own VM.
 
@@ -22,7 +22,7 @@ The **workspace** (Better Auth org) also has:
 - **Shared skills** — `skills/*.md` for every bot.
 - **Composio plugins** — optional `COMPOSIO_API_KEY`. No key = computer-only still works.
 
-**Postgres** is the team source of truth (auth, bots, threads, messages, skills, artifact index). **Rivet** is wakeup and serial execution. They do not share that work.
+**Postgres** is the team source of truth (auth, bots, threads, messages, skills, artifact index). **The bot actor** is wakeup and serial execution. They do not share that work.
 
 ## Locked decisions
 
@@ -33,12 +33,11 @@ The **workspace** (Better Auth org) also has:
 | API | **oRPC** — contract in `@grogbot/contracts`, client in `@grogbot/rpc` |
 | Web | **Vite + React 19 + TanStack Router** (SPA). oRPC queries via `@orpc/tanstack-query`. Not TanStack Start — API stays Hono so Electron can load the same origin. |
 | Landing | **TanStack Start** on **Cloudflare Workers** (`apps/landing/wrangler.jsonc`). SSR for grogbot.com. CTAs go to the office SPA. |
-| Actor | **One Rivet actor per bot** |
+| Actor | **One actor per bot** — Durable Object on Cloudflare; in-process on the Node worker locally |
 | Computer | **Workspace default computer.** New computer = isolated sandbox. GUI serialized per computer. |
 | Shared data | **One Postgres** — auth, bots, threads, messages, skills, artifacts |
-| Wakeup | Rivet queue / `schedule` / cron on that actor |
-| First cloud | **Fly or Railway** — Node API + actor host (worker) |
-| Cloudflare later | **Rivet’s Durable Object driver** |
+| Wakeup | Actor queue / Alarms / cron on that actor |
+| First cloud | **Cloudflare** — landing already on Workers; bot actors become Durable Objects. v1 API + worker stay Node for local/self-host |
 | ORM | **Drizzle** + Postgres |
 | Auth | **Better Auth** — magic-link email (Cloudflare Email Sending REST), Google, GitHub. Organizations = workspaces |
 | Models | **Flue + Pi** (`AGENT_RUNTIME=flue`, default). Flue starts the Node harness; Pi is the loop. **AI Gateway** (`gateway` / `cloudflare` / `openrouter`) remains a single-shot chat loop. Default DeepSeek v4 Flash on Cloudflare. `scripted` / `flue-echo` stay offline for tests |
@@ -50,18 +49,18 @@ The **workspace** (Better Auth org) also has:
 | Hosted billing | **Later.** Polar research: [docs/polar-integration.md](./docs/polar-integration.md). Self-host stays free. Not v1. |
 | License | **Fair-code** (Apache 2.0 + no competing hosted cloud). [LICENSE](./LICENSE). Not MIT. |
 
-## Wakeup (Rivet)
+## Wakeup (actors)
 
 The API must not wait on Pi. Waking a bot is: chat now, routine at 9:00, sleep the VM after idle.
 
 - **One actor per `botId`.** Never key the actor on `threadId`.
 - Immediate work goes on that actor’s queue (`run.continue`).
-- Routines are cron on that actor (`routine.wakeup`). Postgres `routines` is metadata (prompt, cron string, last/next); Rivet fires it.
+- Routines are cron on that actor (`routine.wakeup`). Postgres `routines` is metadata (prompt, cron string, last/next); the actor fires it.
 - Idle sleep is a named delayed schedule (`computer.sleep`). Same `jobKey` replaces the previous timer.
 - Two humans in one office share **one** actor queue.
 - Two bots in one room (later) are **two** actors.
 
-v1 code: `RivetWakeupDriver` is an in-process stand-in (serial queue + `setTimeout` per `jobKey`). The worker hosts it. The API enqueues over HTTP (`WORKER_URL`). Swap the body for rivetkit (engine, then Cloudflare DO driver) without changing `WakeupDriver`.
+v1 code: `InProcessWakeupDriver` is an in-process stand-in (serial queue + `setTimeout` per `jobKey`). The worker hosts it. The API enqueues over HTTP (`WORKER_URL`). Swap the body for a Cloudflare Durable Object without changing `WakeupDriver`.
 
 agentOS is **not** the v1 computer — Docker / E2B / desktop are.
 
@@ -73,7 +72,7 @@ Desktop (Electron)─┼──► API oRPC (Hono :3100) ──► Postgres (trut
 Mobile (Expo) ────┘          │
                              │ POST /wakeup
                              v
-                       Worker (Rivet actors)
+                       Worker (bot actors)
                              │
            ┌─────────────────┼─────────────────┐
            ▼                 ▼                 ▼
@@ -95,7 +94,7 @@ Wake a bot with:
 
 | Port | v1 | Later |
 | --- | --- | --- |
-| `WakeupDriver` | Rivet actor (in-process on the worker; HTTP from API) | Rivet engine / CF DO driver |
+| `WakeupDriver` | In-process on the worker; HTTP from API | Cloudflare Durable Object |
 | Product API | **oRPC** `POST /rpc/*` (Hono). `GET /health` for probes | same contract |
 | `RealtimeFanout` | oRPC event iterator (`threads.subscribe`) | actor WebSocket or DO |
 | `HomeStore` | filesystem | R2 |
@@ -103,7 +102,7 @@ Wake a bot with:
 | `ConnectorProvider` | Composio or no-op | same |
 | Guest runtime | Off. Opt-in: Hermes/OpenClaw dial `/guest/*` | same protocol |
 
-Executor must not import `fs`, `dockerode`, or Cloudflare bindings. The **actor host** (worker) may import Rivet. The Pi loop still talks only to ports.
+Executor must not import `fs`, `dockerode`, or Cloudflare bindings. The **actor host** (Node worker now, Durable Object later) may import Cloudflare. The Pi loop still talks only to ports.
 
 ## Advanced — guest agents (off by default)
 
@@ -114,11 +113,11 @@ Grogbot is the **host**. A bot can optionally allow Hermes or OpenClaw to connec
 3. The guest process dials `/guest/hello`, waits for `run` jobs, replies with events.
 4. Locally it may spawn `hermes acp` / `openclaw acp` (ACP stays on that machine). `--runtime fake` is for tests.
 
-The Rivet actor is still the bot. If the guest is offline, the run stays queued (`waiting for hermes…`). One guest session per bot. Turn off to return to Grogbot’s runtime.
+The bot actor is still the bot. If the guest is offline, the run stays queued (`waiting for hermes…`). One guest session per bot. Turn off to return to Grogbot’s runtime.
 
 ## Build order
 
-1. Monorepo, schema, auth, health, Rivet wakeup stub, oRPC contract *(this)*
+1. Monorepo, schema, auth, health, in-process wakeup stub, oRPC contract *(this)*
 2. `threads.send` → bot actor → Flue + Pi (`AGENT_RUNTIME=flue`)
 3. Docker computer
 4. AI Gateway (Cloudflare / OpenRouter) + DeepSeek v4 Flash (optional, no Pi loop)
@@ -126,7 +125,7 @@ The Rivet actor is still the bot. If the guest is offline, the run stays queued 
 5. Thin **web** shell — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md)
 6. Workspace context + skills in the system prompt
 7. Composio plugins UI
-8. E2B for Fly
+8. E2B for hosted computers
 9. Desktop window (Electron around web), never on hosted cloud
 10. Extra humans, then multi-bot rooms — [docs/rooms-plan.md](./docs/rooms-plan.md)
 11. Expo mobile (same oRPC client, RN chrome)

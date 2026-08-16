@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { RivetWakeupDriver } from "./wakeup.js";
+import { InProcessWakeupDriver } from "./wakeup.js";
 
-describe("RivetWakeupDriver", () => {
+describe("InProcessWakeupDriver", () => {
   it("runs a continue on that bot", async () => {
-    const wakeup = new RivetWakeupDriver();
+    const wakeup = new InProcessWakeupDriver();
     const seen: string[] = [];
     await wakeup.start({
       "run.continue": async (payload) => {
@@ -21,7 +21,7 @@ describe("RivetWakeupDriver", () => {
   });
 
   it("serializes two wakes on the same bot", async () => {
-    const wakeup = new RivetWakeupDriver();
+    const wakeup = new InProcessWakeupDriver();
     const seen: string[] = [];
     await wakeup.start({
       "run.continue": async (payload) => {
@@ -47,7 +47,7 @@ describe("RivetWakeupDriver", () => {
   });
 
   it("replaces a named delayed schedule", async () => {
-    const wakeup = new RivetWakeupDriver();
+    const wakeup = new InProcessWakeupDriver();
     const seen: string[] = [];
     await wakeup.start({
       "computer.sleep": async (payload) => {
@@ -74,7 +74,7 @@ describe("RivetWakeupDriver", () => {
   });
 
   it("runs two bots in parallel", async () => {
-    const wakeup = new RivetWakeupDriver();
+    const wakeup = new InProcessWakeupDriver();
     const seen: string[] = [];
     await wakeup.start({
       "run.continue": async (payload) => {

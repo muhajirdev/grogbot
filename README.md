@@ -4,20 +4,20 @@ Source-available **Grok Bot** — Grok, then grog. Teammates with a real compute
 
 Packages live under `@grogbot/*`.
 
-Early scaffold: contracts, Postgres (team data), Rivet-shaped **one actor per bot** for wakeup, Fly/Railway API + worker. Chat UI and live computers next.
+Early scaffold: contracts, Postgres (team data), **one actor per bot** for wakeup (in-process now; Durable Objects on Cloudflare), Node API + worker. Chat UI and live computers next.
 
 ## Stack (locked)
 
 - TypeScript, pnpm, Hono, React, Vite, TanStack Router
 - **oRPC** — one contract for web, desktop, and mobile
 - Postgres + Drizzle — workspaces, threads, skills
-- **Rivet actor per bot** — wakeup, serial runs, cron, idle sleep
+- **One actor per bot** — wakeup, serial runs, cron, idle sleep (in-process locally; Durable Object on Cloudflare)
 - Better Auth (magic-link email, Google, GitHub)
-- Local Compose Postgres, then Fly or Railway
+- Local Compose Postgres; hosted cloud is Cloudflare
 - Computers: Docker locally, E2B hosted, desktop only on a trusted machine
 - Plugins: Composio (optional)
 - UI: **web first** (Grok Bot-simple) — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md). Desktop = Electron around web. Mobile = Expo later.
-- Cloudflare later: Rivet’s DO driver
+- Landing already on Cloudflare Workers; bot actors become Durable Objects
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md).
 

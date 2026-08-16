@@ -62,8 +62,8 @@ True parallel for “the same teammate in two rooms” would mean a **second com
 | Two bots, one room, two computers | **Yes.** Two actors, two VMs. |
 | One bot, two rooms | **No** on one VM. Serial queue. Or spawn a child bot. |
 
-Rivet’s actor queue is the feature: it serializes one bot. Do not run two sandboxes for the same bot unless you have two computers (a child bot = new actor).
+The actor queue is the feature: it serializes one bot. Do not run two sandboxes for the same bot unless you have two computers (a child bot = new actor).
 
 ## Lock-in to avoid when we *do* build B
 
-Do not forever treat `botId` as the only way to send. When adding group rooms, key chat on `threadId` and keep computer APIs on `botId`. Do not make the Rivet actor key a `threadId`.
+Do not forever treat `botId` as the only way to send. When adding group rooms, key chat on `threadId` and keep computer APIs on `botId`. Do not make the actor key a `threadId`.
