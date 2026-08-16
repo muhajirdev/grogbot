@@ -10,6 +10,7 @@ export function IntegrationLogo(props: { item: Integration }) {
         alt=""
         width={36}
         height={36}
+        decoding="async"
       />
     );
   }
