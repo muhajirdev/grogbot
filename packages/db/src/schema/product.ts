@@ -9,14 +9,14 @@ import {
 } from "drizzle-orm/pg-core";
 import { organization, user } from "./auth.js";
 
-/** Workspace desk. Many bots can share one; GUI is one mouse at a time. */
+/** Shared workspace computer. Many bots can share one; GUI is one mouse at a time. */
 export const computers = pgTable("computers", {
   id: text("id").primaryKey(),
   workspaceId: text("workspace_id")
     .notNull()
     .references(() => organization.id, { onDelete: "cascade" }),
   userId: text("user_id").notNull(),
-  name: text("name").notNull().default("Desk"),
+  name: text("name").notNull().default("Default computer"),
   isDefault: boolean("is_default").notNull().default(false),
   kind: text("kind").notNull(),
   providerRef: text("provider_ref"),
@@ -50,6 +50,8 @@ export const bots = pgTable("bots", {
   avatarColor: text("avatar_color").notNull().default("#5b7cff"),
   avatarShape: text("avatar_shape").notNull().default("circle"),
   parentBotId: text("parent_bot_id"),
+  /** off | hermes | openclaw | generic. Default off = Grogbot runtime. */
+  guestKind: text("guest_kind").notNull().default("off"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -249,6 +251,32 @@ export const secrets = pgTable("secrets", {
   kind: text("kind").notNull(),
   ciphertext: text("ciphertext").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+/** Outbound guest (Hermes/OpenClaw) connector for one bot. Token shown once. */
+export const guestConnectors = pgTable("guest_connectors", {
+  id: text("id").primaryKey(),
+  botId: text("bot_id")
+    .notNull()
+    .unique()
+    .references(() => bots.id, { onDelete: "cascade" }),
+  workspaceId: text("workspace_id")
+    .notNull()
+    .references(() => organization.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  kind: text("kind").notNull(),
+  tokenHash: text("token_hash").notNull(),
+  online: boolean("online").notNull().default(false),
+  lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
 });

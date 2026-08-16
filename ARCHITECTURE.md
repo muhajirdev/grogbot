@@ -9,12 +9,12 @@ UI: copy Grok Bot simplicity — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md). R
 Each **bot** (teammate) has:
 
 - a home **office** thread (v1 is 1:1; extra humans later)
-- a bound **computer** (sandbox) — workspace **Desk** by default, or a new isolated computer
+- a bound **computer** (sandbox) — workspace **default computer** by default, or a new isolated computer
 - memory, routines, history
 
 A **Rivet actor is the bot**. Serial queue + cron + named delayed schedules. One brain, one Pi at a time.
 
-**Computers** are a separate primitive. Many bots can share one desk (files and logins). GUI computer-use is one mouse (`control_holder`); brains still run on their own actors. A bot created with a new computer gets its own VM.
+**Computers** are a separate primitive. Many bots can share the default computer (files and logins). GUI computer-use is one mouse (`control_holder`); brains still run on their own actors. A bot created with a new computer gets its own VM.
 
 The **workspace** (Better Auth org) also has:
 
@@ -29,11 +29,12 @@ The **workspace** (Better Auth org) also has:
 | Topic | Choice |
 | --- | --- |
 | Product | Grok Bot-shaped teammates + Composio + team context/skills |
-| UI | Messaging app. **Web first.** Packaged desktop loads grogbot.com (API: api.grogbot.com). Dev desktop loads local Vite. Mobile = Expo later |
+| UI | Messaging app. **Web first** (SPA). Marketing is **TanStack Start** at grogbot.com. Packaged desktop loads app.grogbot.com (API: api.grogbot.com). Dev desktop loads local Vite. Mobile = Expo later |
 | API | **oRPC** — contract in `@grogbot/contracts`, client in `@grogbot/rpc` |
 | Web | **Vite + React 19 + TanStack Router** (SPA). oRPC queries via `@orpc/tanstack-query`. Not TanStack Start — API stays Hono so Electron can load the same origin. |
+| Landing | **TanStack Start** marketing site. SSR for grogbot.com. CTAs go to the office SPA. |
 | Actor | **One Rivet actor per bot** |
-| Computer | **Workspace Desk by default.** New computer = isolated sandbox. GUI serialized per desk. |
+| Computer | **Workspace default computer.** New computer = isolated sandbox. GUI serialized per computer. |
 | Shared data | **One Postgres** — auth, bots, threads, messages, skills, artifacts |
 | Wakeup | Rivet queue / `schedule` / cron on that actor |
 | First cloud | **Fly or Railway** — Node API + actor host (worker) |
@@ -46,6 +47,7 @@ The **workspace** (Better Auth org) also has:
 | Realtime | oRPC event iterator now · actor WebSocket later if needed |
 | Plugins | **Composio** (optional) |
 | Rooms v1 | Bot’s office. Multi-bot rooms: plan only |
+| Hosted billing | **Later.** Polar research: [docs/polar-integration.md](./docs/polar-integration.md). Self-host stays free. Not v1. |
 
 ## Wakeup (Rivet)
 
@@ -77,9 +79,11 @@ Mobile (Expo) ────┘          │
       Pi (BYOK)         Sandbox            Composio
       + workspace       docker/e2b         (if key set)
         skills
+
+Landing (Start :5174) ──► CTAs to the web office (no oRPC)
 ```
 
-Clients share **one contract**. Web is what we build against now. Desktop loads that same web app. Expo is a later shell on the same `@grogbot/rpc` client.
+Clients share **one contract**. Web is the office we build against now. The **landing** app is marketing only (no oRPC). Desktop loads that same web app. Expo is a later shell on the same `@grogbot/rpc` client.
 
 Wake a bot with:
 
@@ -97,8 +101,20 @@ Wake a bot with:
 | `HomeStore` | filesystem | R2 |
 | `SandboxProvider` | Docker / E2B / desktop / fake | E2B / CF sandbox |
 | `ConnectorProvider` | Composio or no-op | same |
+| Guest runtime | Off. Opt-in: Hermes/OpenClaw dial `/guest/*` | same protocol |
 
 Executor must not import `fs`, `dockerode`, or Cloudflare bindings. The **actor host** (worker) may import Rivet. The Pi loop still talks only to ports.
+
+## Advanced — guest agents (off by default)
+
+Grogbot is the **host**. A bot can optionally allow Hermes or OpenClaw to connect **outbound** to this deployment (Multica-style daemon, not ACP-on-the-wire). Default remains scripted/Pi.
+
+1. Profile → Advanced → Hermes or OpenClaw. A one-time token is minted.
+2. On the machine that already has that CLI: `pnpm guest -- --url $GUEST_URL --token … --kind hermes`.
+3. The guest process dials `/guest/hello`, waits for `run` jobs, replies with events.
+4. Locally it may spawn `hermes acp` / `openclaw acp` (ACP stays on that machine). `--runtime fake` is for tests.
+
+The Rivet actor is still the bot. If the guest is offline, the run stays queued (`waiting for hermes…`). One guest session per bot. Turn off to return to Grogbot’s runtime.
 
 ## Build order
 
@@ -116,4 +132,6 @@ Executor must not import `fs`, `dockerode`, or Cloudflare bindings. The **actor 
 
 ## Out of v1
 
-Gadgets, Gatekeepers, Cloudflare Workers as the host, D1, Turso, Prisma, PGlite as product DB, store signing / Electron-builder / EAS submit, Pi subscription OAuth, Discord UI, agentOS as the default computer, multi-bot rooms.
+Gadgets, Gatekeepers, Cloudflare Workers as the host, D1, Turso, Prisma, PGlite as product DB, store signing / Electron-builder / EAS submit, Pi subscription OAuth, Discord UI, agentOS as the default computer, multi-bot rooms, Polar hosted billing.
+
+Hosted grogbot.com billing research (Polar as MoR, workspace as Polar customer, not v1): [docs/polar-integration.md](./docs/polar-integration.md).

@@ -8,6 +8,6 @@ pnpm test
 pnpm check
 ```
 
-`pnpm dev` is API + worker + **web**. Desktop: `pnpm dev:desktop`. Mobile: `pnpm dev:mobile`.
+`pnpm dev` is API + worker + **web**. Landing: `pnpm dev:landing`. Desktop: `pnpm dev:desktop`. Mobile: `pnpm dev:mobile`.
 
 CI should run `pnpm test` and `pnpm check`. Default tests stay offline (`fake` sandbox, `scripted` runtime).

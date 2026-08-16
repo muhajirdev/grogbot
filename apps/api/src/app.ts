@@ -1,6 +1,7 @@
 import { createSandboxProvider, createWakeupDriver } from "@grogbot/adapters";
 import { createAuth } from "@grogbot/auth";
 import { grogbotCookieDomain } from "@grogbot/contracts";
+import { GuestHub, handleGuestRequest } from "@grogbot/core";
 import { createDb } from "@grogbot/db";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
@@ -27,6 +28,7 @@ export function createApp(env: Env): AppHandles {
   });
   const wakeup = createWakeupDriver(env.workerUrl);
   const sandbox = createSandboxProvider(env.sandboxProvider);
+  const guests = new GuestHub();
 
   const app = new Hono();
   app.use(
@@ -45,13 +47,27 @@ export function createApp(env: Env): AppHandles {
     auth,
     wakeup,
     sandbox,
+    guests,
     env,
     close: async () => {
+      guests.stop();
       await wakeup.stop();
       await client.end({ timeout: 5 });
     },
   };
   mountRpc(app, handles);
+
+  if (!env.workerUrl) {
+    app.all("/guest/*", async (c) => {
+      const response = await handleGuestRequest(c.req.raw, {
+        db,
+        hub: guests,
+        wakeup,
+      });
+      if (!response) return c.notFound();
+      return c.newResponse(response.body, response);
+    });
+  }
 
   app.get("/health", (c) => c.json(healthPayload(env)));
 

@@ -1,4 +1,8 @@
-import { CLOUD_API_ORIGIN, CLOUD_WEB_ORIGIN } from "@grogbot/contracts";
+import {
+  CLOUD_API_ORIGIN,
+  CLOUD_LANDING_ORIGIN,
+  CLOUD_WEB_ORIGIN,
+} from "@grogbot/contracts";
 
 export type OAuthProviderId = "google" | "github";
 
@@ -11,6 +15,8 @@ export interface Env {
   sandboxProvider: string;
   agentRuntime: string;
   workerUrl?: string;
+  apiUrl?: string;
+  guestUrl?: string;
   googleClientId?: string;
   googleClientSecret?: string;
   githubClientId?: string;
@@ -76,16 +82,21 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     webOrigin,
     corsOrigins: parseOrigins(source.CORS_ORIGINS, [
       webOrigin,
+      CLOUD_LANDING_ORIGIN,
       CLOUD_WEB_ORIGIN,
       CLOUD_API_ORIGIN,
       "http://127.0.0.1:5173",
       "http://localhost:5173",
+      "http://127.0.0.1:5174",
+      "http://localhost:5174",
       "http://127.0.0.1:8081",
       "http://localhost:8081",
     ]),
     sandboxProvider: source.SANDBOX_PROVIDER ?? "fake",
     agentRuntime: source.AGENT_RUNTIME ?? "scripted",
     workerUrl: source.WORKER_URL,
+    apiUrl: source.API_URL ?? "http://127.0.0.1:3100",
+    guestUrl: source.GUEST_URL,
     googleClientId: source.GOOGLE_CLIENT_ID,
     googleClientSecret: source.GOOGLE_CLIENT_SECRET,
     githubClientId: source.GITHUB_CLIENT_ID,

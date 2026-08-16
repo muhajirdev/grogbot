@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "turbo dev --filter=@grogbot/api --filter=@grogbot/worker --filter=@grogbot/web",
+    "dev:landing": "turbo dev --filter=@grogbot/landing",
     "dev:desktop": "turbo dev --filter=@grogbot/api --filter=@grogbot/worker --filter=@grogbot/web --filter=@grogbot/desktop",
     "dev:mobile": "pnpm --filter @grogbot/mobile start",
     "build": "turbo build",
@@ -18,7 +19,8 @@
     "test": "vitest run",
     "db:generate": "pnpm --filter @grogbot/db generate",
     "db:migrate": "pnpm --filter @grogbot/db migrate",
-    "db:push": "pnpm --filter @grogbot/db push"
+    "db:push": "pnpm --filter @grogbot/db push",
+    "guest": "pnpm --filter @grogbot/guest start"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.8",
