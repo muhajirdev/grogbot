@@ -276,7 +276,7 @@ A: Bring your own keys (Pi catalog). Tests use a scripted runtime so they stay o
 ---
 
 Q: Can Hermes or OpenClaw connect?
-A: Guest runtimes are opt-in per bot and off by default. They dial out to Grogbot. Default teammates still use the scripted/Pi runtime.
+A: Guest runtimes are opt-in per bot and off by default. They dial out to Grogbot. Default teammates use Flue + Pi.
 
 ---
 

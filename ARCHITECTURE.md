@@ -41,7 +41,7 @@ The **workspace** (Better Auth org) also has:
 | Cloudflare later | **Rivet’s Durable Object driver** |
 | ORM | **Drizzle** + Postgres |
 | Auth | **Better Auth** — magic-link email (Cloudflare Email Sending REST), Google, GitHub. Organizations = workspaces |
-| Models | **Flue + Pi** (`AGENT_RUNTIME=flue`) is the teammate harness. **AI Gateway** (`gateway` / `cloudflare` / `openrouter`) remains a single-shot chat loop. Default DeepSeek v4 Flash on Cloudflare. `scripted` / `flue-echo` stay offline for tests |
+| Models | **Flue + Pi** (`AGENT_RUNTIME=flue`, default). Flue starts the Node harness; Pi is the loop. **AI Gateway** (`gateway` / `cloudflare` / `openrouter`) remains a single-shot chat loop. Default DeepSeek v4 Flash on Cloudflare. `scripted` / `flue-echo` stay offline for tests |
 | Sandbox | `docker` local · `e2b` hosted · `desktop` trusted machine only · `fake` tests |
 | Homes | Disk v1 · `HomeStore` → R2 later |
 | Realtime | oRPC event iterator now · actor WebSocket later if needed |
@@ -107,7 +107,7 @@ Executor must not import `fs`, `dockerode`, or Cloudflare bindings. The **actor 
 
 ## Advanced — guest agents (off by default)
 
-Grogbot is the **host**. A bot can optionally allow Hermes or OpenClaw to connect **outbound** to this deployment (Multica-style daemon, not ACP-on-the-wire). Default remains scripted / Flue+Pi.
+Grogbot is the **host**. A bot can optionally allow Hermes or OpenClaw to connect **outbound** to this deployment (Multica-style daemon, not ACP-on-the-wire). Default remains Flue+Pi.
 
 1. Profile → Advanced → Hermes or OpenClaw. A one-time token is minted.
 2. On the machine that already has that CLI: `pnpm guest -- --url $GUEST_URL --token … --kind hermes`.
@@ -119,10 +119,10 @@ The Rivet actor is still the bot. If the guest is offline, the run stays queued 
 ## Build order
 
 1. Monorepo, schema, auth, health, Rivet wakeup stub, oRPC contract *(this)*
-2. `threads.send` → bot actor → scripted runtime
+2. `threads.send` → bot actor → Flue + Pi (`AGENT_RUNTIME=flue`)
 3. Docker computer
-4. AI Gateway (Cloudflare / OpenRouter) + DeepSeek v4 Flash
-4b. Flue + Pi harness (`AGENT_RUNTIME=flue`) — one `Teammate` agent, instances keyed by `botId:threadId`
+4. AI Gateway (Cloudflare / OpenRouter) + DeepSeek v4 Flash (optional, no Pi loop)
+4b. One `Teammate` agent, instances keyed by `botId:threadId`
 5. Thin **web** shell — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md)
 6. Workspace context + skills in the system prompt
 7. Composio plugins UI

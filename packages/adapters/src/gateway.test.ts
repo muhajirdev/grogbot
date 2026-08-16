@@ -11,7 +11,15 @@ import {
   loadGatewayConfig,
   OPENROUTER_DEEPSEEK_V4_FLASH,
 } from "./gateway.js";
-import { createAgentRuntime, GatewayAgentRuntime } from "./runtime.js";
+import {
+  agentRuntimeNeedsModel,
+  createAgentRuntime,
+  DEFAULT_AGENT_RUNTIME,
+  GatewayAgentRuntime,
+  OFFLINE_AGENT_RUNTIME,
+  resolveAgentRuntimeKind,
+  ScriptedAgentRuntime,
+} from "./runtime.js";
 
 const runRequest = {
   botId: "bot-1",
@@ -282,6 +290,24 @@ describe("GatewayAgentRuntime", () => {
 });
 
 describe("createAgentRuntime", () => {
+  it("defaults the product harness to Flue+Pi", () => {
+    expect(DEFAULT_AGENT_RUNTIME).toBe("flue");
+    expect(resolveAgentRuntimeKind()).toBe("flue");
+    expect(resolveAgentRuntimeKind("")).toBe("flue");
+    expect(resolveAgentRuntimeKind("scripted")).toBe("scripted");
+    expect(createAgentRuntime()).toBeInstanceOf(ScriptedAgentRuntime);
+    expect(OFFLINE_AGENT_RUNTIME).toBe("scripted");
+  });
+
+  it("needs a model key for live flue, not for offline stubs", () => {
+    expect(agentRuntimeNeedsModel("scripted", {})).toBe(false);
+    expect(agentRuntimeNeedsModel("flue-echo", {})).toBe(false);
+    expect(agentRuntimeNeedsModel("flue", {})).toBe(true);
+    expect(agentRuntimeNeedsModel("flue", { OPENAI_API_KEY: "sk-test" })).toBe(
+      false,
+    );
+  });
+
   it("keeps the scripted echo for offline tests", async () => {
     const runtime = createAgentRuntime("scripted");
     const events = [];

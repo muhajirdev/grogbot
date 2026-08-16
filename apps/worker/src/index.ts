@@ -2,7 +2,11 @@ import { existsSync } from "node:fs";
 import { createServer } from "node:http";
 import path from "node:path";
 import type { WakeupJob } from "@grogbot/adapter-kit";
-import { createAgentRuntime, RivetWakeupDriver } from "@grogbot/adapters";
+import {
+  createAgentRuntime,
+  RivetWakeupDriver,
+  resolveAgentRuntimeKind,
+} from "@grogbot/adapters";
 import {
   createWakeHandlers,
   GuestHub,
@@ -49,7 +53,8 @@ async function main() {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error("DATABASE_URL is required");
   const { db } = createDb(databaseUrl);
-  const runtime = createAgentRuntime(process.env.AGENT_RUNTIME ?? "scripted");
+  const agentRuntime = resolveAgentRuntimeKind(process.env.AGENT_RUNTIME);
+  const runtime = createAgentRuntime(agentRuntime);
   const wakeup = new RivetWakeupDriver();
   const guests = new GuestHub();
   await wakeup.start(createWakeHandlers({ db, runtime, wakeup, guests }));
@@ -63,7 +68,7 @@ async function main() {
           JSON.stringify({
             ok: true,
             wakeup: "rivet",
-            runtime: process.env.AGENT_RUNTIME ?? "scripted",
+            runtime: agentRuntime,
           }),
         );
         return;

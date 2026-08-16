@@ -6,14 +6,17 @@ import { loadRootEnv } from "./load-root-env.js";
 loadRootEnv();
 
 import { createApp } from "./app.js";
-import { gatewaySource, loadEnv } from "./env.js";
+import { agentRuntimeSource, loadEnv } from "./env.js";
 
 async function main() {
   const env = loadEnv();
   const handles = createApp(env);
 
   if (!env.workerUrl) {
-    const runtime = createAgentRuntime(env.agentRuntime, gatewaySource(env));
+    const runtime = createAgentRuntime(
+      env.agentRuntime,
+      agentRuntimeSource(env),
+    );
     await handles.wakeup.start(
       createWakeHandlers({
         db: handles.db,

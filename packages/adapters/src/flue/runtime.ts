@@ -41,6 +41,17 @@ export function resolveFlueModel(
   );
 }
 
+export function flueConfigured(
+  source: NodeJS.ProcessEnv = process.env,
+): boolean {
+  try {
+    resolveFlueModel(false, source);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function persistence(source: NodeJS.ProcessEnv) {
   const file = envValue(source, "FLUE_DB_PATH");
   const dataDir = envValue(source, "DATA_DIR");
@@ -58,7 +69,7 @@ function persistence(source: NodeJS.ProcessEnv) {
 export class FlueAgentRuntime implements AgentRuntime {
   private readonly echo: boolean;
   private readonly env: NodeJS.ProcessEnv;
-  private readonly model: string;
+  private model: string | undefined;
   private boot: Promise<Flue> | undefined;
   private flue: Flue | undefined;
   private readonly running = new Map<
@@ -69,13 +80,17 @@ export class FlueAgentRuntime implements AgentRuntime {
   constructor(options: FlueRuntimeOptions = {}) {
     this.echo = options.echo === true;
     this.env = options.env ?? process.env;
-    this.model = resolveFlueModel(this.echo, this.env);
+  }
+
+  private resolvedModel(): string {
+    this.model ??= resolveFlueModel(this.echo, this.env);
+    return this.model;
   }
 
   async abort(runId: string): Promise<void> {
     const current = this.running.get(runId);
     current?.abort.abort();
-    if (!current) return;
+    if (!current || !this.boot) return;
     await this.ensureStarted();
     await init(Teammate, { id: current.instanceId }).abort();
   }
@@ -92,17 +107,18 @@ export class FlueAgentRuntime implements AgentRuntime {
     request: AgentRunRequest,
     context: AdapterContext,
   ): AsyncIterable<AgentRuntimeEvent> {
-    await this.ensureStarted();
     const instanceId = teammateInstanceId(request.botId, request.threadId);
-    setTeammateTurn(instanceId, {
-      instructions: request.instructions,
-      model: this.model,
-    });
     const controller = new AbortController();
     this.running.set(request.runId, { abort: controller, instanceId });
     const signal = mergeSignals(context.signal, controller.signal);
     yield { type: "progress", text: "working…" };
     try {
+      const model = this.resolvedModel();
+      await this.ensureStarted();
+      setTeammateTurn(instanceId, {
+        instructions: request.instructions,
+        model,
+      });
       const handle = init(Teammate, { id: instanceId });
       const receipt = await handle.dispatch({
         message: { kind: "user", body: request.prompt },
