@@ -17,7 +17,7 @@ export type IntegrationKind = "composio" | "computer";
 export type Integration = {
   slug: string;
   name: string;
-  logo?: string;
+  logo: string;
   description: string;
   category: string;
   categorySlug: string;
@@ -59,7 +59,7 @@ function fromComposio(row: ComposioToolkit): Integration {
   return {
     slug: row.slug,
     name: row.name,
-    logo: row.logo || undefined,
+    logo: row.logo,
     description: row.description,
     category: row.category,
     categorySlug: slugify(row.category),
@@ -83,6 +83,7 @@ function fromIndie(
   return {
     slug: row.slug,
     name: row.name,
+    logo: `/logos/${row.slug}.png`,
     description: row.description,
     category: row.category,
     categorySlug: slugify(row.category),

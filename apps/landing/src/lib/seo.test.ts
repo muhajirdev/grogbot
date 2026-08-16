@@ -1,3 +1,6 @@
+import { existsSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { INDIE_INTEGRATIONS } from "../data/indie-integrations";
 import { USE_CASES } from "../data/use-cases";
@@ -76,6 +79,21 @@ describe("integrations catalog", () => {
     expect(slugs).toEqual(
       expect.arrayContaining(["datafast", "postiz", "post-bridge", "shipfast"]),
     );
+  });
+
+  it("gives every integration a logo, with hosted files for computer tools", () => {
+    const missing = INTEGRATIONS.filter((item) => !item.logo).map(
+      (item) => item.slug,
+    );
+    expect(missing).toEqual([]);
+    const logosDir = join(
+      dirname(fileURLToPath(import.meta.url)),
+      "../../public/logos",
+    );
+    for (const item of computerIntegrations()) {
+      expect(item.logo).toBe(`/logos/${item.slug}.png`);
+      expect(existsSync(join(logosDir, `${item.slug}.png`))).toBe(true);
+    }
   });
 });
 
