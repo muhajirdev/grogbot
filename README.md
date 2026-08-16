@@ -42,6 +42,15 @@ pnpm dev
 - Worker / actors: http://127.0.0.1:3101/health
 - Web: http://127.0.0.1:5173 — `/` welcome, `/login`, `/onboarding`, `/{botId}` office
 
+Public LLM / agent discovery (also on https://grogbot.com):
+
+- `/llms.txt` (and `/llm.txt` → 301)
+- `/llms.html`, `/llms-full.txt`, `/index.md`
+- `/ai.txt`, `/ai.json`, `/identity.json`, `/brand.txt`, `/faq-ai.txt`, `/developer-ai.txt`, `/robots-ai.txt`
+- `/robots.txt`, `/sitemap.xml`
+- `/mcp` Streamable HTTP + `/.well-known/mcp.json`
+
+
 Google / GitHub need client IDs in `.env`. Use **127.0.0.1**, not localhost:
 
 - Google redirect: `http://127.0.0.1:5173/api/auth/callback/google`
@@ -78,7 +87,7 @@ On a device, set `EXPO_PUBLIC_API_URL` to this machine’s LAN address.
 
 ```
 apps/web desktop mobile api worker
-packages/contracts rpc adapter-kit core db auth adapters
+packages/contracts rpc adapter-kit core db auth adapters seo
 infra/compose
 docs/
 ```

@@ -1,0 +1,18 @@
+{
+  "name": "@grogbot/seo",
+  "version": "0.0.1",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@grogbot/contracts": "workspace:*",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

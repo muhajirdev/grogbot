@@ -51,6 +51,9 @@ importers:
       '@grogbot/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@grogbot/seo':
+        specifier: workspace:*
+        version: link:../../packages/seo
       '@hono/node-server':
         specifier: ^1.19.1
         version: 1.19.17(hono@4.13.2)
@@ -145,6 +148,9 @@ importers:
       '@grogbot/rpc':
         specifier: workspace:*
         version: link:../../packages/rpc
+      '@grogbot/seo':
+        specifier: workspace:*
+        version: link:../../packages/seo
       '@orpc/tanstack-query':
         specifier: ^1.10.0
         version: 1.15.0(@orpc/client@1.15.0)(@tanstack/query-core@5.101.4)
@@ -310,6 +316,18 @@ importers:
       typescript:
         specifier: ^5.9.2
         version: 5.9.3
+
+  packages/seo:
+    devDependencies:
+      '@grogbot/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.33.0)(terser@5.50.0)(tsx@4.23.12)(yaml@2.9.0)
 
 packages:
 

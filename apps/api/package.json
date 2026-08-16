@@ -16,6 +16,7 @@
     "@grogbot/contracts": "workspace:*",
     "@grogbot/core": "workspace:*",
     "@grogbot/db": "workspace:*",
+    "@grogbot/seo": "workspace:*",
     "@orpc/server": "^1.10.0",
     "dotenv": "^17.2.1",
     "drizzle-orm": "^0.44.5",
