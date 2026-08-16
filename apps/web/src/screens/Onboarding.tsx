@@ -15,7 +15,7 @@ export function Onboarding() {
   const [step, setStep] = useState(0);
   const [tools, setTools] = useState<string[]>([]);
   const [name, setName] = useState("Piper");
-  const [title, setTitle] = useState("Product performance");
+  const [title, setTitle] = useState("");
   const [description, setDescription] = useState(
     "Operational rules — sources, output shape, never change production.",
   );
@@ -64,8 +64,8 @@ export function Onboarding() {
             <h1>Bots are coworkers.</h1>
             <p className="lede">
               Each Bot is a named person in the sidebar. You talk to them. They
-              share the workspace Desk by default — files and logins — unless
-              you give one its own computer.
+              share the default computer — files and logins — unless you give
+              one its own.
             </p>
             <button className="btn" type="button" onClick={() => setStep(1)}>
               Next
@@ -76,7 +76,7 @@ export function Onboarding() {
           <>
             <h1>The computer is a pane you can ignore.</h1>
             <p className="lede">
-              Teammates on the same Desk take turns with the mouse. Work
+              Teammates on the same computer take turns with the mouse. Work
               continues if you close the pane. Take over only when a password,
               2FA, or payment shows up — on the computer, not in chat.
             </p>
@@ -146,7 +146,7 @@ export function Onboarding() {
         ) : null}
         {step === 4 ? (
           <>
-            <h1>Name + job + how it should work.</h1>
+            <h1>Name + how it should work.</h1>
             <div
               style={{
                 display: "flex",
@@ -187,8 +187,12 @@ export function Onboarding() {
               />
             </label>
             <label className="field">
-              <span>Job</span>
-              <input value={title} onChange={(e) => setTitle(e.target.value)} />
+              <span>Job (optional)</span>
+              <input
+                value={title}
+                placeholder="Talent Scout"
+                onChange={(e) => setTitle(e.target.value)}
+              />
             </label>
             <label className="field">
               <span>How it should work</span>

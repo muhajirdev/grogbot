@@ -1,7 +1,5 @@
 import type {
-  Bot,
   ComputerStatus,
-  GuestAgentKind,
   ProductEvent,
   ThreadMessage,
 } from "@grogbot/contracts";
@@ -9,18 +7,33 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import {
   type FormEvent,
-  type ReactNode,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
+import { AppSettings } from "../components/AppSettings";
 import { AvatarMark } from "../components/Avatar";
+import { BotSettingsPane } from "../components/BotSettingsPane";
+import { ComputerCard } from "../components/ComputerCard";
+import { ComputerPane } from "../components/ComputerPane";
+import {
+  DoubleChevronIcon,
+  GearIcon,
+  MicIcon,
+  MonitorIcon,
+  PlugIcon,
+  PlusIcon,
+  SearchIcon,
+} from "../components/Icons";
+import { PluginsModal } from "../components/PluginsModal";
 import { authClient } from "../lib/auth";
-import { AVATAR_COLORS, AVATAR_SHAPES, FIRST_TASK } from "../lib/jobs";
+import { AVATAR_COLORS, FIRST_TASK } from "../lib/jobs";
 import { orpc } from "../lib/orpc";
 import { client } from "../lib/rpc";
 import { applyTheme, readTheme, type Theme } from "../lib/theme";
+import { dayKey, formatDaySep, formatListTime } from "../lib/time";
 
 function asMessage(payload: Record<string, unknown>): ThreadMessage | null {
   const id = String(payload.id ?? "");
@@ -42,20 +55,26 @@ function asMessage(payload: Record<string, unknown>): ThreadMessage | null {
   };
 }
 
-function ModalShell(props: { onClose: () => void; children: ReactNode }) {
-  return (
-    <div className="modal-back">
-      <button
-        type="button"
-        className="modal-dismiss"
-        aria-label="Close"
-        onClick={props.onClose}
-      />
-      <div className="modal" role="dialog">
-        {props.children}
-      </div>
-    </div>
-  );
+function messageText(message: ThreadMessage): string {
+  return message.blocks
+    .filter((block) => block.kind === "text")
+    .map((block) => block.text)
+    .join("\n");
+}
+
+function lastHumanBefore(messages: ThreadMessage[], index: number): string {
+  for (let i = index - 1; i >= 0; i -= 1) {
+    const item = messages[i];
+    if (item?.actorType === "human") return messageText(item);
+  }
+  return "Computer";
+}
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return (parts[0]?.slice(0, 2) ?? "?").toUpperCase();
+  return `${parts[0]?.[0] ?? ""}${parts[1]?.[0] ?? ""}`.toUpperCase();
 }
 
 export function Office(props: { botId: string }) {
@@ -63,19 +82,34 @@ export function Office(props: { botId: string }) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const botsQuery = useQuery(orpc.bots.list.queryOptions());
+  const meQuery = useQuery(orpc.me.queryOptions());
   const bots = botsQuery.data ?? [];
+  const me = meQuery.data;
   const [messages, setMessages] = useState<ThreadMessage[]>([]);
   const [working, setWorking] = useState("");
   const [computer, setComputer] = useState<ComputerStatus | null>(null);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState("");
-  const [profileOpen, setProfileOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [pluginsOpen, setPluginsOpen] = useState(false);
   const [newOpen, setNewOpen] = useState(false);
+  const [paneMode, setPaneMode] = useState<"computer" | "settings" | null>(
+    null,
+  );
   const [theme, setTheme] = useState<Theme>(readTheme());
   const scroller = useRef<HTMLDivElement>(null);
   const bot = bots.find((item) => item.id === props.botId) ?? bots[0];
   const activeId = bot?.id;
+  const q = search.trim().toLowerCase();
+  const visibleBots = useMemo(() => {
+    const list = q
+      ? bots.filter((item) => item.name.toLowerCase().includes(q))
+      : bots;
+    return [...list].sort(
+      (a, b) => new Date(b.lastAt).getTime() - new Date(a.lastAt).getTime(),
+    );
+  }, [bots, q]);
 
   async function refreshBots(selectId?: string) {
     await queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
@@ -89,6 +123,25 @@ export function Office(props: { botId: string }) {
     }
   }
 
+  const hire = useCallback(
+    async (computerChoice: "default" | "new" = "default") => {
+      setNewOpen(false);
+      try {
+        const created = await client.bots.create({
+          name: "New Bot",
+          avatarColor: AVATAR_COLORS[0],
+          computer: computerChoice,
+        });
+        await queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
+        await navigate({ to: "/$botId", params: { botId: created.id } });
+        setPaneMode("settings");
+      } catch (caught) {
+        setError(caught instanceof Error ? caught.message : "Could not create");
+      }
+    },
+    [navigate, queryClient],
+  );
+
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);
@@ -97,7 +150,7 @@ export function Office(props: { botId: string }) {
     const onKey = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "n") {
         event.preventDefault();
-        setNewOpen(true);
+        void hire();
       }
       if ((event.metaKey || event.ctrlKey) && event.key === ",") {
         event.preventDefault();
@@ -106,7 +159,7 @@ export function Office(props: { botId: string }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [hire]);
 
   useEffect(() => {
     if (!activeId) return;
@@ -135,6 +188,7 @@ export function Office(props: { botId: string }) {
                 return current;
               return [...current, message].sort((a, b) => a.seq - b.seq);
             });
+            void queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
           }
         }
         if (event.type === "run.updated") {
@@ -199,78 +253,126 @@ export function Office(props: { botId: string }) {
     }
     if (computer.state === "running" || computer.state === "booting")
       return "Working";
-    return "Idle";
+    return "Done";
+  }, [bot, computer, working]);
+
+  const computerBody = useMemo(() => {
+    if (computer?.controlHolder === "user")
+      return "You're in control. Sign in, 2FA, or pay here — not in chat.";
+    if (bot?.guestKind && bot.guestKind !== "off" && !bot.guestOnline)
+      return `Waiting for ${bot.guestKind} to connect from your machine.`;
+    if (computer?.usingBotId && computer.usingBotId !== bot?.id)
+      return `${computer.usingBotName} has the mouse on ${computer.name}. Files and logins are shared; one mouse at a time.`;
+    if (working)
+      return `${bot?.name ?? "Bot"} is using ${computer?.name ?? "this computer"}.\n${working}`;
+    return `${computer?.name ?? "Computer"}. Work continues if you close this.`;
   }, [bot, computer, working]);
 
   return (
-    <div className="office">
+    <div className={`office${paneMode ? "" : " collapsed"}`}>
       <aside className="sidebar">
         <div className="side-head">
-          <div>
-            <p className="kicker">Grogbot</p>
-            <span>Teammates</span>
-          </div>
-          <div className="row">
+          <label className="search-field">
+            <SearchIcon />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search"
+            />
+          </label>
+          <div style={{ position: "relative" }}>
             <button
-              className="btn tiny"
+              className="plus-btn"
               type="button"
-              onClick={() => setNewOpen(true)}
+              aria-label="New"
+              onClick={() => setNewOpen((open) => !open)}
             >
-              New
+              <PlusIcon />
             </button>
-            <button
-              className="btn ghost tiny"
-              type="button"
-              onClick={() => setSettingsOpen(true)}
-            >
-              Settings
-            </button>
+            {newOpen ? (
+              <div className="menu">
+                <button type="button" onClick={() => void hire("default")}>
+                  Create new agent
+                </button>
+                <button type="button" onClick={() => void hire("new")}>
+                  Create with new computer
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
-        <div className="bot-list">
-          {bots.map((item) => (
+        <div className="conv-list">
+          {visibleBots.map((item) => (
             <Link
               key={item.id}
               to="/$botId"
               params={{ botId: item.id }}
-              className={`bot-item${item.id === bot?.id ? " on" : ""}`}
+              className={`conv${item.id === bot?.id ? " on" : ""}`}
             >
               <AvatarMark
                 name={item.name}
                 color={item.avatarColor}
                 shape={item.avatarShape}
               />
-              <span>
-                <div className="name">{item.name}</div>
-                <div className="title">{item.title || "Teammate"}</div>
-                {item.computerName ? (
-                  <div className="title">{item.computerName}</div>
-                ) : null}
-                {item.guestKind !== "off" ? (
-                  <div className="title">
-                    {item.guestOnline
-                      ? `${item.guestKind} online`
-                      : `${item.guestKind} offline`}
-                  </div>
-                ) : null}
+              <span className="conv-copy">
+                <span className="conv-top">
+                  <span className="name">{item.name}</span>
+                  <span className="when">{formatListTime(item.lastAt)}</span>
+                </span>
+                <div className="snip">
+                  {item.lastPreview || item.title || "No messages yet"}
+                </div>
               </span>
             </Link>
           ))}
-          {bots.length === 0 ? (
+          {visibleBots.length === 0 ? (
             <p className="empty">No teammates yet.</p>
           ) : null}
+        </div>
+        <div className="side-foot">
+          <button
+            className="foot-item"
+            type="button"
+            onClick={() => setPluginsOpen(true)}
+          >
+            <PlugIcon />
+            <span>Plugins</span>
+          </button>
+          <button
+            className="foot-item"
+            type="button"
+            onClick={() => setSettingsOpen(true)}
+          >
+            <span
+              className="avatar circle"
+              style={{ background: "#4d5568", width: 28, height: 28 }}
+            >
+              {initials(me?.name ?? "You")}
+            </span>
+            <span>{me?.name || "You"}</span>
+          </button>
         </div>
       </aside>
       <section className="thread">
         <div className="thread-head">
-          <div>
-            <strong className="ui">{bot?.name ?? "—"}</strong>
-            <div className="title">{bot?.title}</div>
-          </div>
-          <div className="row">
+          <button
+            className="thread-who"
+            type="button"
+            onClick={() => setPaneMode("settings")}
+          >
+            {bot ? (
+              <AvatarMark
+                name={bot.name}
+                color={bot.avatarColor}
+                shape={bot.avatarShape}
+              />
+            ) : null}
+            <strong>{bot?.name ?? "—"}</strong>
+          </button>
+          <div className="row tight">
             {working ? (
               <button
-                className="btn ghost tiny"
+                className="mini"
                 type="button"
                 onClick={() =>
                   bot && void client.threads.stop({ botId: bot.id })
@@ -280,33 +382,109 @@ export function Office(props: { botId: string }) {
               </button>
             ) : null}
             <button
-              className="btn ghost tiny"
+              className={`icon-btn${paneMode === "computer" ? " on" : ""}`}
               type="button"
-              onClick={() => setProfileOpen(true)}
+              aria-label="Computer"
+              title="Computer"
+              onClick={() =>
+                setPaneMode(paneMode === "computer" ? null : "computer")
+              }
             >
-              Profile
+              <MonitorIcon />
             </button>
+            <button
+              className={`icon-btn${paneMode === "settings" ? " on" : ""}`}
+              type="button"
+              aria-label="Settings"
+              title="Settings"
+              onClick={() =>
+                setPaneMode(paneMode === "settings" ? null : "settings")
+              }
+            >
+              <GearIcon />
+            </button>
+            {paneMode ? (
+              <button
+                className="icon-btn"
+                type="button"
+                aria-label="Collapse pane"
+                title="Collapse"
+                onClick={() => setPaneMode(null)}
+              >
+                <DoubleChevronIcon />
+              </button>
+            ) : null}
           </div>
         </div>
         <div className="transcript" ref={scroller}>
-          {messages.map((message) => {
-            const text = message.blocks
-              .filter((block) => block.kind === "text")
-              .map((block) => block.text)
-              .join("\n");
+          {messages.map((message, index) => {
+            const prev = messages[index - 1];
+            const showDay =
+              !prev || dayKey(prev.createdAt) !== dayKey(message.createdAt);
+            const text = messageText(message);
+            const lastInRun =
+              Boolean(message.runId) &&
+              message.actorType === "bot" &&
+              !messages
+                .slice(index + 1)
+                .some((item) => item.runId === message.runId);
+            const latestRun =
+              lastInRun &&
+              !messages
+                .slice(index + 1)
+                .some((item) => item.actorType === "bot" && item.runId);
             return (
-              <div
-                key={message.id}
-                className={`bubble ${message.actorType === "human" ? "human" : "bot"}`}
-              >
-                {text}
+              <div key={message.id} style={{ display: "contents" }}>
+                {showDay ? (
+                  <div className="day-sep">
+                    {formatDaySep(message.createdAt)}
+                  </div>
+                ) : null}
+                {text ? (
+                  <div
+                    className={`bubble ${message.actorType === "human" ? "human" : "bot"}`}
+                  >
+                    {text}
+                  </div>
+                ) : null}
+                {lastInRun ? (
+                  <ComputerCard
+                    title={lastHumanBefore(messages, index)}
+                    status={
+                      latestRun && working
+                        ? "Working"
+                        : latestRun && computer?.controlHolder === "user"
+                          ? "You're in control"
+                          : "Done"
+                    }
+                    done={!(latestRun && working)}
+                    preview={
+                      latestRun &&
+                      (working || computer?.controlHolder === "user")
+                        ? computerBody
+                        : undefined
+                    }
+                    onOpen={() => setPaneMode("computer")}
+                  />
+                ) : null}
               </div>
             );
           })}
-          {working ? (
-            <div className="meta-line">
-              {bot?.name} {working}
-            </div>
+          {working &&
+          !messages.some(
+            (item, index) =>
+              item.runId &&
+              item.actorType === "bot" &&
+              !messages
+                .slice(index + 1)
+                .some((later) => later.runId === item.runId),
+          ) ? (
+            <ComputerCard
+              title={draft || lastHumanBefore(messages, messages.length)}
+              status="Working"
+              preview={computerBody}
+              onOpen={() => setPaneMode("computer")}
+            />
           ) : null}
           {!working && messages.length === 0 ? (
             <p className="lede">
@@ -317,8 +495,20 @@ export function Office(props: { botId: string }) {
         </div>
         <div className="composer">
           {error ? <p className="error">{error}</p> : null}
-          <form onSubmit={(event) => void send(event)}>
+          <form
+            className="composer-pill"
+            onSubmit={(event) => void send(event)}
+          >
+            <button
+              className="icon-btn"
+              type="button"
+              aria-label="Attach"
+              title="Attach"
+            >
+              <PlusIcon />
+            </button>
             <textarea
+              rows={1}
               value={draft}
               placeholder={
                 messages.length === 0
@@ -335,100 +525,68 @@ export function Office(props: { botId: string }) {
                 }
               }}
             />
-            <button className="btn tiny" type="submit" disabled={!bot}>
-              Send
+            <button
+              className="icon-btn"
+              type="button"
+              aria-label="Voice"
+              title="Voice"
+            >
+              <MicIcon />
             </button>
           </form>
         </div>
       </section>
-      <aside className="pane">
-        <div className="pane-head">
-          <strong className="ui">{computer?.name ?? "Computer"}</strong>
-          <span className="ui">{statusLabel}</span>
-        </div>
-        <div className="screen-box">
-          {computer?.controlHolder === "user"
-            ? "You're in control. Sign in, 2FA, or pay here — not in chat."
-            : bot?.guestKind && bot.guestKind !== "off" && !bot.guestOnline
-              ? `This teammate is waiting for ${bot.guestKind} to connect from your machine. Off by default — enable it in Profile → Advanced.`
-              : computer?.usingBotId && computer.usingBotId !== bot?.id
-                ? `${computer.usingBotName} has the mouse on ${computer.name}. Files and logins are shared; one mouse at a time.`
-                : working
-                  ? `${bot?.name ?? "Bot"} is using ${computer?.name ?? "this computer"}.\n${working}`
-                  : computer?.isDefault ||
-                      (computer?.teammates && computer.teammates.length > 1)
-                    ? `${computer?.name ?? "Desk"}${computer?.isDefault ? " (default)" : ""}. Teammates on this desk share files and logins.`
-                    : `${computer?.name ?? "Computer"}. Isolated computer — files and logins stay here.`}
-        </div>
-        <div className="profile">
-          {computer?.controlHolder === "user" ? (
-            <button
-              className="btn"
-              type="button"
-              onClick={() => {
-                if (!bot) return;
-                void client.computer
-                  .release({ botId: bot.id })
-                  .then(setComputer)
-                  .catch((caught: unknown) =>
-                    setError(
-                      caught instanceof Error
-                        ? caught.message
-                        : "Could not continue",
-                    ),
-                  );
-              }}
-            >
-              Continue
-            </button>
-          ) : (
-            <button
-              className="btn ghost"
-              type="button"
-              onClick={() => {
-                if (!bot) return;
-                void client.computer
-                  .takeover({ botId: bot.id })
-                  .then(setComputer)
-                  .catch((caught: unknown) =>
-                    setError(
-                      caught instanceof Error
-                        ? caught.message
-                        : "Could not take over",
-                    ),
-                  );
-              }}
-            >
-              Take over
-            </button>
-          )}
-          <p className="lede" style={{ fontSize: 14 }}>
-            {computer?.teammates && computer.teammates.length > 1
-              ? `On this desk: ${computer.teammates.map((item) => item.name).join(", ")}.`
-              : "Closing this pane does not stop work."}
-          </p>
-        </div>
-      </aside>
-      {profileOpen && bot ? (
-        <ProfileModal
+      {paneMode === "computer" && bot ? (
+        <ComputerPane
           bot={bot}
-          onClose={() => setProfileOpen(false)}
+          computer={computer}
+          statusLabel={statusLabel}
+          body={computerBody}
+          working={Boolean(working)}
+          onTakeover={() => {
+            if (!bot) return;
+            void client.computer
+              .takeover({ botId: bot.id })
+              .then(setComputer)
+              .catch((caught: unknown) =>
+                setError(
+                  caught instanceof Error
+                    ? caught.message
+                    : "Could not take over",
+                ),
+              );
+          }}
+          onRelease={() => {
+            if (!bot) return;
+            void client.computer
+              .release({ botId: bot.id })
+              .then(setComputer)
+              .catch((caught: unknown) =>
+                setError(
+                  caught instanceof Error
+                    ? caught.message
+                    : "Could not continue",
+                ),
+              );
+          }}
+        />
+      ) : null}
+      {paneMode === "settings" && bot ? (
+        <BotSettingsPane
+          bot={bot}
+          computer={computer}
+          onCollapse={() => setPaneMode(null)}
           onSaved={async () => {
             await refreshBots(bot.id);
           }}
         />
       ) : null}
-      {newOpen ? (
-        <NewBotModal
-          onClose={() => setNewOpen(false)}
-          onCreated={async (id) => {
-            setNewOpen(false);
-            await refreshBots(id);
-          }}
-        />
+      {pluginsOpen ? (
+        <PluginsModal onClose={() => setPluginsOpen(false)} />
       ) : null}
       {settingsOpen ? (
-        <SettingsModal
+        <AppSettings
+          me={me}
           theme={theme}
           onTheme={(value) => {
             setTheme(value);
@@ -446,333 +604,5 @@ export function Office(props: { botId: string }) {
         />
       ) : null}
     </div>
-  );
-}
-
-function ProfileModal(props: {
-  bot: Bot;
-  onClose: () => void;
-  onSaved: () => Promise<void>;
-}) {
-  const [name, setName] = useState(props.bot.name);
-  const [title, setTitle] = useState(props.bot.title);
-  const [description, setDescription] = useState(props.bot.description);
-  const [color, setColor] = useState(props.bot.avatarColor);
-  const [shape, setShape] = useState(props.bot.avatarShape);
-  const [busy, setBusy] = useState(false);
-  const [advancedOpen, setAdvancedOpen] = useState(
-    props.bot.guestKind !== "off",
-  );
-  const [guestBusy, setGuestBusy] = useState(false);
-  const [guestError, setGuestError] = useState("");
-  const [issued, setIssued] = useState<{
-    token: string;
-    command: string;
-    kind: string;
-  } | null>(null);
-  return (
-    <ModalShell onClose={props.onClose}>
-      <p className="kicker">Bot actions</p>
-      <h2>Edit profile</h2>
-      <div
-        style={{
-          display: "flex",
-          gap: 12,
-          alignItems: "center",
-          margin: "12px 0",
-        }}
-      >
-        <AvatarMark name={name} color={color} shape={shape} large />
-        <div className="swatches">
-          {AVATAR_COLORS.map((value) => (
-            <button
-              key={value}
-              type="button"
-              className={`swatch avatar circle${color === value ? " on" : ""}`}
-              style={{ background: value }}
-              onClick={() => setColor(value)}
-            />
-          ))}
-          {AVATAR_SHAPES.map((value) => (
-            <button
-              key={value}
-              type="button"
-              className={`chip${shape === value ? " on" : ""}`}
-              onClick={() => setShape(value)}
-            >
-              {value}
-            </button>
-          ))}
-        </div>
-      </div>
-      <label className="field">
-        <span>Name</span>
-        <input value={name} onChange={(e) => setName(e.target.value)} />
-      </label>
-      <label className="field">
-        <span>Job</span>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} />
-      </label>
-      <label className="field">
-        <span>How it should work</span>
-        <textarea
-          rows={4}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-      </label>
-      <div className="row">
-        <button
-          className="btn"
-          type="button"
-          disabled={busy}
-          onClick={() => {
-            setBusy(true);
-            void client.bots
-              .update({
-                botId: props.bot.id,
-                name,
-                title,
-                description,
-                instructions: description,
-                avatarColor: color,
-                avatarShape: shape,
-              })
-              .then(async () => {
-                await props.onSaved();
-                props.onClose();
-              })
-              .finally(() => setBusy(false));
-          }}
-        >
-          Save
-        </button>
-        <button className="btn ghost" type="button" onClick={props.onClose}>
-          Close
-        </button>
-      </div>
-      <button
-        className="btn ghost tiny"
-        type="button"
-        style={{ marginTop: 20 }}
-        onClick={() => setAdvancedOpen((open) => !open)}
-      >
-        {advancedOpen ? "Hide advanced" : "Advanced"}
-      </button>
-      {advancedOpen ? (
-        <div className="advanced">
-          <p className="kicker">External agent</p>
-          <p className="lede" style={{ fontSize: 14, marginBottom: 12 }}>
-            Off by default. Hermes or OpenClaw connect outbound to this bot.
-            Grogbot stays the host; they bring their own keys and files.
-          </p>
-          <p className="lede" style={{ fontSize: 14 }}>
-            {props.bot.guestKind === "off"
-              ? "Using Grogbot’s runtime."
-              : props.bot.guestOnline
-                ? `${props.bot.guestKind} is connected.`
-                : `Waiting for ${props.bot.guestKind} to connect.`}
-          </p>
-          <div className="row">
-            {(["hermes", "openclaw"] as GuestAgentKind[]).map((kind) => (
-              <button
-                key={kind}
-                className={`chip${props.bot.guestKind === kind ? " on" : ""}`}
-                type="button"
-                disabled={guestBusy}
-                onClick={() => {
-                  setGuestBusy(true);
-                  setGuestError("");
-                  void client.guests
-                    .enable({ botId: props.bot.id, kind })
-                    .then((result) => {
-                      setIssued({
-                        token: result.token,
-                        command: result.command,
-                        kind,
-                      });
-                      return props.onSaved();
-                    })
-                    .catch((caught: unknown) =>
-                      setGuestError(
-                        caught instanceof Error
-                          ? caught.message
-                          : "Could not enable",
-                      ),
-                    )
-                    .finally(() => setGuestBusy(false));
-                }}
-              >
-                {kind}
-              </button>
-            ))}
-            {props.bot.guestKind !== "off" ? (
-              <button
-                className="btn ghost tiny"
-                type="button"
-                disabled={guestBusy}
-                onClick={() => {
-                  setGuestBusy(true);
-                  setIssued(null);
-                  void client.guests
-                    .disable({ botId: props.bot.id })
-                    .then(props.onSaved)
-                    .catch((caught: unknown) =>
-                      setGuestError(
-                        caught instanceof Error
-                          ? caught.message
-                          : "Could not disable",
-                      ),
-                    )
-                    .finally(() => setGuestBusy(false));
-                }}
-              >
-                Turn off
-              </button>
-            ) : null}
-          </div>
-          {issued ? (
-            <label className="field" style={{ marginTop: 12 }}>
-              <span>Run this on the machine that has {issued.kind}</span>
-              <textarea rows={3} readOnly value={issued.command} />
-            </label>
-          ) : null}
-          {guestError ? <p className="error">{guestError}</p> : null}
-        </div>
-      ) : null}
-    </ModalShell>
-  );
-}
-
-function NewBotModal(props: {
-  onClose: () => void;
-  onCreated: (id: string) => Promise<void>;
-}) {
-  const [name, setName] = useState("");
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [computer, setComputer] = useState<"default" | "new" | string>(
-    "default",
-  );
-  const [busy, setBusy] = useState(false);
-  const desksQuery = useQuery(orpc.computers.list.queryOptions());
-  const desks = desksQuery.data ?? [];
-  return (
-    <ModalShell onClose={props.onClose}>
-      <p className="kicker">New</p>
-      <h2>Create new agent</h2>
-      <label className="field">
-        <span>Name</span>
-        <input value={name} onChange={(e) => setName(e.target.value)} />
-      </label>
-      <label className="field">
-        <span>Job</span>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} />
-      </label>
-      <label className="field">
-        <span>How it should work</span>
-        <textarea
-          rows={3}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-      </label>
-      <p className="kicker" style={{ marginTop: 16 }}>
-        Computer
-      </p>
-      <p className="lede" style={{ fontSize: 14, marginBottom: 12 }}>
-        Default Desk is shared. Create a new computer only for private logins.
-      </p>
-      <div className="chips">
-        <button
-          type="button"
-          className={`chip${computer === "default" ? " on" : ""}`}
-          onClick={() => setComputer("default")}
-        >
-          {desks.find((item) => item.isDefault)?.name ?? "Desk"} (default)
-        </button>
-        {desks
-          .filter((item) => !item.isDefault)
-          .map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={`chip${computer === item.id ? " on" : ""}`}
-              onClick={() => setComputer(item.id)}
-            >
-              {item.name}
-            </button>
-          ))}
-        <button
-          type="button"
-          className={`chip${computer === "new" ? " on" : ""}`}
-          onClick={() => setComputer("new")}
-        >
-          New computer
-        </button>
-      </div>
-      <div className="row">
-        <button
-          className="btn"
-          type="button"
-          disabled={busy || !name.trim()}
-          onClick={() => {
-            setBusy(true);
-            void client.bots
-              .create({
-                name,
-                title,
-                description,
-                instructions: description,
-                computer,
-              })
-              .then((bot) => props.onCreated(bot.id))
-              .finally(() => setBusy(false));
-          }}
-        >
-          Create
-        </button>
-        <button className="btn ghost" type="button" onClick={props.onClose}>
-          Close
-        </button>
-      </div>
-    </ModalShell>
-  );
-}
-
-function SettingsModal(props: {
-  theme: Theme;
-  onTheme: (theme: Theme) => void;
-  onClose: () => void;
-  onSignOut: () => void;
-}) {
-  return (
-    <ModalShell onClose={props.onClose}>
-      <p className="kicker">Appearance</p>
-      <h2>Settings</h2>
-      <div className="chips">
-        {(["system", "light", "dark"] as const).map((value) => (
-          <button
-            key={value}
-            type="button"
-            className={`chip${props.theme === value ? " on" : ""}`}
-            onClick={() => props.onTheme(value)}
-          >
-            {value}
-          </button>
-        ))}
-      </div>
-      <p className="lede" style={{ marginTop: 16 }}>
-        First-task recipe: {FIRST_TASK}
-      </p>
-      <div className="row">
-        <button className="btn ghost" type="button" onClick={props.onSignOut}>
-          Sign out
-        </button>
-        <button className="btn" type="button" onClick={props.onClose}>
-          Done
-        </button>
-      </div>
-    </ModalShell>
   );
 }

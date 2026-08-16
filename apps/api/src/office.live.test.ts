@@ -119,6 +119,9 @@ describe.skipIf(!dbUp)("office loop", () => {
     });
     expect(bot.name).toBe("Piper");
 
+    const nameless = await rpc.bots.create({ name: "Scout" });
+    expect(nameless.title).toBe("");
+
     const listed = await rpc.bots.list();
     expect(listed.some((item) => item.id === bot.id)).toBe(true);
 
@@ -164,13 +167,13 @@ describe.skipIf(!dbUp)("office loop", () => {
 
     const taken = await rpc.computer.takeover({ botId: bot.id });
     expect(taken.controlHolder).toBe("user");
-    expect(taken.name).toBe("Desk");
+    expect(taken.name).toBe("Default computer");
     expect(taken.isDefault).toBe(true);
     const released = await rpc.computer.release({ botId: bot.id });
     expect(released.controlHolder).toBe("bot");
   }, 15_000);
 
-  it("lets two bots share the default desk and isolates a new computer", async () => {
+  it("lets two bots share the default computer and isolates a new computer", async () => {
     const email = `desk-${Date.now()}@example.com`;
     const signUp = await handles.app.request(
       new Request(`${origin}/api/auth/sign-up/email`, {
@@ -203,7 +206,7 @@ describe.skipIf(!dbUp)("office loop", () => {
       instructions: "Same desk.",
     });
     expect(scout.computerId).toBe(piper.computerId);
-    expect(scout.computerName).toBe("Desk");
+    expect(scout.computerName).toBe("Default computer");
 
     const expense = await rpc.bots.create({
       name: "Expense",
@@ -213,7 +216,7 @@ describe.skipIf(!dbUp)("office loop", () => {
       computer: "new",
     });
     expect(expense.computerId).not.toBe(piper.computerId);
-    expect(expense.computerName).not.toBe("Desk");
+    expect(expense.computerName).not.toBe("Default computer");
 
     const desks = await rpc.computers.list();
     expect(desks.some((item) => item.isDefault && item.agentCount === 2)).toBe(

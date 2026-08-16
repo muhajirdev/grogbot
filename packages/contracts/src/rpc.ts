@@ -67,6 +67,17 @@ export const appContract = oc.router({
   },
   routines: {
     list: oc.input(botId).output(z.array(RoutineSchema)),
+    create: oc
+      .input(
+        z.object({
+          botId: Id,
+          name: z.string().min(1).max(80),
+          prompt: z.string().min(1).max(8000),
+          cron: z.string().min(1).max(80),
+          timezone: z.string().max(80).optional(),
+        }),
+      )
+      .output(RoutineSchema),
   },
 });
 
