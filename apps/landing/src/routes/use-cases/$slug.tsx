@@ -1,9 +1,8 @@
-import { createFileRoute, notFound } from "@tanstack/react-router";
-import { Link } from "@tanstack/react-router";
-import { Breadcrumbs, SiteChrome } from "../../components/SiteChrome";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { BulletList, FaqList } from "../../components/ContentBits";
 import { IntegrationGrid } from "../../components/IntegrationCard";
-import { USE_CASES, getUseCase } from "../../data/use-cases";
+import { Breadcrumbs, SiteChrome } from "../../components/SiteChrome";
+import { getUseCase, USE_CASES } from "../../data/use-cases";
 import { appLoginUrl } from "../../lib/app-url";
 import { getIntegration } from "../../lib/integrations";
 import { useCaseJsonLd } from "../../lib/json-ld";

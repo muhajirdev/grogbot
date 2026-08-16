@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { discoveryResponse } from "../lib/discovery";
 
-export const Route = createFileRoute("/robots.txt")({
+export const Route = createFileRoute("/ai.json")({
   server: {
     handlers: {
-      GET: ({ request }) => discoveryResponse("/robots.txt", request),
+      GET: ({ request }) => discoveryResponse("/ai.json", request),
     },
   },
 });

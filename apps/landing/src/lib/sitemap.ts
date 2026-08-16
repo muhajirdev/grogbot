@@ -1,8 +1,6 @@
 import { USE_CASES } from "../data/use-cases";
-import {
-  INTEGRATIONS,
-  integrationCategories,
-} from "./integrations";
+import { DISCOVERY_SITEMAP_PATHS } from "./discovery";
+import { INTEGRATIONS, integrationCategories } from "./integrations";
 import { canonicalUrl } from "./site";
 
 export type SitemapEntry = {
@@ -17,6 +15,10 @@ export function sitemapEntries(): SitemapEntry[] {
     { path: "/integrations", changefreq: "weekly", priority: "0.9" },
     { path: "/use-cases", changefreq: "weekly", priority: "0.9" },
   ];
+  for (const path of DISCOVERY_SITEMAP_PATHS) {
+    if (entries.some((entry) => entry.path === path)) continue;
+    entries.push({ path, changefreq: "weekly", priority: "0.5" });
+  }
   for (const category of integrationCategories()) {
     entries.push({
       path: `/integrations/category/${category.slug}`,

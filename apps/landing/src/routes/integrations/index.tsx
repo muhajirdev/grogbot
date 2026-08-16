@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Breadcrumbs, SiteChrome } from "../../components/SiteChrome";
 import { IntegrationGrid } from "../../components/IntegrationCard";
+import { Breadcrumbs, SiteChrome } from "../../components/SiteChrome";
 import { appLoginUrl } from "../../lib/app-url";
 import {
   computerIntegrations,
@@ -28,7 +28,9 @@ export const Route = createFileRoute("/integrations/")({
       featured: featuredIntegrations(),
       indie: computerIntegrations(),
       categories: integrationCategories(),
-      popular: searchIntegrations("").filter((item) => item.kind === "composio").slice(0, 24),
+      popular: searchIntegrations("")
+        .filter((item) => item.kind === "composio")
+        .slice(0, 24),
     };
   },
   head: ({ loaderData }) => {
@@ -71,9 +73,10 @@ function IntegrationsIndex() {
           <p className="kicker">Integrations</p>
           <h1>Composio for the giants. A computer for everyone else.</h1>
           <p className="lede">
-            Optional Composio for Gmail, Slack, GitHub, Typefully, and a thousand
-            other toolkits. DataFast, Postiz, Post Bridge, and the rest of the
-            indie stack run on the Bot&apos;s computer until a connector exists.
+            Optional Composio for Gmail, Slack, GitHub, Typefully, and a
+            thousand other toolkits. DataFast, Postiz, Post Bridge, and the rest
+            of the indie stack run on the Bot&apos;s computer until a connector
+            exists.
           </p>
           <form className="search-form" method="get" action="/integrations">
             <label className="sr-only" htmlFor="q">

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { INDIE_INTEGRATIONS } from "../data/indie-integrations";
 import { USE_CASES } from "../data/use-cases";
 import { categoryFamily } from "./category-copy";
+import { DISCOVERY_SITEMAP_PATHS, landingLlmsTxt } from "./discovery";
 import {
   computerIntegrations,
   getIntegration,
@@ -10,8 +11,8 @@ import {
   relatedIntegrations,
   searchIntegrations,
 } from "./integrations";
-import { sitemapEntries, sitemapXml } from "./sitemap";
 import { canonicalUrl } from "./site";
+import { sitemapEntries, sitemapXml } from "./sitemap";
 import { slugify } from "./slug";
 
 describe("slugify", () => {
@@ -64,9 +65,9 @@ describe("integrations catalog", () => {
   });
 
   it("searches indie founders and product names", () => {
-    expect(searchIntegrations("marc lou").some((item) => item.slug === "datafast")).toBe(
-      true,
-    );
+    expect(
+      searchIntegrations("marc lou").some((item) => item.slug === "datafast"),
+    ).toBe(true);
     expect(searchIntegrations("post bridge")[0]?.slug).toBe("post-bridge");
   });
 
@@ -97,17 +98,33 @@ describe("sitemap", () => {
     expect(paths).toContain("/integrations/gmail");
     expect(paths).toContain("/integrations/datafast");
     expect(paths).toContain("/use-cases/indie-stack");
-    expect(paths.some((path) => path.startsWith("/integrations/category/"))).toBe(
-      true,
-    );
+    expect(
+      paths.some((path) => path.startsWith("/integrations/category/")),
+    ).toBe(true);
+    expect(paths).toContain("/llms.txt");
+    expect(paths).toContain("/mcp");
     expect(paths.length).toBe(
-      3 + integrationCategories().length + INTEGRATIONS.length + USE_CASES.length,
+      3 +
+        DISCOVERY_SITEMAP_PATHS.length +
+        integrationCategories().length +
+        INTEGRATIONS.length +
+        USE_CASES.length,
     );
   });
 
   it("emits xml with canonical grogbot.com urls", () => {
     const xml = sitemapXml();
     expect(xml).toContain(canonicalUrl("/integrations/postiz"));
-    expect(xml).toContain("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+    expect(xml).toContain('<?xml version="1.0" encoding="UTF-8"?>');
+  });
+});
+
+describe("llms discovery", () => {
+  it("names Grogbot and points agents at MCP plus use cases", () => {
+    const txt = landingLlmsTxt();
+    expect(txt.startsWith("# Grogbot\n")).toBe(true);
+    expect(txt).toContain("/mcp");
+    expect(txt).toContain("/identity.json");
+    expect(txt).toContain("/use-cases/");
   });
 });

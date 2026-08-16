@@ -25,7 +25,7 @@ export type SeoInput = {
 
 export function seoHead(input: SeoInput): {
   meta: Array<Record<string, string>>;
-  links: Array<{ rel: string; href: string }>;
+  links: Array<{ rel: string; href: string; type?: string }>;
   scripts?: Array<{ type: string; children: string }>;
 } {
   const url = canonicalUrl(input.path);
@@ -46,7 +46,19 @@ export function seoHead(input: SeoInput): {
       { name: "twitter:title", content: title },
       { name: "twitter:description", content: description },
     ],
-    links: [{ rel: "canonical", href: url }],
+    links: [
+      { rel: "canonical", href: url },
+      {
+        rel: "describedby",
+        href: canonicalUrl("/llms.txt"),
+        type: "text/plain",
+      },
+      {
+        rel: "alternate",
+        href: canonicalUrl("/index.md"),
+        type: "text/markdown",
+      },
+    ],
     scripts: input.jsonLd?.map((node) => ({
       type: "application/ld+json",
       children: JSON.stringify(node),

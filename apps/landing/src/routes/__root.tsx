@@ -6,8 +6,8 @@ import {
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { NotFoundPage } from "../components/NotFound";
-import appCss from "../styles.css?url";
 import { DEFAULT_DESCRIPTION, DEFAULT_TITLE } from "../lib/site";
+import appCss from "../styles.css?url";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -23,7 +23,15 @@ export const Route = createRootRoute({
       { name: "twitter:title", content: DEFAULT_TITLE },
       { name: "twitter:description", content: DEFAULT_DESCRIPTION },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "describedby", href: "https://grogbot.com/llms.txt" },
+      {
+        rel: "alternate",
+        href: "https://grogbot.com/index.md",
+        type: "text/markdown",
+      },
+    ],
   }),
   component: RootComponent,
   notFoundComponent: NotFoundPage,

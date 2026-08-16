@@ -2,10 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Breadcrumbs, SiteChrome } from "../../components/SiteChrome";
 import { USE_CASES } from "../../data/use-cases";
 import { appLoginUrl } from "../../lib/app-url";
-import {
-  breadcrumbJsonLd,
-  itemListJsonLd,
-} from "../../lib/json-ld";
+import { breadcrumbJsonLd, itemListJsonLd } from "../../lib/json-ld";
 import { seoHead } from "../../lib/site";
 
 export const Route = createFileRoute("/use-cases/")({

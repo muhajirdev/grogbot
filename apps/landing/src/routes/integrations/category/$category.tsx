@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { Breadcrumbs, SiteChrome } from "../../../components/SiteChrome";
 import { IntegrationGrid } from "../../../components/IntegrationCard";
+import { Breadcrumbs, SiteChrome } from "../../../components/SiteChrome";
 import { appLoginUrl } from "../../../lib/app-url";
 import {
   getCategory,

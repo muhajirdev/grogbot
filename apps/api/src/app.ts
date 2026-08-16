@@ -6,6 +6,7 @@ import { createDb } from "@grogbot/db";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { RpcContext } from "./context.js";
+import { mountDiscovery } from "./discovery.js";
 import { type Env, oauthCredentials } from "./env.js";
 import { healthPayload } from "./health.js";
 import { createMailer } from "./mail.js";
@@ -59,6 +60,7 @@ export function createApp(env: Env): AppHandles {
     },
   };
   mountRpc(app, handles);
+  mountDiscovery(app, env.webOrigin);
 
   if (!env.workerUrl) {
     app.all("/guest/*", async (c) => {
