@@ -40,7 +40,7 @@
 }
 
 .mascot-shine {
-  opacity: 0.2;
+  opacity: 0.22;
 }
 
 .mascot-eyes {
@@ -112,7 +112,7 @@
     transform: translateY(0) scale(1, 1);
   }
   50% {
-    transform: translateY(-3px) scale(1.05, 0.94);
+    transform: translateY(-4px) scale(1.06, 0.93);
   }
 }
 

@@ -6,6 +6,7 @@ import {
   mascotBody,
   mascotColors,
   mascotFace,
+  mascotShine,
   seedFromName,
 } from "./geometry.js";
 import "./mascot.css";
@@ -23,6 +24,7 @@ export function MascotMark(props: {
   const colors = mascotColors(props.color);
   const body = mascotBody(shape);
   const face = mascotFace(mood);
+  const shine = mascotShine();
   const anchor = mascotAnchor(shape);
   const rawId = useId().replace(/[^a-zA-Z0-9]/g, "");
   const paint = `mascot-${rawId}`;
@@ -56,10 +58,10 @@ export function MascotMark(props: {
           )}
           <ellipse
             className="mascot-shine"
-            cx={38}
-            cy={34}
-            rx={16}
-            ry={10}
+            cx={shine.cx}
+            cy={shine.cy}
+            rx={shine.rx}
+            ry={shine.ry}
             fill="#fff"
           />
         </g>
@@ -73,7 +75,7 @@ export function MascotMark(props: {
             rx={face.blush[0].rx}
             ry={face.blush[0].ry}
             fill={colors.blush}
-            opacity={0.38}
+            opacity={face.blushOpacity}
           />
           <ellipse
             cx={face.blush[1].cx}
@@ -81,7 +83,21 @@ export function MascotMark(props: {
             rx={face.blush[1].rx}
             ry={face.blush[1].ry}
             fill={colors.blush}
-            opacity={0.38}
+            opacity={face.blushOpacity}
+          />
+          <path
+            d={face.brows[0].d}
+            fill="none"
+            stroke={colors.mouth}
+            strokeWidth={face.brows[0].width}
+            strokeLinecap="round"
+          />
+          <path
+            d={face.brows[1].d}
+            fill="none"
+            stroke={colors.mouth}
+            strokeWidth={face.brows[1].width}
+            strokeLinecap="round"
           />
           <g className="mascot-eyes">
             <ellipse
@@ -98,13 +114,42 @@ export function MascotMark(props: {
               ry={face.right.ry}
               fill={colors.eye}
             />
+            <ellipse
+              cx={face.pupils[0].cx}
+              cy={face.pupils[0].cy}
+              rx={face.pupils[0].rx}
+              ry={face.pupils[0].ry}
+              fill={colors.pupil}
+            />
+            <ellipse
+              cx={face.pupils[1].cx}
+              cy={face.pupils[1].cy}
+              rx={face.pupils[1].rx}
+              ry={face.pupils[1].ry}
+              fill={colors.pupil}
+            />
+            <ellipse
+              cx={face.sparks[0].cx}
+              cy={face.sparks[0].cy}
+              rx={face.sparks[0].rx}
+              ry={face.sparks[0].ry}
+              fill="#fff"
+            />
+            <ellipse
+              cx={face.sparks[1].cx}
+              cy={face.sparks[1].cy}
+              rx={face.sparks[1].rx}
+              ry={face.sparks[1].ry}
+              fill="#fff"
+            />
           </g>
           <path
             d={face.mouth.d}
-            fill="none"
+            fill={face.mouth.fill ? colors.mouth : "none"}
             stroke={colors.mouth}
             strokeWidth={face.mouth.width}
             strokeLinecap="round"
+            strokeLinejoin="round"
           />
         </g>
       </svg>

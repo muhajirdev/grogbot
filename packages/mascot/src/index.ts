@@ -1,4 +1,5 @@
 export type {
+  Brow,
   Eye,
   MascotAnchor,
   MascotBody,
@@ -8,6 +9,7 @@ export type {
   MascotShape,
 } from "./geometry.js";
 export {
+  ellipseContains,
   eyeInsideCircle,
   FACE_BOX,
   MASCOT_MOODS,
@@ -16,6 +18,7 @@ export {
   mascotBody,
   mascotColors,
   mascotFace,
+  mascotShine,
   mixHex,
   moodFromActivity,
   normalizeHex,
