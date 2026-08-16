@@ -9,13 +9,13 @@ import {
 } from "@grogbot/seo";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { OfficePreview } from "../components/OfficePreview";
-import { Breadcrumbs, SiteChrome } from "../components/SiteChrome";
-import { appLoginUrl } from "../lib/app-url";
-import { SOURCE_REPO } from "../lib/copy";
-import { LANDING_ORIGINS } from "../lib/discovery";
-import { breadcrumbJsonLd } from "../lib/json-ld";
-import { seoHead } from "../lib/site";
+import { OfficePreview } from "../../components/OfficePreview";
+import { Breadcrumbs, SiteChrome } from "../../components/SiteChrome";
+import { appLoginUrl } from "../../lib/app-url";
+import { SOURCE_REPO } from "../../lib/copy";
+import { LANDING_ORIGINS } from "../../lib/discovery";
+import { breadcrumbJsonLd } from "../../lib/json-ld";
+import { seoHead } from "../../lib/site";
 
 export const Route = createFileRoute("/press/")({
   loader: () => ({
