@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { canClaimComputer } from "./computer.js";
 
 describe("canClaimComputer", () => {
-  it("lets a bot take an idle desk", () => {
+  it("lets a bot take an idle computer", () => {
     expect(
       canClaimComputer({
         controlHolder: "none",

@@ -1,9 +1,10 @@
-import type {
-  Bot,
-  ComputerStatus,
-  GuestAgentKind,
-  ProductEvent,
-  ThreadMessage,
+import {
+  type Bot,
+  type ComputerStatus,
+  DEFAULT_COMPUTER_NAME,
+  type GuestAgentKind,
+  type ProductEvent,
+  type ThreadMessage,
 } from "@grogbot/contracts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
@@ -357,7 +358,7 @@ export function Office(props: { botId: string }) {
                   ? `${bot?.name ?? "Bot"} is using ${computer?.name ?? "this computer"}.\n${working}`
                   : computer?.isDefault ||
                       (computer?.teammates && computer.teammates.length > 1)
-                    ? `${computer?.name ?? "Desk"}${computer?.isDefault ? " (default)" : ""}. Teammates on this desk share files and logins.`
+                    ? `${computer?.name ?? DEFAULT_COMPUTER_NAME}. Teammates on this computer share files and logins.`
                     : `${computer?.name ?? "Computer"}. Isolated computer — files and logins stay here.`}
         </div>
         <div className="profile">
@@ -404,7 +405,7 @@ export function Office(props: { botId: string }) {
           )}
           <p className="lede" style={{ fontSize: 14 }}>
             {computer?.teammates && computer.teammates.length > 1
-              ? `On this desk: ${computer.teammates.map((item) => item.name).join(", ")}.`
+              ? `On this computer: ${computer.teammates.map((item) => item.name).join(", ")}.`
               : "Closing this pane does not stop work."}
           </p>
         </div>
@@ -689,7 +690,8 @@ function NewBotModal(props: {
         Computer
       </p>
       <p className="lede" style={{ fontSize: 14, marginBottom: 12 }}>
-        Default Desk is shared. Create a new computer only for private logins.
+        The default computer is shared. Create a new computer only for private
+        logins.
       </p>
       <div className="chips">
         <button
@@ -697,7 +699,7 @@ function NewBotModal(props: {
           className={`chip${computer === "default" ? " on" : ""}`}
           onClick={() => setComputer("default")}
         >
-          {desks.find((item) => item.isDefault)?.name ?? "Desk"} (default)
+          {desks.find((item) => item.isDefault)?.name ?? DEFAULT_COMPUTER_NAME}
         </button>
         {desks
           .filter((item) => !item.isDefault)

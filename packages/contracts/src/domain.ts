@@ -38,7 +38,7 @@ export const CreateBotInput = z.object({
   instructions: z.string().max(20000).default(""),
   avatarColor: z.string().max(32).default("#5b7cff"),
   avatarShape: AvatarShape.default("circle"),
-  /** default = workspace Desk. new = isolated computer. id = bind to that computer. */
+  /** default = workspace default computer. new = isolated computer. id = bind to that computer. */
   computer: z
     .union([z.literal("default"), z.literal("new"), Id])
     .default("default"),

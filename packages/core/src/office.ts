@@ -7,6 +7,7 @@ import type {
 import {
   AvatarShape,
   ControlHolder,
+  DEFAULT_COMPUTER_NAME,
   GuestKind,
   SandboxKind as SandboxKindSchema,
 } from "@grogbot/contracts";
@@ -47,7 +48,7 @@ export function toBotDto(
     parentBotId: bot.parentBotId,
     threadId,
     computerId: bot.computerId,
-    computerName: extras?.computerName ?? "Desk",
+    computerName: extras?.computerName ?? DEFAULT_COMPUTER_NAME,
     guestKind: guestKind.success ? guestKind.data : "off",
     guestOnline: extras?.online ?? false,
     createdAt: bot.createdAt.toISOString(),

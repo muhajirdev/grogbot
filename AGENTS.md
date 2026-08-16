@@ -2,7 +2,7 @@
 
 - Public repo: never commit secrets, `.env`, or real user data.
 - Keep domain logic in `packages/*`. Apps wire adapters. Product API is oRPC (`@grogbot/contracts` + `@grogbot/rpc`).
-- One Rivet actor per bot. Computers are workspace desks: bots bind to a computer (default Desk, or a new isolated one). Shared team data lives in Postgres, not in the actor.
+- One Rivet actor per bot. Computers are workspace-scoped: bots bind to a computer (the default computer, or a new isolated one). Shared team data lives in Postgres, not in the actor.
 - The Pi/executor must not import `fs`, `dockerode`, or cloud vendor SDKs. The worker (actor host) may import Rivet.
 - Auth, secrets, sandbox, and host commands are security-sensitive.
 - Tests stay offline: `AGENT_RUNTIME=scripted`, `SANDBOX_PROVIDER=fake`, in-process Rivet wakeup — no live OpenRouter/E2B/Rivet Cloud.

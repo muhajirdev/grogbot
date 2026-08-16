@@ -1,4 +1,9 @@
-import type { Bot, ComputerListItem, ComputerStatus } from "@grogbot/contracts";
+import {
+  type Bot,
+  type ComputerListItem,
+  type ComputerStatus,
+  DEFAULT_COMPUTER_NAME,
+} from "@grogbot/contracts";
 import {
   appendEvent,
   computerStatusForBot,
@@ -157,7 +162,7 @@ async function resolveComputer(
       .where(eq(computers.workspaceId, actor.workspaceId));
     const n = Number(existing[0]?.n ?? 0);
     return insertComputer(context, actor, {
-      name: n === 0 ? "Desk" : `Computer ${n + 1}`,
+      name: n === 0 ? DEFAULT_COMPUTER_NAME : `Computer ${n + 1}`,
       isDefault: n === 0,
     });
   }
@@ -187,7 +192,10 @@ async function resolveComputer(
     )
     .limit(1);
   if (desk) return desk;
-  return insertComputer(context, actor, { name: "Desk", isDefault: true });
+  return insertComputer(context, actor, {
+    name: DEFAULT_COMPUTER_NAME,
+    isDefault: true,
+  });
 }
 
 export async function listComputers(
