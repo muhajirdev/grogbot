@@ -28,7 +28,7 @@ export function OfficePreview() {
             <PreviewRoom
               name="Ops"
               when="8:16"
-              snip="Maya, You, Chief"
+              snip="Maya, You, Chief of Staff"
               on
             />
             <PreviewConv
@@ -89,7 +89,7 @@ export function OfficePreview() {
                   Y
                 </span>
                 <MascotMark
-                  name="Chief"
+                  name="Chief of Staff"
                   color="#c9a227"
                   shape="circle"
                   size="sm"
@@ -98,7 +98,7 @@ export function OfficePreview() {
               </span>
               <span className="thread-who-copy">
                 Ops
-                <span>Maya, You, Chief</span>
+                <span>Maya, You, Chief of Staff</span>
               </span>
             </div>
             <div className="head-actions">
@@ -117,7 +117,8 @@ export function OfficePreview() {
             <div className="msg them room-in" style={{ animationDelay: "0.7s" }}>
               <span className="msg-who">Maya</span>
               <p className="bubble">
-                Chief — catch the rest of us up. I was in the vendor call.
+                Chief of Staff — catch the rest of us up. I was in the vendor
+                call.
               </p>
             </div>
             <div className="msg me room-in" style={{ animationDelay: "1.25s" }}>
@@ -131,7 +132,7 @@ export function OfficePreview() {
               className="msg them room-in"
               style={{ animationDelay: "2.05s" }}
             >
-              <span className="msg-who">Chief</span>
+              <span className="msg-who">Chief of Staff</span>
               <p className="bubble bot">
                 Three decisions. Venue deposit, the Acme reply, and whether to
                 loop Scout. Rest can wait.
@@ -158,7 +159,7 @@ export function OfficePreview() {
           </div>
         </div>
         <aside className="preview-pane">
-          <div className="pane-head">Chief&apos;s screen</div>
+          <div className="pane-head">Chief of Staff&apos;s screen</div>
           <p className="pane-label">Working</p>
           <div className="screen-box">
             Digest · since yesterday
@@ -195,7 +196,7 @@ function PreviewRoom(props: {
           Y
         </span>
         <MascotMark
-          name="Chief"
+          name="Chief of Staff"
           color="#c9a227"
           shape="circle"
           size="sm"

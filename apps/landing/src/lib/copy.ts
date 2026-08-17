@@ -89,7 +89,7 @@ export const DEMOS = [
     toolLine: "Notion",
     slugs: ["notion"],
     color: "#c9a227",
-    bot: "Chief",
+    bot: "Chief of Staff",
     useCaseSlug: "chief-of-staff",
     prompt:
       "Turn this meeting into a Notion page: decisions, owners, dates. Put it under Ops. Don’t ping anyone.",
