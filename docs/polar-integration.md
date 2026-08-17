@@ -31,7 +31,7 @@ Nothing Polar-related. Billing-shaped pieces:
 
 - Auth is Better Auth in `packages/auth`, mounted at `/api/auth/*` on the Hono API (`apps/api/src/app.ts`).
 - Workspaces are Better Auth **organizations**. Every bot, computer, thread, and secret is `workspaceId` → `organization.id` (`packages/db/src/schema`).
-- Sessions already carry `activeOrganizationId`. `requireActor` creates a Personal workspace if none exists (`apps/api/src/session.ts`).
+- Sessions already carry `activeOrganizationId`. `requireActor` needs a workspace; first-run onboarding asks to create one or join with an invite (`apps/api/src/session.ts`).
 - Product API is **oRPC** (`packages/contracts`). Web, desktop, and later mobile share that contract — not Better Auth client methods.
 - `MeSchema` has `workspaceId` and `isDeploymentOwner`. No plan, seats, or usage.
 - Self-host vs cloud is already a thing: packaged desktop talks to grogbot.com / api.grogbot.com; local Compose does not.

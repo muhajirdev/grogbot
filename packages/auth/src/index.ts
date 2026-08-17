@@ -10,7 +10,10 @@ import {
 } from "@grogbot/db";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { magicLink, organization as organizationPlugin } from "better-auth/plugins";
+import {
+  magicLink,
+  organization as organizationPlugin,
+} from "better-auth/plugins";
 
 export interface OAuthCredentials {
   clientId: string;
@@ -26,10 +29,17 @@ export function createAuth(
     cookieDomain?: string;
     google?: OAuthCredentials;
     github?: OAuthCredentials;
+    webOrigin: string;
     sendMagicLink: (input: {
       email: string;
       url: string;
       token: string;
+    }) => Promise<void> | void;
+    sendInvitationEmail: (input: {
+      email: string;
+      url: string;
+      organizationName: string;
+      inviterName: string;
     }) => Promise<void> | void;
   },
 ) {
@@ -89,7 +99,17 @@ export function createAuth(
       },
     },
     plugins: [
-      organizationPlugin(),
+      organizationPlugin({
+        sendInvitationEmail: async (data) => {
+          const origin = opts.webOrigin.replace(/\/$/, "");
+          await opts.sendInvitationEmail({
+            email: data.email,
+            url: `${origin}/onboarding?invite=${encodeURIComponent(data.id)}`,
+            organizationName: data.organization.name,
+            inviterName: data.inviter.user.name || "A teammate",
+          });
+        },
+      }),
       magicLink({
         expiresIn: 15 * 60,
         sendMagicLink: opts.sendMagicLink,

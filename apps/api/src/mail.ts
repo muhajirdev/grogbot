@@ -10,6 +10,12 @@ export interface MailEnv {
 export interface Mailer {
   kind: MailKind;
   sendMagicLink: (input: { email: string; url: string }) => Promise<void>;
+  sendInvitation: (input: {
+    email: string;
+    url: string;
+    organizationName: string;
+    inviterName: string;
+  }) => Promise<void>;
 }
 
 export function cloudflareMailConfigured(env: MailEnv): boolean {
@@ -20,7 +26,9 @@ export function cloudflareMailConfigured(env: MailEnv): boolean {
   );
 }
 
-export function parseFrom(value: string): string | { address: string; name: string } {
+export function parseFrom(
+  value: string,
+): string | { address: string; name: string } {
   const match = value.trim().match(/^(.*)<([^>]+)>$/);
   if (!match) return value.trim();
   const name = match[1]?.trim().replace(/^"|"$/g, "") ?? "";
@@ -37,21 +45,50 @@ export function createMailer(env: MailEnv): Mailer {
     return {
       kind: "cloudflare",
       sendMagicLink: async ({ email, url }) => {
-        await sendCloudflareEmail({ accountId, token, from, to: email, url });
+        await sendCloudflareEmail({
+          accountId,
+          token,
+          from,
+          to: email,
+          subject: "Sign in to Grogbot",
+          text: `Sign in to Grogbot:\n${url}\n\nThis link expires in 15 minutes.`,
+          html: `<p>Sign in to Grogbot.</p><p><a href="${url}">Open Grogbot</a></p><p>This link expires in 15 minutes.</p>`,
+        });
+      },
+      sendInvitation: async ({ email, url, organizationName, inviterName }) => {
+        await sendCloudflareEmail({
+          accountId,
+          token,
+          from,
+          to: email,
+          subject: `Join ${organizationName} on Grogbot`,
+          text: `${inviterName} invited you to ${organizationName} on Grogbot.\n${url}\n\nThis invite expires in 48 hours.`,
+          html: `<p>${inviterName} invited you to ${organizationName} on Grogbot.</p><p><a href="${url}">Join the workspace</a></p><p>This invite expires in 48 hours.</p>`,
+        });
       },
     };
   }
   return {
     kind: "log",
     sendMagicLink: async ({ email, url }) => {
-      if (env.production) {
-        throw new Error(
-          "Email sign-in needs CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_EMAIL_API_TOKEN, and EMAIL_FROM.",
-        );
-      }
+      requireMailInProduction(env);
       console.info(`[grogbot] Magic link for ${email}:\n${url}`);
     },
+    sendInvitation: async ({ email, url, organizationName, inviterName }) => {
+      requireMailInProduction(env);
+      console.info(
+        `[grogbot] Invite ${email} to ${organizationName} (from ${inviterName}):\n${url}`,
+      );
+    },
   };
+}
+
+function requireMailInProduction(env: MailEnv) {
+  if (env.production) {
+    throw new Error(
+      "Email sign-in needs CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_EMAIL_API_TOKEN, and EMAIL_FROM.",
+    );
+  }
 }
 
 async function sendCloudflareEmail(input: {
@@ -59,7 +96,9 @@ async function sendCloudflareEmail(input: {
   token: string;
   from: string | { address: string; name: string };
   to: string;
-  url: string;
+  subject: string;
+  text: string;
+  html: string;
 }) {
   const response = await fetch(
     `https://api.cloudflare.com/client/v4/accounts/${input.accountId}/email/sending/send`,
@@ -72,9 +111,9 @@ async function sendCloudflareEmail(input: {
       body: JSON.stringify({
         to: input.to,
         from: input.from,
-        subject: "Sign in to Grogbot",
-        text: `Sign in to Grogbot:\n${input.url}\n\nThis link expires in 15 minutes.`,
-        html: `<p>Sign in to Grogbot.</p><p><a href="${input.url}">Open Grogbot</a></p><p>This link expires in 15 minutes.</p>`,
+        subject: input.subject,
+        text: input.text,
+        html: input.html,
       }),
     },
   );

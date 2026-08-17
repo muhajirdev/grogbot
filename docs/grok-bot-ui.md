@@ -108,6 +108,9 @@ Desktop ([get started](https://docs.x.ai/grok-bot/get-started)):
     [ Get started ]     -->  browser Cursor/Grokbot login
          |
          v
+  Create a new workspace  or  Join with an invite
+         |
+         v
   Short tour: Bots, shared computer
   "Which tools do you use?"   (shapes suggestions; does NOT connect yet)
          |
@@ -199,7 +202,7 @@ Empty composer and New Agent must still work without those.
 
 ## Implementation checklist (web)
 
-1. Welcome → sign in → tour → tools → **models (BYOK)** → “meet a teammate” (name, title, description, color+shape).
+1. Welcome → sign in → **create or join a workspace** → tour → tools → **models (BYOK)** → “meet a teammate” (name, title, description, color+shape).
 2. Sidebar of Bots; click = that office thread.
 3. Chat transcript with inline “working,” files, approval.
 4. Computer pane: fake/scripted first, then Flue `useSandbox` (Computer light, Docker / Sandbox / E2B heavy); takeover control. Wakeup is the bot’s actor, not a queue UI.
