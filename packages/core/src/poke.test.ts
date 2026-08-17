@@ -3,6 +3,7 @@ import {
   MAX_POKE_DEPTH,
   PokeError,
   pokeBriefing,
+  pokePairIds,
   resolvePokeTarget,
 } from "./poke.js";
 
@@ -53,5 +54,12 @@ describe("pokeBriefing", () => {
 describe("MAX_POKE_DEPTH", () => {
   it("caps the chain at two", () => {
     expect(MAX_POKE_DEPTH).toBe(2);
+  });
+});
+
+describe("pokePairIds", () => {
+  it("orders a pair so either direction is the same thread", () => {
+    expect(pokePairIds("cos", "look")).toEqual(["cos", "look"]);
+    expect(pokePairIds("look", "cos")).toEqual(["cos", "look"]);
   });
 });

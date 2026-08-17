@@ -9,12 +9,13 @@ import {
   GuestStatusSchema,
   MemoryDocumentSchema,
   MeSchema,
+  PokeThreadSchema,
   RoutineSchema,
   UpdateBotInput,
 } from "./domain.js";
-import { ModelSettingsSchema, SaveModelSettingsInput } from "./models.js";
 import { ProductEventSchema } from "./events.js";
 import { GuestAgentKind, Id } from "./ids.js";
+import { ModelSettingsSchema, SaveModelSettingsInput } from "./models.js";
 
 const botId = z.object({ botId: Id });
 
@@ -45,8 +46,15 @@ export const appContract = oc.router({
   },
   threads: {
     subscribe: oc
-      .input(z.object({ botId: Id, cursor: z.number().int().min(-1) }))
+      .input(
+        z.object({
+          botId: Id.optional(),
+          threadId: Id.optional(),
+          cursor: z.number().int().min(-1),
+        }),
+      )
       .output(eventIterator(ProductEventSchema)),
+    get: oc.input(z.object({ threadId: Id })).output(PokeThreadSchema),
     send: oc
       .input(z.object({ botId: Id, text: z.string().min(1).max(8000) }))
       .output(z.object({ taskId: Id, runId: Id, seq: z.number().int() })),

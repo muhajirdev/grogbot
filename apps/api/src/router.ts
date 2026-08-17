@@ -3,17 +3,19 @@ import { appContract, labelForModel } from "@grogbot/contracts";
 import {
   encryptionSecret,
   getBotComputer,
+  getPokeThread,
   listEventsAfter,
   loadModelSettings,
   ModelSettingsError,
+  PokeError,
   saveModelSettings,
   sleep,
   toBotDto,
   userHasModelCredentials,
 } from "@grogbot/core";
-import { guestConnectors, userModelCredentials } from "@grogbot/db";
+import { guestConnectors, threads, userModelCredentials } from "@grogbot/db";
 import { implement, ORPCError } from "@orpc/server";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import {
   archiveBot,
   createBot,
@@ -158,10 +160,33 @@ export const appRouter = os.router({
       signal,
     }) {
       const actor = await requireActor(context);
-      const { thread } = await getBotThread(context, actor, input.botId);
+      let threadId = input.threadId;
+      if (threadId) {
+        const [thread] = await context.db
+          .select({ id: threads.id })
+          .from(threads)
+          .where(
+            and(
+              eq(threads.id, threadId),
+              eq(threads.workspaceId, actor.workspaceId),
+            ),
+          )
+          .limit(1);
+        if (!thread) {
+          throw new ORPCError("NOT_FOUND", { message: "Thread missing" });
+        }
+        threadId = thread.id;
+      } else if (input.botId) {
+        const found = await getBotThread(context, actor, input.botId);
+        threadId = found.thread.id;
+      } else {
+        throw new ORPCError("BAD_REQUEST", {
+          message: "botId or threadId is required",
+        });
+      }
       let cursor = input.cursor;
       while (!signal?.aborted) {
-        const batch = await listEventsAfter(context.db, thread.id, cursor);
+        const batch = await listEventsAfter(context.db, threadId, cursor);
         if (batch.length === 0) {
           await sleep(200, signal);
           continue;
@@ -170,6 +195,21 @@ export const appRouter = os.router({
           cursor = event.seq;
           yield event;
         }
+      }
+    }),
+    get: os.threads.get.handler(async ({ context, input }) => {
+      const actor = await requireActor(context);
+      try {
+        return await getPokeThread(
+          context.db,
+          actor.workspaceId,
+          input.threadId,
+        );
+      } catch (error) {
+        if (error instanceof PokeError) {
+          throw new ORPCError("NOT_FOUND", { message: error.message });
+        }
+        throw error;
       }
     }),
     send: os.threads.send.handler(async ({ context, input }) => {

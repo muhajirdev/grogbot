@@ -2,18 +2,20 @@
 
 Ship **a room is a bot’s office**. Do not build group rooms, `@mention` routing, or extra schema until 1:1 chat + computer work.
 
-v1 code stays: one thread per bot (`threads.bot_id` unique), `thread_members` for humans, `threads.send({ botId })`.
+v1 code stays: one **office** thread per bot (`threads.kind = office`, unique `bot_id`), `thread_members` for humans, `threads.send({ botId })`. A poke opens a separate `kind = poke` thread between two bots.
 
 ## Poke — agent to agent, still one office each
 
-No group rooms. A bot may **poke** another bot: a note lands on the target’s office, that bot runs, and the reply is posted back on the caller’s office. The human keeps talking to one front door (usually CoS). Questions do not bounce to a second chat.
+No group rooms. A bot may **poke** another bot. That conversation lives in a pair thread (Maya ↔ Lookout). The caller’s office gets a note with **Open thread**. The specialist’s human office stays clean. The human keeps talking to one front door (usually CoS).
 
 ```
-  You ---- CoS office ---- CoS --poke--> Lookout office
-                              ^               |
-                              +----- reply ---+
+  You ---- CoS office ---- CoS --poke--> Maya ↔ Lookout thread
+                            ^                      |
+                            +----- note + Open ----+
 ```
 
+- No group rooms. A poke is a **thread between two bots** (Maya ↔ Lookout), not Lookout’s human office.
+- The human stays in CoS. Maya’s office gets a short note with **Open thread**. Lookout’s office stays clean.
 - Same workspace, not self, not archived. Chain depth max 2.
 - Nested run on the target actor (do not enqueue — that deadlocks the caller’s queue).
 - Flue: `poke_teammate` tool. Scripted tests: `poke Lookout: …`.

@@ -57,6 +57,13 @@
       "when": 1786874400000,
       "tag": "0007_bot_archived",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1786932000000,
+      "tag": "0008_poke_threads",
+      "breakpoints": true
     }
   ]
 }

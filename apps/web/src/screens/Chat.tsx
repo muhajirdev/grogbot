@@ -19,6 +19,7 @@ import { AvatarMark } from "../components/Avatar";
 import { BotSettingsPane } from "../components/BotSettingsPane";
 import { ComputerPane } from "../components/ComputerPane";
 import {
+  ChevronLeftIcon,
   MicIcon,
   MonitorIcon,
   PlugIcon,
@@ -174,6 +175,11 @@ export function Chat(props: { botId: string }) {
   );
   const [archivedOpen, setArchivedOpen] = useState(false);
   const [theme, setTheme] = useState<Theme>(readTheme());
+  const [pokeView, setPokeView] = useState<{
+    threadId: string;
+    peerName: string;
+  } | null>(null);
+  const [pokeMessages, setPokeMessages] = useState<ThreadMessage[]>([]);
   const bot = bots.find((item) => item.id === props.botId) ?? firstLiveBot(bots);
   const activeId = bot?.id;
   const draft = activeId ? (drafts[activeId] ?? "") : "";
@@ -309,6 +315,55 @@ export function Chat(props: { botId: string }) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [hire]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reset overlay when the office changes
+  useEffect(() => {
+    setPokeView(null);
+    setPokeMessages([]);
+  }, [activeId]);
+
+  useEffect(() => {
+    if (!pokeView) {
+      setPokeMessages([]);
+      return;
+    }
+    let cancelled = false;
+    let iterator: AsyncIterator<ProductEvent> | undefined;
+    void (async () => {
+      try {
+        const view = await client.threads.get({ threadId: pokeView.threadId });
+        if (cancelled) return;
+        setPokeMessages(view.messages);
+        iterator = (await client.threads.subscribe({
+          threadId: pokeView.threadId,
+          cursor: view.messages.at(-1)?.seq ?? -1,
+        })) as AsyncIterator<ProductEvent>;
+        for (;;) {
+          const next = await iterator.next();
+          if (cancelled || next.done) break;
+          if (next.value.type !== "message.created") continue;
+          const message = asMessage(next.value.payload);
+          if (!message) continue;
+          setPokeMessages((current) =>
+            current.some((row) => row.id === message.id)
+              ? current
+              : [...current, message],
+          );
+        }
+      } catch (caught: unknown) {
+        if (!cancelled && activeId) {
+          patchThreadMeta(activeId, {
+            error:
+              caught instanceof Error ? caught.message : "Could not open thread",
+          });
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+      void iterator?.return?.();
+    };
+  }, [pokeView, activeId]);
 
   useEffect(() => {
     if (!activeId) return;
@@ -563,25 +618,38 @@ export function Chat(props: { botId: string }) {
       </aside>
       <section className="flex min-h-0 flex-col bg-bg-thread">
         <div className="thread-head drag flex items-center justify-between gap-2 border-b border-line px-[18px] py-2.5">
-          <button
-            className="no-drag flex items-center gap-2.5 border-0 bg-transparent p-0 text-inherit"
-            type="button"
-            onClick={() => setPaneMode("settings")}
-          >
-            {bot ? (
-              <AvatarMark
-                name={bot.name}
-                color={bot.avatarColor}
-                shape={bot.avatarShape}
-                mood={working ? "working" : "idle"}
-                size="sm"
-                hero
-              />
-            ) : null}
-            <strong className="text-[15px] font-semibold tracking-tight">
-              {bot?.name ?? "—"}
-            </strong>
-          </button>
+          {pokeView ? (
+            <button
+              className="no-drag flex items-center gap-2.5 border-0 bg-transparent p-0 text-inherit"
+              type="button"
+              onClick={() => setPokeView(null)}
+            >
+              <ChevronLeftIcon />
+              <strong className="text-[15px] font-semibold tracking-tight">
+                {bot?.name ?? "—"} · {pokeView.peerName}
+              </strong>
+            </button>
+          ) : (
+            <button
+              className="no-drag flex items-center gap-2.5 border-0 bg-transparent p-0 text-inherit"
+              type="button"
+              onClick={() => setPaneMode("settings")}
+            >
+              {bot ? (
+                <AvatarMark
+                  name={bot.name}
+                  color={bot.avatarColor}
+                  shape={bot.avatarShape}
+                  mood={working ? "working" : "idle"}
+                  size="sm"
+                  hero
+                />
+              ) : null}
+              <strong className="text-[15px] font-semibold tracking-tight">
+                {bot?.name ?? "—"}
+              </strong>
+            </button>
+          )}
           <div className="no-drag flex flex-wrap items-center gap-1.5">
             {working ? (
               <Button
@@ -629,15 +697,19 @@ export function Chat(props: { botId: string }) {
         ) : null}
         <div className="min-h-0 flex-1">
           <ThreadList
-            botId={activeId ?? "_"}
+            botId={pokeView ? "_" : (activeId ?? "_")}
             teammateNames={Object.fromEntries(
               bots.map((item) => [item.id, item.name]),
             )}
-            messages={messages}
-            empty={!working && messages.length === 0}
-            working={working}
+            messages={pokeView ? pokeMessages : messages}
+            empty={
+              pokeView
+                ? pokeMessages.length === 0
+                : !working && messages.length === 0
+            }
+            working={pokeView ? "" : working}
             computer={
-              showComputerCard
+              !pokeView && showComputerCard
                 ? {
                     title: working
                       ? draft || lastHumanBefore(messages, messages.length)
@@ -652,11 +724,21 @@ export function Chat(props: { botId: string }) {
                 : null
             }
             onOpenComputer={openComputer}
+            onOpenPokeThread={(threadId, peerName) =>
+              setPokeView({ threadId, peerName })
+            }
           />
         </div>
         <div className="px-5 pt-2 pb-[18px]">
-          {error ? <p className="mb-2 text-[13px] text-danger">{error}</p> : null}
-          {bot?.archivedAt ? (
+          {error ? (
+            <p className="mb-2 text-[13px] text-danger">{error}</p>
+          ) : null}
+          {pokeView ? (
+            <p className="mb-1 px-1 text-[13px] text-muted">
+              {bot?.name} and {pokeView.peerName} talking. Back to stay with{" "}
+              {bot?.name}.
+            </p>
+          ) : bot?.archivedAt ? (
             <div className="flex items-center justify-between gap-3 rounded-xl border border-line bg-card px-3 py-2.5 text-[13px]">
               <span>Archived. Unarchive to keep working with {bot.name}.</span>
               <Button

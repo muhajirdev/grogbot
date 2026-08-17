@@ -19,7 +19,17 @@ type ThreadContext = {
   empty: boolean;
   computer: ThreadComputerCard | null;
   onOpenComputer: () => void;
+  onOpenPokeThread?: (threadId: string, peerName: string) => void;
 };
+
+function pokeThreadRef(message: ThreadMessage): {
+  threadId: string;
+  peerName: string;
+} | null {
+  const block = message.blocks.find((item) => item.kind === "poke_thread");
+  if (block?.kind !== "poke_thread") return null;
+  return { threadId: block.threadId, peerName: block.peerName };
+}
 
 function messageText(message: ThreadMessage): string {
   return message.blocks
@@ -72,7 +82,8 @@ function itemContent(
   const fromName = fromOther
     ? context.names[message.actorId ?? ""] || "Teammate"
     : null;
-  if (!text && !showDay) return <div className="h-0" />;
+  const pokeRef = pokeThreadRef(message);
+  if (!text && !pokeRef && !showDay) return <div className="h-0" />;
   return (
     <div className="px-7 pb-2.5">
       {showDay ? (
@@ -80,7 +91,7 @@ function itemContent(
           {formatDaySep(message.createdAt)}
         </div>
       ) : null}
-      {text ? (
+      {text || pokeRef ? (
         <div
           className={cn(
             "max-w-[72%] rounded-[18px] px-3.5 py-2.5 text-[15px] leading-snug whitespace-pre-wrap",
@@ -97,6 +108,17 @@ function itemContent(
             </div>
           ) : null}
           {text}
+          {pokeRef && context.onOpenPokeThread ? (
+            <button
+              type="button"
+              className="mt-2 block border-0 bg-transparent p-0 text-[13px] font-medium text-inherit underline underline-offset-2"
+              onClick={() =>
+                context.onOpenPokeThread?.(pokeRef.threadId, pokeRef.peerName)
+              }
+            >
+              Open thread
+            </button>
+          ) : null}
         </div>
       ) : null}
     </div>
@@ -119,11 +141,16 @@ export function ThreadList(props: {
   computer: ThreadComputerCard | null;
   working: string;
   onOpenComputer: () => void;
+  onOpenPokeThread?: (threadId: string, peerName: string) => void;
 }) {
   const listRef = useRef<VirtuosoHandle>(null);
   const atBottomRef = useRef(true);
   const visible = useMemo(
-    () => props.messages.filter((message) => messageText(message).length > 0),
+    () =>
+      props.messages.filter(
+        (message) =>
+          messageText(message).length > 0 || Boolean(pokeThreadRef(message)),
+      ),
     [props.messages],
   );
   const context = useMemo<ThreadContext>(
@@ -134,6 +161,7 @@ export function ThreadList(props: {
       empty: props.empty,
       computer: props.computer,
       onOpenComputer: props.onOpenComputer,
+      onOpenPokeThread: props.onOpenPokeThread,
     }),
     [
       props.botId,
@@ -142,6 +170,7 @@ export function ThreadList(props: {
       props.empty,
       props.computer,
       props.onOpenComputer,
+      props.onOpenPokeThread,
     ],
   );
 
