@@ -1,0 +1,108 @@
+import { type Database, invitation, organization } from "@grogbot/db";
+import { and, eq, gt, sql } from "drizzle-orm";
+
+const SLUG_NAME_MAX = 24;
+
+/** URL-safe workspace slug: `{name}-{salt}`. */
+export function slugForWorkspace(name: string, salt: string): string {
+  const base =
+    name
+      .normalize("NFKD")
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/[\s_]+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, SLUG_NAME_MAX) || "workspace";
+  const tail =
+    salt
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "")
+      .slice(0, 8) || "office";
+  return `${base}-${tail}`;
+}
+
+/** Accept a raw invite id or an onboarding URL that carries `?invite=`. */
+export function invitationIdFromInput(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return "";
+  try {
+    const url = new URL(trimmed);
+    const invite = url.searchParams.get("invite")?.trim();
+    if (invite) return invite;
+  } catch {
+    // Not a URL — fall through.
+  }
+  const match = trimmed.match(/[?&]invite=([^&]+)/);
+  if (match?.[1]) {
+    try {
+      return decodeURIComponent(match[1]).trim();
+    } catch {
+      return match[1].trim();
+    }
+  }
+  return trimmed;
+}
+
+export function invitationUrl(webOrigin: string, invitationId: string): string {
+  const origin = webOrigin.replace(/\/$/, "");
+  return `${origin}/onboarding?invite=${encodeURIComponent(invitationId)}`;
+}
+
+export function workspaceAuthMessage(raw: string, fallback: string): string {
+  const text = raw.trim();
+  if (!text) return fallback;
+  if (/not the recipient/i.test(text)) {
+    return "That invite is for a different email.";
+  }
+  if (/invitation not found|failed to retrieve invitation/i.test(text)) {
+    return "That invite is missing or expired.";
+  }
+  if (/already invited/i.test(text)) {
+    return "That person already has an invite.";
+  }
+  if (/already a member/i.test(text)) {
+    return "They're already in this workspace.";
+  }
+  if (/slug already taken|organization already exists/i.test(text)) {
+    return "Pick another workspace name.";
+  }
+  if (/not allowed to invite/i.test(text)) {
+    return "You can't invite people to this workspace.";
+  }
+  if (/email verification required/i.test(text)) {
+    return "Verify your email, then join the workspace.";
+  }
+  return text;
+}
+
+export async function listPendingInvitations(db: Database, email: string) {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) return [];
+  const rows = await db
+    .select({
+      id: invitation.id,
+      email: invitation.email,
+      role: invitation.role,
+      organizationId: invitation.organizationId,
+      organizationName: organization.name,
+      expiresAt: invitation.expiresAt,
+    })
+    .from(invitation)
+    .innerJoin(organization, eq(invitation.organizationId, organization.id))
+    .where(
+      and(
+        sql`lower(${invitation.email}) = ${normalized}`,
+        eq(invitation.status, "pending"),
+        gt(invitation.expiresAt, new Date()),
+      ),
+    );
+  return rows.map((row) => ({
+    id: row.id,
+    email: row.email,
+    role: row.role ?? "member",
+    organizationId: row.organizationId,
+    organizationName: row.organizationName,
+    expiresAt: row.expiresAt.toISOString(),
+  }));
+}

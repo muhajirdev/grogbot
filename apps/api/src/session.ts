@@ -11,42 +11,79 @@ export interface Actor {
   isDeploymentOwner: boolean;
 }
 
-export async function requireActor(context: RpcContext): Promise<Actor> {
+export interface SessionUser {
+  userId: string;
+  email: string;
+  name: string;
+  workspaceId: string | null;
+  workspaceName: string | null;
+  headers: Headers;
+  isDeploymentOwner: boolean;
+}
+
+export async function requireUser(context: RpcContext): Promise<SessionUser> {
   if (!context.auth) {
     throw new ORPCError("UNAUTHORIZED", { message: "Sign in" });
   }
-  const session = await context.auth.api.getSession({
-    headers: context.headers ?? new Headers(),
-  });
+  const headers = context.headers ?? new Headers();
+  const session = await context.auth.api.getSession({ headers });
   if (!session) {
     throw new ORPCError("UNAUTHORIZED", { message: "Sign in" });
   }
 
-  const headers = context.headers;
-  let workspaceId = session.session.activeOrganizationId ?? undefined;
+  let workspaceId = session.session.activeOrganizationId ?? null;
+  let workspaceName: string | null = null;
+  const orgs = await context.auth.api.listOrganizations({ headers });
   if (!workspaceId) {
-    const orgs = await context.auth.api.listOrganizations({ headers });
-    if (orgs.length === 0) {
-      const slug = `ws-${session.user.id.replace(/-/g, "").slice(0, 12)}`;
-      const org = await context.auth.api.createOrganization({
-        body: { name: "Personal", slug },
+    workspaceId = orgs[0]?.id ?? null;
+    if (workspaceId) {
+      await context.auth.api.setActiveOrganization({
+        body: { organizationId: workspaceId },
         headers,
       });
-      workspaceId = org.id;
-    } else {
-      workspaceId = orgs[0]?.id;
-      if (workspaceId) {
-        await context.auth.api.setActiveOrganization({
-          body: { organizationId: workspaceId },
-          headers,
-        });
-      }
     }
   }
-  if (!workspaceId) {
-    throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "No workspace" });
+  if (workspaceId) {
+    workspaceName =
+      orgs.find((org) => org.id === workspaceId)?.name ?? orgs[0]?.name ?? null;
   }
 
+  const isDeploymentOwner = await ensureDeploymentOwner(
+    context,
+    session.user.id,
+  );
+
+  return {
+    userId: session.user.id,
+    email: session.user.email,
+    name: session.user.name,
+    workspaceId,
+    workspaceName,
+    headers,
+    isDeploymentOwner,
+  };
+}
+
+export async function requireActor(context: RpcContext): Promise<Actor> {
+  const user = await requireUser(context);
+  if (!user.workspaceId) {
+    throw new ORPCError("FAILED_PRECONDITION", {
+      message: "Create or join a workspace",
+    });
+  }
+  return {
+    userId: user.userId,
+    email: user.email,
+    name: user.name,
+    workspaceId: user.workspaceId,
+    isDeploymentOwner: user.isDeploymentOwner,
+  };
+}
+
+async function ensureDeploymentOwner(
+  context: RpcContext,
+  userId: string,
+): Promise<boolean> {
   const [settings] = await context.db
     .select()
     .from(deploymentSettings)
@@ -56,22 +93,15 @@ export async function requireActor(context: RpcContext): Promise<Actor> {
   if (!settings) {
     await context.db.insert(deploymentSettings).values({
       id: "default",
-      ownerUserId: session.user.id,
+      ownerUserId: userId,
     });
-    ownerUserId = session.user.id;
+    ownerUserId = userId;
   } else if (!ownerUserId) {
     await context.db
       .update(deploymentSettings)
-      .set({ ownerUserId: session.user.id, updatedAt: new Date() })
+      .set({ ownerUserId: userId, updatedAt: new Date() })
       .where(eq(deploymentSettings.id, "default"));
-    ownerUserId = session.user.id;
+    ownerUserId = userId;
   }
-
-  return {
-    userId: session.user.id,
-    email: session.user.email,
-    name: session.user.name,
-    workspaceId,
-    isDeploymentOwner: ownerUserId === session.user.id,
-  };
+  return ownerUserId === userId;
 }

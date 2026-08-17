@@ -28,7 +28,9 @@ export function createApp(env: Env): AppHandles {
     cookieDomain: grogbotCookieDomain(env.webOrigin),
     google: oauth.google,
     github: oauth.github,
+    webOrigin: env.webOrigin,
     sendMagicLink: mail.sendMagicLink,
+    sendInvitationEmail: mail.sendInvitation,
   });
   const wakeup = createWakeupDriver(env.workerUrl);
   const sandbox = createSandboxProvider(env.sandboxProvider);

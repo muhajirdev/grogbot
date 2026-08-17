@@ -158,11 +158,48 @@ export const GuestConnectSchema = GuestStatusSchema.extend({
 });
 export type GuestConnect = z.infer<typeof GuestConnectSchema>;
 
+export const WorkspaceSchema = z.object({
+  id: Id,
+  name: z.string(),
+  slug: z.string(),
+});
+export type Workspace = z.infer<typeof WorkspaceSchema>;
+
+export const WorkspaceInvitationSchema = z.object({
+  id: Id,
+  email: z.string().email(),
+  role: z.string(),
+  organizationId: Id,
+  organizationName: z.string(),
+  expiresAt: z.string(),
+});
+export type WorkspaceInvitation = z.infer<typeof WorkspaceInvitationSchema>;
+
+export const CreateWorkspaceInput = z.object({
+  name: z.string().min(1).max(80),
+});
+
+export const JoinWorkspaceInput = z.object({
+  invitationId: z.string().min(1).max(400),
+});
+
+export const InviteWorkspaceInput = z.object({
+  email: z.string().email(),
+});
+
+export const WorkspaceInviteSchema = z.object({
+  id: Id,
+  email: z.string().email(),
+  url: z.string(),
+});
+
 export const MeSchema = z.object({
   userId: Id,
   email: z.string().email(),
   name: z.string(),
-  workspaceId: Id,
+  workspaceId: Id.nullable(),
+  workspaceName: z.string().nullable(),
+  needsWorkspace: z.boolean(),
   isDeploymentOwner: z.boolean(),
   needsModel: z.boolean(),
   defaultModel: z.string(),

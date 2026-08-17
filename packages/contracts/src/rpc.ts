@@ -5,16 +5,22 @@ import {
   ComputerListItemSchema,
   ComputerStatusSchema,
   CreateBotInput,
+  CreateWorkspaceInput,
   GuestConnectSchema,
   GuestStatusSchema,
+  InviteWorkspaceInput,
+  JoinWorkspaceInput,
   MemoryDocumentSchema,
   MeSchema,
   RoutineSchema,
   UpdateBotInput,
+  WorkspaceInvitationSchema,
+  WorkspaceInviteSchema,
+  WorkspaceSchema,
 } from "./domain.js";
-import { ModelSettingsSchema, SaveModelSettingsInput } from "./models.js";
 import { ProductEventSchema } from "./events.js";
 import { GuestAgentKind, Id } from "./ids.js";
+import { ModelSettingsSchema, SaveModelSettingsInput } from "./models.js";
 
 const botId = z.object({ botId: Id });
 
@@ -31,6 +37,12 @@ export const appContract = oc.router({
     }),
   ),
   me: oc.output(MeSchema),
+  workspaces: {
+    create: oc.input(CreateWorkspaceInput).output(WorkspaceSchema),
+    join: oc.input(JoinWorkspaceInput).output(WorkspaceSchema),
+    invite: oc.input(InviteWorkspaceInput).output(WorkspaceInviteSchema),
+    invitations: oc.output(z.array(WorkspaceInvitationSchema)),
+  },
   models: {
     get: oc.output(ModelSettingsSchema),
     save: oc.input(SaveModelSettingsInput).output(ModelSettingsSchema),

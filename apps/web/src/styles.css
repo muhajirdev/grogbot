@@ -603,6 +603,41 @@ html.vt-ready .gate > .gate-steps {
   margin-top: 22px;
 }
 
+.gate-choices {
+  display: grid;
+  gap: 10px;
+  margin: 4px 0 8px;
+}
+
+.gate-choice {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  border-radius: 16px;
+  padding: 16px 18px;
+}
+
+.gate-choice strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.gate-choice span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.gate-choice:hover {
+  border-color: color-mix(in srgb, var(--ink) 35%, var(--line));
+  background: var(--hover);
+}
+
 .gate-handoff + .gate-nav {
   margin-top: 16px;
 }

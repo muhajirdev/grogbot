@@ -110,7 +110,18 @@ describe.skipIf(!dbUp)("bot thread loop", () => {
     const rpc = client();
     const me = await rpc.me();
     expect(me.email).toBe(email);
-    expect(me.workspaceId.length).toBeGreaterThan(0);
+    expect(me.needsWorkspace).toBe(true);
+    expect(me.workspaceId).toBeNull();
+    await expect(rpc.bots.create({ name: "Too soon" })).rejects.toMatchObject({
+      code: "FAILED_PRECONDITION",
+    });
+
+    const office = await rpc.workspaces.create({ name: "Test office" });
+    expect(office.name).toBe("Test office");
+    const ready = await rpc.me();
+    expect(ready.needsWorkspace).toBe(false);
+    expect(ready.workspaceId).toBe(office.id);
+    expect(ready.workspaceName).toBe("Test office");
 
     const bot = await rpc.bots.create({
       name: "Piper",
@@ -194,6 +205,7 @@ describe.skipIf(!dbUp)("bot thread loop", () => {
     expect(signUp.status, await signUp.text()).toBe(200);
 
     const rpc = client();
+    await rpc.workspaces.create({ name: "Desk office" });
     const piper = await rpc.bots.create({
       name: "Piper",
       title: "Product",
@@ -262,6 +274,7 @@ describe.skipIf(!dbUp)("bot thread loop", () => {
     expect(signUp.status, await signUp.text()).toBe(200);
 
     const rpc = client();
+    await rpc.workspaces.create({ name: "Guest office" });
     const bot = await rpc.bots.create({
       name: "Hermes stand-in",
       title: "External",
@@ -394,6 +407,7 @@ describe.skipIf(!dbUp)("bot thread loop", () => {
     expect(signUp.status, await signUp.text()).toBe(200);
 
     const rpc = client();
+    await rpc.workspaces.create({ name: "Archive office" });
     const piper = await rpc.bots.create({
       name: "Piper",
       title: "Product",
@@ -413,7 +427,9 @@ describe.skipIf(!dbUp)("bot thread loop", () => {
     expect(archived.id).toBe(scout.id);
 
     const listed = await rpc.bots.list();
-    expect(listed.find((item) => item.id === scout.id)?.archivedAt).toBeTruthy();
+    expect(
+      listed.find((item) => item.id === scout.id)?.archivedAt,
+    ).toBeTruthy();
     expect(listed.find((item) => item.id === piper.id)?.archivedAt).toBeNull();
 
     await expect(
@@ -439,5 +455,85 @@ describe.skipIf(!dbUp)("bot thread loop", () => {
     expect(after.some((item) => item.isDefault && item.agentCount === 2)).toBe(
       true,
     );
+  }, 15_000);
+
+  it("lets a teammate join with an invite", async () => {
+    const stamp = Date.now();
+    const ownerEmail = `owner-${stamp}@example.com`;
+    const memberEmail = `member-${stamp}@example.com`;
+    let ownerCookie = "";
+    let memberCookie = "";
+
+    const ownerSignUp = await handles.app.request(
+      new Request(`${origin}/api/auth/sign-up/email`, {
+        method: "POST",
+        headers: {
+          origin,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          name: "Owner",
+          email: ownerEmail,
+          password: "password1",
+        }),
+      }),
+    );
+    ownerCookie = cookieHeader(ownerSignUp);
+    expect(ownerSignUp.status, await ownerSignUp.text()).toBe(200);
+
+    const ownerRpc = createGrogbotClient({
+      baseUrl: origin,
+      headers: () => ({ cookie: ownerCookie, origin }),
+      fetch: async (input, init) => {
+        const request =
+          input instanceof Request ? input : new Request(String(input), init);
+        const response = await handles.app.request(request);
+        ownerCookie = cookieHeader(response, ownerCookie);
+        return response;
+      },
+    });
+    const office = await ownerRpc.workspaces.create({ name: "Shared office" });
+    const invite = await ownerRpc.workspaces.invite({ email: memberEmail });
+    expect(invite.email).toBe(memberEmail);
+    expect(invite.url).toContain("invite=");
+
+    const memberSignUp = await handles.app.request(
+      new Request(`${origin}/api/auth/sign-up/email`, {
+        method: "POST",
+        headers: {
+          origin,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          name: "Member",
+          email: memberEmail,
+          password: "password1",
+        }),
+      }),
+    );
+    memberCookie = cookieHeader(memberSignUp);
+    expect(memberSignUp.status, await memberSignUp.text()).toBe(200);
+
+    const memberRpc = createGrogbotClient({
+      baseUrl: origin,
+      headers: () => ({ cookie: memberCookie, origin }),
+      fetch: async (input, init) => {
+        const request =
+          input instanceof Request ? input : new Request(String(input), init);
+        const response = await handles.app.request(request);
+        memberCookie = cookieHeader(response, memberCookie);
+        return response;
+      },
+    });
+    const pending = await memberRpc.workspaces.invitations();
+    expect(pending.some((item) => item.id === invite.id)).toBe(true);
+    const joined = await memberRpc.workspaces.join({
+      invitationId: invite.url,
+    });
+    expect(joined.id).toBe(office.id);
+    expect(joined.name).toBe("Shared office");
+    const me = await memberRpc.me();
+    expect(me.needsWorkspace).toBe(false);
+    expect(me.workspaceId).toBe(office.id);
   }, 15_000);
 });
