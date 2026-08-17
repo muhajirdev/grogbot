@@ -14,7 +14,7 @@ Each **bot** (teammate) has:
 
 A **bot actor is the bot**. Serial queue + delayed jobs + cron, one brain at a time. v1 is the Node worker’s `InProcessWakeupDriver` — not Rivet, not the Cloudflare Agents SDK.
 
-**Computers** are a separate primitive. Many bots can share the default computer (files and logins). GUI computer-use is one mouse (`control_holder`); brains still run on their own actors. A bot created with a new computer gets its own VM.
+**Computers** are a separate primitive. Many bots can share the default computer (files and logins). GUI computer-use is one mouse (`control_holder`); brains still run on their own actors. A bot created with a new computer gets its own isolated sandbox.
 
 The **workspace** (Better Auth org) also has:
 
@@ -36,10 +36,10 @@ Same product, same Node apps. grogbot.com is hosted on Cloudflare; a private com
 | Brain | Flue + Pi, **Node target** (`@flue/runtime/node`) | Same |
 | Wakeup | `InProcessWakeupDriver` on the worker | Same |
 | Data | Postgres | Postgres |
-| Computer | E2B | Docker / fake; desktop only on a trusted machine |
+| Computer | Cloudflare Computer (`@cloudflare/computer`) | Docker / fake; desktop only on a trusted machine |
 | Auth email | Cloudflare Email Sending | Log the magic link, or their SMTP later |
 
-Rivet, Agents SDK, Project Think, agentOS, and Cloudflare Sandbox stay out of **v1**. Flue’s Cloudflare target stays out of v1. The actor port (`WakeupDriver`, key = `botId`) is how hosted can move to Agents SDK later without a rewrite.
+Rivet, Agents SDK, Project Think, agentOS, and E2B stay out of **v1**. Flue’s Cloudflare target stays out of v1. Cloudflare Computer is the **hosted computer**, not the bot actor. The actor port (`WakeupDriver`, key = `botId`) is how hosted can move to Agents SDK later without a rewrite. Wiring: [docs/cloudflare-computer.md](./docs/cloudflare-computer.md).
 
 ## Locked decisions
 
@@ -55,12 +55,12 @@ Rivet, Agents SDK, Project Think, agentOS, and Cloudflare Sandbox stay out of **
 | Shared data | **One Postgres** — auth, bots, threads, messages, skills, artifacts |
 | Wakeup | `InProcessWakeupDriver` — serial queue + named delayed jobs |
 | Schedules | Postgres `routines` (cron string, timezone, `next_run_at`). Worker fires with **croner**, then enqueues `routine.wakeup` so it shares the bot queue. Flue has no scheduler. |
-| Hosted cloud | **Cloudflare** for grogbot.com landing/email. Office API + worker stay **Node + Flue**. |
+| Hosted cloud | **Cloudflare** for grogbot.com landing/email **and hosted computers**. Office API + worker stay **Node + Flue**. |
 | Self-host | **Node + Postgres + Docker.** Same code. No Cloudflare account. |
 | ORM | **Drizzle** + Postgres |
 | Auth | **Better Auth** — magic-link email (Cloudflare Email Sending REST), Google, GitHub. Organizations = workspaces |
 | Models | **BYOK in the office** (Settings → Models). Workspace keys + default model only — not `.env`. A bot may override. Encrypted at rest. **Flue + Pi** (`AGENT_RUNTIME=flue`) is the loop for every provider, including **Cloudflare AI Gateway** (Pi `cloudflare-ai-gateway`). `scripted` / `flue-echo` stay offline for tests |
-| Sandbox | `docker` local · `e2b` hosted · `desktop` trusted machine only · `fake` tests |
+| Sandbox | `docker` local · `cloudflare` hosted · `desktop` trusted machine only · `fake` tests · `e2b` later |
 | Homes | Disk v1 · `HomeStore` → R2 later |
 | Realtime | oRPC event iterator now · actor WebSocket later if needed |
 | Plugins | **Composio** (optional) |
@@ -70,7 +70,7 @@ Rivet, Agents SDK, Project Think, agentOS, and Cloudflare Sandbox stay out of **
 
 ## Wakeup and schedules
 
-The API must not wait on Pi. Waking a bot is: chat now, routine at 9:00, sleep the VM after idle.
+The API must not wait on Pi. Waking a bot is: chat now, routine at 9:00, sleep the computer after idle.
 
 Flue runs a **turn**. It does not serialize two chats, delay `computer.sleep`, or fire cron. That is the worker:
 
@@ -99,7 +99,7 @@ v1 is already the actor model: **one mailbox per `botId`**. Agents SDK later is 
 
 Self-host keeps the in-process driver. Do not import `agents` from `packages/core` or the Pi loop. Do not key the Agent on `threadId` (`teammateInstanceId` may stay `botId:threadId` for Flue session state). Do not put threads/messages in DO SQLite — Postgres stays truth. Do not `dispatch()` Flue from cron; always enqueue on the bot actor.
 
-agentOS is **not** the v1 computer — Docker / E2B / desktop are.
+agentOS is **not** the v1 computer — Docker / Cloudflare Computer / desktop are. E2B is later.
 
 ## Processes (v1)
 
@@ -113,8 +113,8 @@ Mobile (Expo) ────┘          │
                              │
            ┌─────────────────┼─────────────────┐
            ▼                 ▼                 ▼
-      Flue + Pi         Sandbox            Composio
-      (or gateway)      docker/e2b         (if key set)
+      Flue + Pi         Sandbox                 Composio
+      (or gateway)      docker/cloudflare       (if key set)
 
 Landing (Start :5174) ──► CTAs to the web office (no oRPC)
 ```
@@ -135,11 +135,11 @@ Wake a bot with:
 | Product API | **oRPC** `POST /rpc/*` (Hono). `GET /health` for probes | same contract |
 | `RealtimeFanout` | oRPC event iterator (`threads.subscribe`) | actor WebSocket or DO |
 | `HomeStore` | filesystem | R2 |
-| `SandboxProvider` | Docker / E2B / desktop / fake | E2B / CF sandbox |
+| `SandboxProvider` | Docker / Cloudflare Computer / desktop / fake | E2B later |
 | `ConnectorProvider` | Composio or no-op | same |
 | Guest runtime | Off. Opt-in: Hermes/OpenClaw dial `/guest/*` | same protocol |
 
-Executor must not import `fs`, `dockerode`, or Cloudflare bindings. The **worker** may import Node and Flue’s Node target. The Pi loop still talks only to ports.
+Executor must not import `fs`, `dockerode`, or Cloudflare bindings. The **worker** may import Node and Flue’s Node target. Hosted computers live in a **separate** Cloudflare Worker; the Node `SandboxProvider` talks to it over HTTP. The Pi loop still talks only to ports.
 
 ## Advanced — guest agents (off by default)
 
@@ -162,13 +162,13 @@ The bot actor is still the bot. If the guest is offline, the run stays queued (`
 5. Thin **web** shell — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md)
 6. Workspace context + skills in the system prompt
 7. Composio plugins UI
-8. E2B for hosted computers
+8. Cloudflare Computer for hosted computers — [docs/cloudflare-computer.md](./docs/cloudflare-computer.md)
 9. Desktop window (Electron around web), never on hosted cloud
 10. Extra humans, then multi-bot rooms — [docs/rooms-plan.md](./docs/rooms-plan.md)
 11. Expo mobile (same oRPC client, RN chrome)
 
 ## Out of v1
 
-Gadgets, Gatekeepers, Rivet/rivetkit, Cloudflare Agents SDK, Cloudflare Workers as the Flue host, D1, Turso, Prisma, PGlite as product DB, store signing / Electron-builder / EAS submit, Pi subscription OAuth, Discord UI, agentOS as the default computer, Project Think, multi-bot rooms, Polar hosted billing.
+Gadgets, Gatekeepers, Rivet/rivetkit, Cloudflare Agents SDK, Cloudflare Workers as the Flue host, D1, Turso, Prisma, PGlite as product DB, store signing / Electron-builder / EAS submit, Pi subscription OAuth, Discord UI, agentOS as the default computer, Project Think, E2B hosted computers, multi-bot rooms, Polar hosted billing.
 
-Hosted grogbot.com billing research (Polar as MoR, workspace as Polar customer, not v1): [docs/polar-integration.md](./docs/polar-integration.md).
+Hosted grogbot.com billing research (Polar as MoR, workspace as Polar customer, not v1): [docs/polar-integration.md](./docs/polar-integration.md). Hosted computers: [docs/cloudflare-computer.md](./docs/cloudflare-computer.md).

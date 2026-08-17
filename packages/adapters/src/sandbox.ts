@@ -47,10 +47,14 @@ export function createSandboxProvider(kind: string): SandboxProvider {
     case "fake":
       return new FakeSandboxProvider();
     case "docker":
-    case "e2b":
+    case "cloudflare":
     case "desktop":
       throw new Error(
         `${kind} sandbox is not implemented yet. Use SANDBOX_PROVIDER=fake for this scaffold.`,
+      );
+    case "e2b":
+      throw new Error(
+        "e2b sandbox is later, not v1. Hosted computers use SANDBOX_PROVIDER=cloudflare; local uses docker or fake.",
       );
     default:
       throw new Error(`Unknown SANDBOX_PROVIDER "${kind}"`);

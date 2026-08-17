@@ -389,7 +389,7 @@ Do not import fs, dockerode, or Cloudflare bindings from the Pi/executor. The wo
 
 ## Tests
 
-Stay offline: AGENT_RUNTIME=scripted, SANDBOX_PROVIDER=fake, in-process wakeup. No live OpenRouter/E2B. Flue+Pi is AGENT_RUNTIME=flue; flue-echo is the offline harness.
+Stay offline: AGENT_RUNTIME=scripted, SANDBOX_PROVIDER=fake, in-process wakeup. No live OpenRouter, Cloudflare Computer, or E2B. Flue+Pi is AGENT_RUNTIME=flue; flue-echo is the offline harness.
 
 ## Source layout
 
