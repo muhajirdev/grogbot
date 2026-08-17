@@ -10,8 +10,12 @@ export const HOME_INTEGRATIONS = [
 ] as const;
 
 export const HOME_USE_CASES = [
-  { slug: "chief-of-staff", title: "Chief of staff" },
-  { slug: "inbox-triage", title: "Inbox manager" },
+  { slug: "chief-of-staff", title: "Chief of Staff" },
   { slug: "sales-outbound", title: "Sales outbound" },
   { slug: "talent-scout", title: "Talent scout" },
+  { slug: "paid-media", title: "Paid media" },
+  { slug: "expense-manager", title: "Expense manager" },
+  { slug: "founder-analytics", title: "Product performance" },
+  { slug: "bug-reproduction", title: "Bug reproduction" },
+  { slug: "account-health", title: "Account health" },
 ] as const;
