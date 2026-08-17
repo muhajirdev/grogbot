@@ -79,7 +79,7 @@ async function emitGuest(
   const [thread] = await db
     .select()
     .from(threads)
-    .where(eq(threads.botId, botId))
+    .where(and(eq(threads.botId, botId), eq(threads.kind, "office")))
     .limit(1);
   if (!bot || !thread) return;
   await appendEvent(db, {

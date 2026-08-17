@@ -63,6 +63,12 @@ export const UpdateBotInput = z.object({
 export const MessageBlockSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("text"), text: z.string() }),
   z.object({ kind: z.literal("meta"), text: z.string() }),
+  z.object({
+    kind: z.literal("poke_thread"),
+    threadId: Id,
+    peerBotId: Id,
+    peerName: z.string(),
+  }),
 ]);
 export type MessageBlock = z.infer<typeof MessageBlockSchema>;
 
@@ -76,6 +82,20 @@ export const ThreadMessageSchema = z.object({
   createdAt: z.string(),
 });
 export type ThreadMessage = z.infer<typeof ThreadMessageSchema>;
+
+export const PokeThreadSchema = z.object({
+  id: Id,
+  kind: z.literal("poke"),
+  bots: z.array(
+    z.object({
+      id: Id,
+      name: z.string(),
+      title: z.string(),
+    }),
+  ),
+  messages: z.array(ThreadMessageSchema),
+});
+export type PokeThread = z.infer<typeof PokeThreadSchema>;
 
 export const ComputerTeammateSchema = z.object({
   id: Id,

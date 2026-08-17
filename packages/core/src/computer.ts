@@ -35,7 +35,10 @@ export async function listComputerAgents(
       threadId: threads.id,
     })
     .from(bots)
-    .innerJoin(threads, eq(threads.botId, bots.id))
+    .innerJoin(
+      threads,
+      and(eq(threads.botId, bots.id), eq(threads.kind, "office")),
+    )
     .where(and(eq(bots.computerId, computerId), isNull(bots.archivedAt)));
   return rows;
 }

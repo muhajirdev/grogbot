@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   boolean,
   integer,
@@ -64,19 +65,31 @@ export const bots = pgTable("bots", {
     .defaultNow(),
 });
 
-export const threads = pgTable("threads", {
-  id: text("id").primaryKey(),
-  workspaceId: text("workspace_id")
-    .notNull()
-    .references(() => organization.id, { onDelete: "cascade" }),
-  botId: text("bot_id")
-    .notNull()
-    .unique()
-    .references(() => bots.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+export const threads = pgTable(
+  "threads",
+  {
+    id: text("id").primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    /** office = human 1:1. poke = two bots talking. */
+    kind: text("kind").notNull().default("office"),
+    botId: text("bot_id").references(() => bots.id, { onDelete: "cascade" }),
+    aBotId: text("a_bot_id").references(() => bots.id, { onDelete: "cascade" }),
+    bBotId: text("b_bot_id").references(() => bots.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("threads_office_bot")
+      .on(t.botId)
+      .where(sql`${t.kind} = 'office'`),
+    uniqueIndex("threads_poke_pair")
+      .on(t.aBotId, t.bBotId)
+      .where(sql`${t.kind} = 'poke'`),
+  ],
+);
 
 /** v1: one human. Later: several humans in the same thread. */
 export const threadMembers = pgTable(

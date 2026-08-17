@@ -70,7 +70,7 @@ export async function getBotThread(
   const [thread] = await context.db
     .select()
     .from(threads)
-    .where(eq(threads.botId, bot.id))
+    .where(and(eq(threads.botId, bot.id), eq(threads.kind, "office")))
     .limit(1);
   if (!thread) throw new ORPCError("NOT_FOUND", { message: "Thread missing" });
   return { bot, thread };
@@ -97,7 +97,11 @@ export async function listBots(
     .select()
     .from(threads)
     .where(eq(threads.workspaceId, actor.workspaceId));
-  const threadByBot = new Map(threadRows.map((row) => [row.botId, row.id]));
+  const threadByBot = new Map(
+    threadRows
+      .filter((row) => row.kind === "office" && row.botId)
+      .map((row) => [row.botId as string, row.id]),
+  );
   const desks =
     rows.length === 0
       ? []
@@ -303,6 +307,7 @@ export async function createBot(
   await context.db.insert(threads).values({
     id: threadId,
     workspaceId: actor.workspaceId,
+    kind: "office",
     botId,
     createdAt: now,
   });

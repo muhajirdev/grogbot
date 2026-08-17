@@ -24,6 +24,7 @@ import {
   missingModelMessage,
   resolveRunModel,
 } from "./models.js";
+import { listPokeTeammates, pokeBot } from "./poke.js";
 import { assertTransition } from "./run-state.js";
 import { redactSecrets } from "./secret-box.js";
 import { appendEvent, nextSeq } from "./threads.js";
@@ -49,6 +50,7 @@ export async function continueRun(opts: {
   runtime: AgentRuntime;
   runId: string;
   guests?: GuestHub;
+  pokeStack?: string[];
   bindRuntime?: (overlay: {
     env: NodeJS.ProcessEnv;
     model: string;
@@ -144,23 +146,7 @@ export async function continueRun(opts: {
     .where(eq(messages.threadId, run.threadId))
     .orderBy(asc(messages.seq));
 
-  const history = historyRows.map((row) => {
-    const blocks = row.blocks as MessageBlock[];
-    const text = blocks
-      .filter(
-        (block): block is { kind: "text"; text: string } =>
-          block.kind === "text",
-      )
-      .map((block) => block.text)
-      .join("\n");
-    const role =
-      row.actorType === "human"
-        ? ("user" as const)
-        : row.actorType === "bot"
-          ? ("assistant" as const)
-          : ("system" as const);
-    return { role, content: text };
-  });
+  const history = historyRows.map((row) => historyTurn(row, bot.id));
 
   const controller = new AbortController();
   let reply = "";
@@ -188,6 +174,33 @@ export async function continueRun(opts: {
   }
   const bound = opts.bindRuntime ? opts.bindRuntime(overlay) : opts.runtime;
   const runner = guestEnabled && guests ? new GuestAgentRuntime(guests) : bound;
+  const teammates = await listPokeTeammates(db, bot);
+  const pokeStack = opts.pokeStack ?? [];
+  const pokeTeammate =
+    teammates.length === 0
+      ? undefined
+      : async (input: { name: string; message: string }) =>
+          pokeBot({
+            db,
+            fromBot: bot,
+            toName: input.name,
+            text: input.message,
+            userId: run.userId,
+            pokeStack: [...pokeStack, bot.id],
+            runTarget: async (nestedRunId) => {
+              await continueRun({
+                ...opts,
+                runId: nestedRunId,
+                pokeStack: [...pokeStack, bot.id],
+              });
+              const [nested] = await db
+                .select({ botId: runs.botId })
+                .from(runs)
+                .where(eq(runs.id, nestedRunId))
+                .limit(1);
+              if (nested) await sleepComputer(db, nested.botId);
+            },
+          });
   try {
     for await (const event of runner.run(
       {
@@ -198,6 +211,8 @@ export async function continueRun(opts: {
         instructions: bot.instructions || bot.description,
         history,
         model: overlay.model,
+        teammates,
+        pokeTeammate,
       },
       {
         operationId: newId(),
@@ -316,4 +331,23 @@ export async function sleepComputer(
   if (updated) {
     await fanoutComputerUpdated(db, updated, botId);
   }
+}
+
+function historyTurn(
+  row: typeof messages.$inferSelect,
+  botId: string,
+): { role: "user" | "assistant" | "system"; content: string } {
+  const blocks = row.blocks as MessageBlock[];
+  const text = blocks
+    .filter(
+      (block): block is { kind: "text"; text: string } => block.kind === "text",
+    )
+    .map((block) => block.text)
+    .join("\n");
+  if (row.actorType === "human") return { role: "user", content: text };
+  if (row.actorType === "bot" && row.actorId === botId) {
+    return { role: "assistant", content: text };
+  }
+  if (row.actorType === "bot") return { role: "user", content: text };
+  return { role: "system", content: text };
 }

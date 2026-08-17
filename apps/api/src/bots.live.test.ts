@@ -536,4 +536,133 @@ describe.skipIf(!dbUp)("bot thread loop", () => {
     expect(me.needsWorkspace).toBe(false);
     expect(me.workspaceId).toBe(office.id);
   }, 15_000);
+
+  it("lets one bot poke another and brings the reply back", async () => {
+    const email = `poke-${Date.now()}@example.com`;
+    const signUp = await handles.app.request(
+      new Request(`${origin}/api/auth/sign-up/email`, {
+        method: "POST",
+        headers: {
+          origin,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          name: "Poke Tester",
+          email,
+          password: "password1",
+        }),
+      }),
+    );
+    cookie = cookieHeader(signUp, cookie);
+    expect(signUp.status, await signUp.text()).toBe(200);
+
+    const rpc = client();
+    await rpc.workspaces.create({ name: "Poke office" });
+    const mayaBot = await rpc.bots.create({
+      name: "Maya",
+      title: "Chief of Staff",
+      description: "Front door.",
+      instructions: "Front door.",
+    });
+    const lookout = await rpc.bots.create({
+      name: "Lookout",
+      title: "Watch",
+      description: "Specialist.",
+      instructions: "Specialist.",
+    });
+
+    await rpc.threads.send({
+      botId: mayaBot.id,
+      text: "poke Lookout: summarize the week",
+    });
+
+    const maya = await collectOffice(rpc, mayaBot.id, (texts) =>
+      texts.some((text) => text.startsWith("Asked Lookout")),
+    );
+    expect(maya.texts).toContain("poke Lookout: summarize the week");
+    expect(maya.texts).toContain("Lookout replied.");
+    expect(maya.texts.some((text) => text.startsWith("Asked Lookout"))).toBe(
+      true,
+    );
+    expect(maya.pokeThreadId).toBeTruthy();
+
+    const poke = await rpc.threads.get({ threadId: maya.pokeThreadId ?? "" });
+    expect(poke.kind).toBe("poke");
+    expect(poke.bots.map((item) => item.name).sort()).toEqual([
+      "Lookout",
+      "Maya",
+    ]);
+    const pokeTexts = poke.messages.flatMap((message) =>
+      message.blocks.flatMap((block) =>
+        block.kind === "text" ? [block.text] : [],
+      ),
+    );
+    expect(
+      pokeTexts.some((text) =>
+        text.includes("Maya (Chief of Staff) asked you"),
+      ),
+    ).toBe(true);
+    expect(pokeTexts.some((text) => text.startsWith("Echo:"))).toBe(true);
+
+    const lookoutOffice = await collectOffice(rpc, lookout.id, () => true, 800);
+    expect(
+      lookoutOffice.texts.some((text) =>
+        text.includes("Maya (Chief of Staff) asked you"),
+      ),
+    ).toBe(false);
+    expect(lookoutOffice.texts.some((text) => text.startsWith("Echo:"))).toBe(
+      false,
+    );
+  }, 20_000);
 });
+
+async function collectOffice(
+  rpc: ReturnType<typeof createGrogbotClient>,
+  botId: string,
+  done: (texts: string[]) => boolean,
+  timeoutMs = 12_000,
+): Promise<{ texts: string[]; pokeThreadId: string | null }> {
+  const texts: string[] = [];
+  let pokeThreadId: string | null = null;
+  const iterator = (await rpc.threads.subscribe({
+    botId,
+    cursor: -1,
+  })) as AsyncGenerator<{
+    type: string;
+    payload: Record<string, unknown>;
+  }>;
+  const stop = setTimeout(() => void iterator.return(undefined), timeoutMs);
+  try {
+    for await (const event of iterator) {
+      if (event.type !== "message.created") continue;
+      const blocks = event.payload.blocks;
+      if (!Array.isArray(blocks)) continue;
+      for (const block of blocks) {
+        if (!block || typeof block !== "object") continue;
+        if (
+          "kind" in block &&
+          block.kind === "text" &&
+          "text" in block &&
+          typeof block.text === "string"
+        ) {
+          texts.push(block.text);
+        }
+        if (
+          "kind" in block &&
+          block.kind === "poke_thread" &&
+          "threadId" in block &&
+          typeof block.threadId === "string"
+        ) {
+          pokeThreadId = block.threadId;
+        }
+      }
+      if (done(texts)) break;
+    }
+  } catch (error) {
+    if (!(error instanceof Error) || error.name !== "AbortError") throw error;
+  } finally {
+    clearTimeout(stop);
+    await iterator.return(undefined).catch(() => undefined);
+  }
+  return { texts, pokeThreadId };
+}

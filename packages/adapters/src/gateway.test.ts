@@ -17,6 +17,7 @@ import {
   DEFAULT_AGENT_RUNTIME,
   GatewayAgentRuntime,
   OFFLINE_AGENT_RUNTIME,
+  parsePokePrompt,
   resolveAgentRuntimeKind,
   ScriptedAgentRuntime,
 } from "./runtime.js";
@@ -320,6 +321,56 @@ describe("createAgentRuntime", () => {
       type: "text",
       text: "Echo: summarize the handoff",
     });
+  });
+
+  it("parses poke prompts and waits for the other teammate", async () => {
+    expect(parsePokePrompt("hello")).toBeNull();
+    expect(parsePokePrompt("poke Lookout: watch the repos")).toEqual({
+      name: "Lookout",
+      message: "watch the repos",
+    });
+    const runtime = new ScriptedAgentRuntime();
+    const events = [];
+    for await (const event of runtime.run(
+      {
+        ...runRequest,
+        prompt: "poke Lookout: watch the repos",
+        pokeTeammate: async ({ name, message }) => {
+          expect(name).toBe("Lookout");
+          expect(message).toBe("watch the repos");
+          return "on it";
+        },
+      },
+      adapterContext,
+    )) {
+      events.push(event);
+    }
+    expect(events).toContainEqual({
+      type: "text",
+      text: "Asked Lookout. They said: on it",
+    });
+  });
+
+  it("brings a failed poke back as a reply", async () => {
+    const runtime = new ScriptedAgentRuntime();
+    const events = [];
+    for await (const event of runtime.run(
+      {
+        ...runRequest,
+        prompt: "poke Lookout: watch the repos",
+        pokeTeammate: async () => {
+          throw new Error("No teammate named Lookout.");
+        },
+      },
+      adapterContext,
+    )) {
+      events.push(event);
+    }
+    expect(events).toContainEqual({
+      type: "text",
+      text: "No teammate named Lookout.",
+    });
+    expect(events.some((event) => event.type === "error")).toBe(false);
   });
 
   it("rejects unknown runtimes", () => {

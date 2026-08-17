@@ -36,6 +36,12 @@ export type ProcessEvent =
   | { type: "stderr"; data: string }
   | { type: "exit"; code: number };
 
+export interface PokeTeammate {
+  id: string;
+  name: string;
+  title: string;
+}
+
 export interface AgentRunRequest {
   botId: string;
   threadId: string;
@@ -45,6 +51,10 @@ export interface AgentRunRequest {
   history: Array<{ role: "user" | "assistant" | "system"; content: string }>;
   model?: string;
   providerEnv?: Record<string, string>;
+  /** Other office bots this turn may poke. Omitted for guests (not JSON-safe). */
+  teammates?: PokeTeammate[];
+  /** Host callback. Dropped on the wire to guest runtimes. */
+  pokeTeammate?: (input: { name: string; message: string }) => Promise<string>;
 }
 
 export type AgentRuntimeEvent =

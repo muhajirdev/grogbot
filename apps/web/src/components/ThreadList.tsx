@@ -13,11 +13,23 @@ export type ThreadComputerCard = {
 };
 
 type ThreadContext = {
+  botId: string;
+  names: Record<string, string>;
   messages: ThreadMessage[];
   empty: boolean;
   computer: ThreadComputerCard | null;
   onOpenComputer: () => void;
+  onOpenPokeThread?: (threadId: string, peerName: string) => void;
 };
+
+function pokeThreadRef(message: ThreadMessage): {
+  threadId: string;
+  peerName: string;
+} | null {
+  const block = message.blocks.find((item) => item.kind === "poke_thread");
+  if (block?.kind !== "poke_thread") return null;
+  return { threadId: block.threadId, peerName: block.peerName };
+}
 
 function messageText(message: ThreadMessage): string {
   return message.blocks
@@ -60,11 +72,18 @@ function itemContent(
   context: ThreadContext,
 ) {
   const prev = context.messages[index - 1];
-  const showDay =
-    !prev || dayKey(prev.createdAt) !== dayKey(message.createdAt);
+  const showDay = !prev || dayKey(prev.createdAt) !== dayKey(message.createdAt);
   const text = messageText(message);
   const human = message.actorType === "human";
-  if (!text && !showDay) return <div className="h-0" />;
+  const fromOther =
+    message.actorType === "bot" &&
+    Boolean(message.actorId) &&
+    message.actorId !== context.botId;
+  const fromName = fromOther
+    ? context.names[message.actorId ?? ""] || "Teammate"
+    : null;
+  const pokeRef = pokeThreadRef(message);
+  if (!text && !pokeRef && !showDay) return <div className="h-0" />;
   return (
     <div className="px-7 pb-2.5">
       {showDay ? (
@@ -72,16 +91,34 @@ function itemContent(
           {formatDaySep(message.createdAt)}
         </div>
       ) : null}
-      {text ? (
+      {text || pokeRef ? (
         <div
           className={cn(
             "max-w-[72%] rounded-[18px] px-3.5 py-2.5 text-[15px] leading-snug whitespace-pre-wrap",
             human
               ? "ml-auto border border-[#2a2a2a] bg-[#1a1a1a] light:border-line light:bg-white"
-              : "mr-auto bg-[#141414] light:bg-[#ececec]",
+              : fromOther
+                ? "mr-auto border border-line bg-transparent text-[13px] text-muted"
+                : "mr-auto bg-[#141414] light:bg-[#ececec]",
           )}
         >
+          {fromName ? (
+            <div className="mb-1 text-[11px] font-medium tracking-wide text-muted uppercase">
+              From {fromName}
+            </div>
+          ) : null}
           {text}
+          {pokeRef && context.onOpenPokeThread ? (
+            <button
+              type="button"
+              className="mt-2 block border-0 bg-transparent p-0 text-[13px] font-medium text-inherit underline underline-offset-2"
+              onClick={() =>
+                context.onOpenPokeThread?.(pokeRef.threadId, pokeRef.peerName)
+              }
+            >
+              Open thread
+            </button>
+          ) : null}
         </div>
       ) : null}
     </div>
@@ -98,26 +135,43 @@ function followOutput(atBottom: boolean) {
 
 export function ThreadList(props: {
   botId: string;
+  teammateNames?: Record<string, string>;
   messages: ThreadMessage[];
   empty: boolean;
   computer: ThreadComputerCard | null;
   working: string;
   onOpenComputer: () => void;
+  onOpenPokeThread?: (threadId: string, peerName: string) => void;
 }) {
   const listRef = useRef<VirtuosoHandle>(null);
   const atBottomRef = useRef(true);
   const visible = useMemo(
-    () => props.messages.filter((message) => messageText(message).length > 0),
+    () =>
+      props.messages.filter(
+        (message) =>
+          messageText(message).length > 0 || Boolean(pokeThreadRef(message)),
+      ),
     [props.messages],
   );
   const context = useMemo<ThreadContext>(
     () => ({
+      botId: props.botId,
+      names: props.teammateNames ?? {},
       messages: visible,
       empty: props.empty,
       computer: props.computer,
       onOpenComputer: props.onOpenComputer,
+      onOpenPokeThread: props.onOpenPokeThread,
     }),
-    [visible, props.empty, props.computer, props.onOpenComputer],
+    [
+      props.botId,
+      props.teammateNames,
+      visible,
+      props.empty,
+      props.computer,
+      props.onOpenComputer,
+      props.onOpenPokeThread,
+    ],
   );
 
   const visibleRef = useRef(visible);

@@ -314,6 +314,9 @@ importers:
       '@grogbot/adapter-kit':
         specifier: workspace:*
         version: link:../adapter-kit
+      valibot:
+        specifier: ^1.1.0
+        version: 1.4.2(typescript@5.9.3)
     devDependencies:
       typescript:
         specifier: ^5.9.2

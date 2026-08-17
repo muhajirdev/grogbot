@@ -1,6 +1,7 @@
 import type {
   Bot,
   ComputerStatus,
+  MessageBlock,
   ProductEvent,
   Routine,
   SandboxKind,
@@ -17,7 +18,7 @@ import {
   type computers,
   type Database,
   events,
-  type messages,
+  messages,
   type routines,
 } from "@grogbot/db";
 import { and, asc, desc, eq, gt } from "drizzle-orm";
@@ -156,6 +157,48 @@ export async function nextSeq(
     .orderBy(desc(table.seq))
     .limit(1);
   return (row?.seq ?? 0) + 1;
+}
+
+export async function appendThreadMessage(
+  db: Database,
+  input: {
+    workspaceId: string;
+    threadId: string;
+    botId: string;
+    actorType: "human" | "bot" | "system";
+    actorId: string | null;
+    blocks: MessageBlock[];
+    runId?: string | null;
+  },
+): Promise<{ id: string; seq: number }> {
+  const seq = await nextSeq(db, messages, input.threadId);
+  const id = crypto.randomUUID();
+  await db.insert(messages).values({
+    id,
+    threadId: input.threadId,
+    seq,
+    actorType: input.actorType,
+    actorId: input.actorId,
+    blocks: input.blocks,
+    runId: input.runId ?? null,
+  });
+  await appendEvent(db, {
+    workspaceId: input.workspaceId,
+    threadId: input.threadId,
+    botId: input.botId,
+    type: "message.created",
+    payload: {
+      id,
+      seq,
+      actorType: input.actorType,
+      actorId: input.actorId,
+      blocks: input.blocks,
+      runId: input.runId ?? null,
+      createdAt: new Date().toISOString(),
+    },
+    runId: input.runId ?? null,
+  });
+  return { id, seq };
 }
 
 export async function appendEvent(
