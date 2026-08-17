@@ -107,7 +107,7 @@ export function Onboarding() {
   );
 
   const modelsReady = Boolean(
-    meQuery.data && !meQuery.data.needsModel && selectedMeta?.available,
+    meQuery.data && (!meQuery.data.needsModel || selectedMeta?.available),
   );
 
   const keyDraft =
