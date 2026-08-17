@@ -1,6 +1,9 @@
-import type { Bot, ThreadMessage } from "@grogbot/contracts";
+import type { Bot, PluginConnection, ThreadMessage } from "@grogbot/contracts";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
-import { createCollection, localOnlyCollectionOptions } from "@tanstack/react-db";
+import {
+  createCollection,
+  localOnlyCollectionOptions,
+} from "@tanstack/react-db";
 import { orpc, queryClient } from "./orpc";
 import { client } from "./rpc";
 
@@ -44,6 +47,20 @@ export const botsCollection = createCollection(
 export function peekBots(): Bot[] {
   return [...botsCollection.values()];
 }
+
+export const pluginsCollection = createCollection(
+  queryCollectionOptions<PluginConnection>({
+    id: "plugins",
+    queryClient,
+    queryKey: orpc.plugins.list.queryOptions().queryKey,
+    queryFn: () => client.plugins.list(),
+    getKey: (item) => item.id,
+    staleTime: 15_000,
+    gcTime: 30 * 60_000,
+    retry: false,
+    refetchOnWindowFocus: true,
+  }),
+);
 
 export function upsertBot(bot: Bot): void {
   botsCollection.utils.writeUpsert(bot);

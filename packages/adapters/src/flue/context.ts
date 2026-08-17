@@ -3,6 +3,12 @@ export interface TeammateTurn {
   model: string;
   teammates?: Array<{ id: string; name: string; title: string }>;
   poke?: (name: string, message: string) => Promise<string>;
+  pluginToolkits?: string[];
+  composioSearch?: (query: string) => Promise<string>;
+  composioExecute?: (
+    slug: string,
+    args: Record<string, unknown>,
+  ) => Promise<string>;
 }
 
 const turns = new Map<string, TeammateTurn>();

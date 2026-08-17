@@ -6,65 +6,10 @@ export type PluginCard = {
   blurb: string;
   category: string;
   kind: PluginKind;
+  logo?: string;
 };
 
-export const PLUGIN_CATALOG: PluginCard[] = [
-  {
-    id: "gmail",
-    name: "Gmail",
-    blurb: "Read and draft mail when a Bot hits a wall.",
-    category: "Featured",
-    kind: "connector",
-  },
-  {
-    id: "gcal",
-    name: "Google Calendar",
-    blurb: "Check the week. Never send invites on its own.",
-    category: "Featured",
-    kind: "connector",
-  },
-  {
-    id: "gdrive",
-    name: "Google Drive",
-    blurb: "Open the docs you name in chat.",
-    category: "Featured",
-    kind: "connector",
-  },
-  {
-    id: "granola",
-    name: "Granola",
-    blurb: "Pull meeting notes into a handoff.",
-    category: "Featured",
-    kind: "connector",
-  },
-  {
-    id: "linear",
-    name: "Linear",
-    blurb: "Find issues. Never change status without you.",
-    category: "Agent Orchestration",
-    kind: "connector",
-  },
-  {
-    id: "arize",
-    name: "Arize",
-    blurb: "Watch traces the Bot should not invent.",
-    category: "Agent Orchestration",
-    kind: "connector",
-  },
-  {
-    id: "atlan",
-    name: "Atlan",
-    blurb: "Cite the catalog, not a guess.",
-    category: "Agent Orchestration",
-    kind: "connector",
-  },
-  {
-    id: "aws-agents",
-    name: "AWS Agents",
-    blurb: "Call an AWS agent when you say so.",
-    category: "Agent Orchestration",
-    kind: "connector",
-  },
+export const PLUGIN_SKILLS: PluginCard[] = [
   {
     id: "docs-canvas",
     name: "Docs Canvas",
@@ -81,32 +26,117 @@ export const PLUGIN_CATALOG: PluginCard[] = [
   },
 ];
 
-const KEY = "grogbot.plugins";
+const CATALOG_URL =
+  "https://raw.githubusercontent.com/ComposioHQ/composio/master/docs/public/data/toolkits.json";
 
-export function readAddedPlugins(): string[] {
+export type CatalogToolkit = {
+  slug: string;
+  name: string;
+  description: string;
+  category: string;
+  logo: string;
+};
+
+export function parseComposioCatalog(raw: unknown): CatalogToolkit[] {
+  if (!Array.isArray(raw)) return [];
+  const out: CatalogToolkit[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const row = item as Record<string, unknown>;
+    const slug = String(row.slug ?? "")
+      .trim()
+      .toLowerCase();
+    const name = String(row.name ?? "").trim();
+    if (!slug || !name || slug === "composio") continue;
+    out.push({
+      slug,
+      name,
+      description: String(row.description ?? "").trim(),
+      category: String(row.category ?? "other").trim() || "other",
+      logo:
+        String(row.logo ?? "").trim() ||
+        `https://logos.composio.dev/api/${slug}`,
+    });
+  }
+  return out;
+}
+
+export function catalogToCards(rows: CatalogToolkit[]): PluginCard[] {
+  return rows.map((row) => ({
+    id: row.slug,
+    name: row.name,
+    blurb: row.description,
+    category: titleCase(row.category),
+    kind: "connector",
+    logo: row.logo,
+  }));
+}
+
+function titleCase(value: string): string {
+  return value
+    .split(/[\s_/]+/)
+    .filter(Boolean)
+    .map((part) => part[0]?.toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+let catalogPromise: Promise<PluginCard[]> | undefined;
+
+export function loadPluginCatalog(): Promise<PluginCard[]> {
+  catalogPromise ??= fetchCatalog();
+  return catalogPromise;
+}
+
+async function fetchCatalog(): Promise<PluginCard[]> {
   try {
-    const raw = localStorage.getItem(KEY);
-    const parsed: unknown = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed.map(String) : [];
+    const response = await fetch(CATALOG_URL);
+    if (!response.ok) throw new Error(String(response.status));
+    return [
+      ...catalogToCards(parseComposioCatalog(await response.json())),
+      ...PLUGIN_SKILLS,
+    ];
   } catch {
-    return [];
+    return [
+      {
+        id: "gmail",
+        name: "Gmail",
+        blurb: "Read and draft mail when a Bot hits a wall.",
+        category: "Featured",
+        kind: "connector",
+        logo: "https://logos.composio.dev/api/gmail",
+      },
+      {
+        id: "github",
+        name: "GitHub",
+        blurb: "Find PRs. Never merge on its own.",
+        category: "Featured",
+        kind: "connector",
+        logo: "https://logos.composio.dev/api/github",
+      },
+      ...PLUGIN_SKILLS,
+    ];
   }
 }
 
-export function writeAddedPlugins(ids: string[]): void {
-  localStorage.setItem(KEY, JSON.stringify(ids));
+export function logoNeedsLightPlate(luminance: number): boolean {
+  return luminance < 90;
 }
 
-export function readConnectedPlugins(): string[] {
-  try {
-    const raw = localStorage.getItem(`${KEY}.connected`);
-    const parsed: unknown = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed.map(String) : [];
-  } catch {
-    return [];
+export function sampleLuminance(
+  data: Uint8ClampedArray,
+  step = 16,
+): number | undefined {
+  let sum = 0;
+  let count = 0;
+  for (let i = 0; i < data.length; i += step) {
+    const alpha = data[i + 3] ?? 0;
+    if (alpha < 32) continue;
+    const r = data[i] ?? 0;
+    const g = data[i + 1] ?? 0;
+    const b = data[i + 2] ?? 0;
+    sum += 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    count += 1;
   }
-}
-
-export function writeConnectedPlugins(ids: string[]): void {
-  localStorage.setItem(`${KEY}.connected`, JSON.stringify(ids));
+  if (count === 0) return undefined;
+  return sum / count;
 }

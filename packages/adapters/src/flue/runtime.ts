@@ -119,6 +119,9 @@ export class FlueAgentRuntime implements AgentRuntime {
         model,
         teammates: request.teammates,
         poke: poke ? (name, message) => poke({ name, message }) : undefined,
+        pluginToolkits: request.pluginToolkits,
+        composioSearch: request.composioSearch,
+        composioExecute: request.composioExecute,
       });
       const handle = init(Teammate, { id: instanceId });
       const receipt = await handle.dispatch({

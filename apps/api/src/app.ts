@@ -10,6 +10,7 @@ import { mountDiscovery } from "./discovery.js";
 import { type Env, oauthCredentials } from "./env.js";
 import { healthPayload } from "./health.js";
 import { createMailer } from "./mail.js";
+import { completePluginCallback, pluginCallbackPage } from "./plugins.js";
 import { mountRpc } from "./rpc.js";
 
 export interface AppHandles extends Omit<RpcContext, "headers"> {
@@ -63,6 +64,18 @@ export function createApp(env: Env): AppHandles {
   };
   mountRpc(app, handles);
   mountDiscovery(app, env.webOrigin);
+
+  app.get("/api/plugins/callback", async (c) => {
+    await completePluginCallback(handles, {
+      id: c.req.query("id"),
+      status: c.req.query("status") ?? undefined,
+      connectedAccountId:
+        c.req.query("connectedAccountId") ??
+        c.req.query("connected_account_id") ??
+        undefined,
+    });
+    return c.html(pluginCallbackPage(env.webOrigin));
+  });
 
   if (!env.workerUrl) {
     app.all("/guest/*", async (c) => {

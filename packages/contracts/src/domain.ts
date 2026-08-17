@@ -213,6 +213,42 @@ export const WorkspaceInviteSchema = z.object({
   url: z.string(),
 });
 
+export const ToolkitSlug = z
+  .string()
+  .min(1)
+  .max(64)
+  .regex(/^[a-z][a-z0-9-]*$/);
+export type ToolkitSlug = z.infer<typeof ToolkitSlug>;
+
+export const PluginStatus = z.enum([
+  "added",
+  "connecting",
+  "connected",
+  "error",
+]);
+export type PluginStatus = z.infer<typeof PluginStatus>;
+
+export const PluginConnectionSchema = z.object({
+  id: Id,
+  toolkit: ToolkitSlug,
+  status: PluginStatus,
+  connectedAccountId: z.string().nullable(),
+  lastError: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+export type PluginConnection = z.infer<typeof PluginConnectionSchema>;
+
+export const PluginConnectResultSchema = z.object({
+  connection: PluginConnectionSchema,
+  redirectUrl: z.string().nullable(),
+});
+export type PluginConnectResult = z.infer<typeof PluginConnectResultSchema>;
+
+export const PluginStatusSchema = z.object({
+  composio: z.boolean(),
+});
+
 export const MeSchema = z.object({
   userId: Id,
   email: z.string().email(),

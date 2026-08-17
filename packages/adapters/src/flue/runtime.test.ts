@@ -86,6 +86,36 @@ describe("FlueAgentRuntime", () => {
     });
   });
 
+  it("echoes through the Pi harness with Composio tools mounted", async () => {
+    const runtime = createAgentRuntime("flue-echo");
+    const events = [];
+    for await (const event of runtime.run(
+      {
+        botId: "bot-flue-plugins",
+        threadId: "thread-flue-plugins",
+        runId: "run-flue-plugins",
+        prompt: "summarize the handoff",
+        instructions: "You are Piper.",
+        history: [{ role: "user", content: "summarize the handoff" }],
+        composioUserId: "grogbot:ws:1",
+        pluginToolkits: ["gmail"],
+        composioSearch: async () => "should not run on echo",
+        composioExecute: async () => "should not run on echo",
+      },
+      {
+        ...adapterContext,
+        botId: "bot-flue-plugins",
+        runId: "run-flue-plugins",
+      },
+    )) {
+      events.push(event);
+    }
+    expect(events).toContainEqual({
+      type: "text",
+      text: "Echo: summarize the handoff",
+    });
+  });
+
   it("echoes through the Pi harness offline", async () => {
     const runtime = createAgentRuntime("flue-echo");
     const events = [];

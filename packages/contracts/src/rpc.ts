@@ -12,8 +12,12 @@ import {
   JoinWorkspaceInput,
   MemoryDocumentSchema,
   MeSchema,
+  PluginConnectionSchema,
+  PluginConnectResultSchema,
+  PluginStatusSchema,
   PokeThreadSchema,
   RoutineSchema,
+  ToolkitSlug,
   UpdateBotInput,
   WorkspaceInvitationSchema,
   WorkspaceInviteSchema,
@@ -35,6 +39,7 @@ export const appContract = oc.router({
       wakeup: z.string(),
       oauth: z.array(z.enum(["google", "github"])),
       mail: z.enum(["cloudflare", "log"]),
+      composio: z.boolean(),
     }),
   ),
   me: oc.output(MeSchema),
@@ -92,6 +97,23 @@ export const appContract = oc.router({
     list: oc
       .input(z.object({ botId: Id.optional() }))
       .output(z.array(MemoryDocumentSchema)),
+  },
+  plugins: {
+    status: oc.output(PluginStatusSchema),
+    list: oc.output(z.array(PluginConnectionSchema)),
+    add: oc
+      .input(z.object({ toolkit: ToolkitSlug }))
+      .output(PluginConnectionSchema),
+    connect: oc
+      .input(z.object({ toolkit: ToolkitSlug }))
+      .output(PluginConnectResultSchema),
+    disconnect: oc
+      .input(z.object({ toolkit: ToolkitSlug }))
+      .output(PluginConnectionSchema),
+    remove: oc
+      .input(z.object({ toolkit: ToolkitSlug }))
+      .output(z.object({ ok: z.literal(true) })),
+    refresh: oc.output(z.array(PluginConnectionSchema)),
   },
   routines: {
     list: oc.input(botId).output(z.array(RoutineSchema)),

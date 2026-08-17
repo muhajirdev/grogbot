@@ -5,6 +5,7 @@ import type { WakeupJob } from "@grogbot/adapter-kit";
 import {
   bindAgentRuntime,
   createAgentRuntime,
+  createPluginTools,
   InProcessWakeupDriver,
   resolveAgentRuntimeKind,
 } from "@grogbot/adapters";
@@ -65,6 +66,7 @@ async function main() {
       wakeup,
       guests,
       bindRuntime: (overlay) => bindAgentRuntime(agentRuntime, overlay),
+      pluginTools: (input) => createPluginTools(input),
     }),
   );
 

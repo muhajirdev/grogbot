@@ -32,6 +32,8 @@ describe("GuestHub", () => {
           instructions: "",
           history: [],
           pokeTeammate: async () => "should not cross the wire",
+          composioSearch: async () => "should not cross the wire",
+          composioExecute: async () => "should not cross the wire",
         },
         undefined,
       )) {
@@ -44,6 +46,8 @@ describe("GuestHub", () => {
     expect(message.type).toBe("run");
     if (message.type === "run") {
       expect(message.request.pokeTeammate).toBeUndefined();
+      expect(message.request.composioSearch).toBeUndefined();
+      expect(message.request.composioExecute).toBeUndefined();
     }
     expect(
       hub.onEvent(session.id, "r1", { type: "text", text: "Guest: hi" }),

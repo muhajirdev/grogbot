@@ -45,6 +45,15 @@ import {
   rotateGuest,
 } from "./guests.js";
 import { healthPayload } from "./health.js";
+import {
+  addPlugin,
+  connectPlugin,
+  disconnectPlugin,
+  listPlugins,
+  pluginStatus,
+  refreshPlugins,
+  removePlugin,
+} from "./plugins.js";
 import { requireActor, requireUser } from "./session.js";
 import {
   createWorkspace,
@@ -316,6 +325,27 @@ export const appRouter = os.router({
       await requireActor(context);
       return [];
     }),
+  },
+  plugins: {
+    status: os.plugins.status.handler(async ({ context }) =>
+      pluginStatus(context),
+    ),
+    list: os.plugins.list.handler(async ({ context }) => listPlugins(context)),
+    add: os.plugins.add.handler(async ({ context, input }) =>
+      addPlugin(context, input.toolkit),
+    ),
+    connect: os.plugins.connect.handler(async ({ context, input }) =>
+      connectPlugin(context, input.toolkit),
+    ),
+    disconnect: os.plugins.disconnect.handler(async ({ context, input }) =>
+      disconnectPlugin(context, input.toolkit),
+    ),
+    remove: os.plugins.remove.handler(async ({ context, input }) =>
+      removePlugin(context, input.toolkit),
+    ),
+    refresh: os.plugins.refresh.handler(async ({ context }) =>
+      refreshPlugins(context),
+    ),
   },
   routines: {
     list: os.routines.list.handler(async ({ context, input }) => {

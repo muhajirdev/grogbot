@@ -1,31 +1,73 @@
-import { useMemo, useState } from "react";
+import type { PluginConnection } from "@grogbot/contracts";
+import { useLiveQuery } from "@tanstack/react-db";
+import { useEffect, useMemo, useState } from "react";
+import { pluginsCollection } from "../lib/collections";
+import { userFacingError } from "../lib/errors";
 import {
-  PLUGIN_CATALOG,
-  readAddedPlugins,
-  readConnectedPlugins,
-  writeAddedPlugins,
-  writeConnectedPlugins,
+  loadPluginCatalog,
+  logoNeedsLightPlate,
+  type PluginCard,
+  sampleLuminance,
 } from "../lib/plugins";
+import { client } from "../lib/rpc";
+import { cn, ModalShell } from "../ui";
 import { CheckIcon, CloseIcon, FilterIcon, SearchIcon } from "./Icons";
-import { ModalShell } from "../ui";
+
+const PLUGIN_MESSAGE = "grogbot:plugin";
 
 export function PluginsModal(props: { onClose: () => void }) {
   const [tab, setTab] = useState<"market" | "yours">("market");
   const [query, setQuery] = useState("");
-  const [added, setAdded] = useState(readAddedPlugins);
-  const [connected, setConnected] = useState(readConnectedPlugins);
+  const [catalog, setCatalog] = useState<PluginCard[]>([]);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState("");
+  const connectionsQuery = useLiveQuery((q) =>
+    q.from({ plugin: pluginsCollection }),
+  );
+  const connections = connectionsQuery.data ?? [];
+  const byToolkit = useMemo(() => {
+    const map = new Map<string, PluginConnection>();
+    for (const row of connections) map.set(row.toolkit, row);
+    return map;
+  }, [connections]);
+
+  useEffect(() => {
+    void loadPluginCatalog().then(setCatalog);
+  }, []);
+
+  useEffect(() => {
+    function onMessage(event: MessageEvent) {
+      const data = event.data as { type?: string } | null;
+      if (data?.type !== PLUGIN_MESSAGE) return;
+      void client.plugins.refresh().then((rows) => {
+        pluginsCollection.utils.writeUpsert(rows);
+      });
+    }
+    function onFocus() {
+      void pluginsCollection.utils.refetch();
+    }
+    window.addEventListener("message", onMessage);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.removeEventListener("message", onMessage);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, []);
+
   const q = query.trim().toLowerCase();
   const visible = useMemo(
     () =>
-      PLUGIN_CATALOG.filter((item) => {
-        if (q && !item.name.toLowerCase().includes(q)) return false;
-        if (tab === "yours") return added.includes(item.id);
+      catalog.filter((item) => {
+        if (q && !item.name.toLowerCase().includes(q) && !item.id.includes(q)) {
+          return false;
+        }
+        if (tab === "yours") return byToolkit.has(item.id);
         return true;
       }),
-    [added, q, tab],
+    [byToolkit, catalog, q, tab],
   );
   const groups = useMemo(() => {
-    const map = new Map<string, typeof visible>();
+    const map = new Map<string, PluginCard[]>();
     for (const item of visible) {
       const list = map.get(item.category) ?? [];
       list.push(item);
@@ -34,7 +76,7 @@ export function PluginsModal(props: { onClose: () => void }) {
     if (tab === "yours") {
       const installed = visible.filter((item) => item.kind === "connector");
       const skills = visible.filter((item) => item.kind === "skill");
-      const next = new Map<string, typeof visible>();
+      const next = new Map<string, PluginCard[]>();
       if (installed.length) next.set("Installed", installed);
       if (skills.length) next.set("Skills", skills);
       if (!installed.length && !skills.length) next.set("Private", []);
@@ -43,31 +85,52 @@ export function PluginsModal(props: { onClose: () => void }) {
     return map;
   }, [tab, visible]);
 
-  function toggleAdd(id: string) {
-    const next = added.includes(id)
-      ? added.filter((item) => item !== id)
-      : [...added, id];
-    setAdded(next);
-    writeAddedPlugins(next);
-    if (added.includes(id)) {
-      const rest = connected.filter((item) => item !== id);
-      setConnected(rest);
-      writeConnectedPlugins(rest);
+  async function addOrRemove(item: PluginCard) {
+    if (item.kind !== "connector") return;
+    setError("");
+    setBusy(item.id);
+    try {
+      if (byToolkit.has(item.id)) {
+        await client.plugins.remove({ toolkit: item.id });
+        const row = byToolkit.get(item.id);
+        if (row) pluginsCollection.utils.writeDelete([row.id]);
+      } else {
+        const row = await client.plugins.add({ toolkit: item.id });
+        pluginsCollection.utils.writeUpsert(row);
+      }
+    } catch (caught) {
+      setError(userFacingError(caught, "Could not update plugin"));
+    } finally {
+      setBusy(null);
     }
   }
 
-  function toggleConnect(id: string) {
-    const next = connected.includes(id)
-      ? connected.filter((item) => item !== id)
-      : [...connected, id];
-    setConnected(next);
-    writeConnectedPlugins(next);
+  async function authenticate(item: PluginCard) {
+    setError("");
+    setBusy(item.id);
+    try {
+      const result = await client.plugins.connect({ toolkit: item.id });
+      pluginsCollection.utils.writeUpsert(result.connection);
+      if (result.redirectUrl) {
+        window.open(
+          result.redirectUrl,
+          "grogbot-plugin",
+          "popup,width=480,height=720",
+        );
+      }
+    } catch (caught) {
+      setError(userFacingError(caught, "Could not connect plugin"));
+    } finally {
+      setBusy(null);
+    }
   }
+
+  const emptySearch = q.length > 0 && visible.length === 0;
 
   return (
     <ModalShell wide onClose={props.onClose}>
-      <div className="modal-head">
-        <h2>Plugins</h2>
+      <div className="flex items-center justify-between border-b border-line px-[18px] py-3.5">
+        <h2 className="m-0 text-lg">Plugins</h2>
         <button
           className="icon-btn"
           type="button"
@@ -77,22 +140,22 @@ export function PluginsModal(props: { onClose: () => void }) {
           <CloseIcon />
         </button>
       </div>
-      <div className="tabs">
+      <div className="flex items-center gap-2 border-b border-line px-[18px]">
         <button
-          className={`tab${tab === "market" ? " on" : ""}`}
+          className={cn("tab", tab === "market" && "on")}
           type="button"
           onClick={() => setTab("market")}
         >
           Marketplace
         </button>
         <button
-          className={`tab${tab === "yours" ? " on" : ""}`}
+          className={cn("tab", tab === "yours" && "on")}
           type="button"
           onClick={() => setTab("yours")}
         >
           Yours
         </button>
-        <div className="tabs-search">
+        <div className="ml-auto flex items-center gap-2 text-muted">
           <FilterIcon />
           <label className="search-field compact">
             <SearchIcon />
@@ -104,68 +167,141 @@ export function PluginsModal(props: { onClose: () => void }) {
           </label>
         </div>
       </div>
-      <div className="plugins-body">
-        {[...groups.entries()].map(([category, items]) => (
-          <section key={category} className="plugin-group">
-            <p className="group-label">{category}</p>
-            {items.length === 0 ? (
-              <p className="muted">
-                No private skills yet. Ask your Bot to create one for you.
-              </p>
-            ) : (
-              <div className="plugin-grid">
-                {items.map((item) => {
-                  const on = added.includes(item.id);
-                  const live = connected.includes(item.id);
-                  return (
-                    <article key={item.id} className="plugin-card">
-                      <div>
-                        <strong>{item.name}</strong>
-                        {tab === "yours" ? (
-                          <p className="muted">
-                            1 {item.kind === "skill" ? "skill" : "connector"}
-                          </p>
-                        ) : (
-                          <p className="muted">{item.blurb}</p>
-                        )}
-                      </div>
-                      {tab === "market" ? (
-                        <button
-                          className={`mini${on ? " on" : ""}`}
-                          type="button"
-                          onClick={() => toggleAdd(item.id)}
-                        >
-                          {on ? (
-                            <>
-                              <CheckIcon /> Added
-                            </>
-                          ) : (
-                            "Add"
-                          )}
-                        </button>
-                      ) : item.kind === "connector" ? (
-                        live ? (
-                          <span className="ok">Connected</span>
-                        ) : (
+      {error ? (
+        <p className="px-[18px] pt-3 text-[13px] text-danger">{error}</p>
+      ) : null}
+      <div className="min-h-[280px] max-h-[min(70vh,640px)] overflow-auto px-[18px] py-4">
+        {emptySearch ? (
+          <p className="muted py-10 text-center">
+            No plugins match “{query.trim()}”.
+          </p>
+        ) : (
+          [...groups.entries()].map(([category, items]) => (
+            <section key={category} className="mb-[18px]">
+              <p className="group-label">{category}</p>
+              {items.length === 0 ? (
+                <p className="muted">
+                  Nothing here yet. Add a plugin from the marketplace, then
+                  authenticate.
+                </p>
+              ) : (
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-2.5">
+                  {items.map((item) => {
+                    const row = byToolkit.get(item.id);
+                    const on = Boolean(row);
+                    const live = row?.status === "connected";
+                    return (
+                      <article
+                        key={item.id}
+                        className="flex items-start justify-between gap-2.5 rounded-[14px] bg-card-2 p-3"
+                      >
+                        <div className="flex min-w-0 gap-2.5">
+                          {item.kind === "connector" ? (
+                            <PluginLogo
+                              slug={item.id}
+                              name={item.name}
+                              src={item.logo}
+                            />
+                          ) : null}
+                          <div className="min-w-0">
+                            <strong className="mb-1 block">{item.name}</strong>
+                            {tab === "yours" ? (
+                              <p className="muted m-0 text-xs">
+                                1{" "}
+                                {item.kind === "skill" ? "skill" : "connector"}
+                                {row?.status === "error" && row.lastError
+                                  ? ` · ${row.lastError}`
+                                  : ""}
+                              </p>
+                            ) : (
+                              <p className="muted m-0 text-xs">{item.blurb}</p>
+                            )}
+                          </div>
+                        </div>
+                        {tab === "market" ? (
                           <button
-                            className="mini"
+                            className={cn("mini", on && "on")}
                             type="button"
-                            onClick={() => toggleConnect(item.id)}
+                            disabled={
+                              busy === item.id || item.kind !== "connector"
+                            }
+                            onClick={() => void addOrRemove(item)}
                           >
-                            Authenticate
+                            {on ? (
+                              <>
+                                <CheckIcon /> Added
+                              </>
+                            ) : item.kind === "skill" ? (
+                              "Soon"
+                            ) : (
+                              "Add"
+                            )}
                           </button>
-                        )
-                      ) : (
-                        <span className="muted">1 skill</span>
-                      )}
-                    </article>
-                  );
-                })}
-              </div>
-            )}
-          </section>
-        ))}
+                        ) : item.kind === "connector" ? (
+                          live ? (
+                            <span className="ok">Connected</span>
+                          ) : (
+                            <button
+                              className="mini"
+                              type="button"
+                              disabled={busy === item.id}
+                              onClick={() => void authenticate(item)}
+                            >
+                              {row?.status === "connecting"
+                                ? "Continue"
+                                : "Authenticate"}
+                            </button>
+                          )
+                        ) : (
+                          <span className="muted">1 skill</span>
+                        )}
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          ))
+        )}
       </div>
     </ModalShell>
+  );
+}
+
+function PluginLogo(props: { slug: string; name: string; src?: string }) {
+  const [plate, setPlate] = useState(false);
+  const src = props.src || `https://logos.composio.dev/api/${props.slug}`;
+  return (
+    <span
+      className={cn(
+        "grid size-9 shrink-0 place-items-center rounded-lg",
+        plate ? "bg-white" : "bg-card",
+      )}
+    >
+      <img
+        alt=""
+        src={src}
+        className="size-6 object-contain"
+        crossOrigin="anonymous"
+        onLoad={(event) => {
+          try {
+            const img = event.currentTarget;
+            const canvas = document.createElement("canvas");
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return;
+            ctx.drawImage(img, 0, 0);
+            const luminance = sampleLuminance(
+              ctx.getImageData(0, 0, canvas.width, canvas.height).data,
+            );
+            if (luminance !== undefined)
+              setPlate(logoNeedsLightPlate(luminance));
+          } catch {
+            setPlate(true);
+          }
+        }}
+      />
+    </span>
   );
 }

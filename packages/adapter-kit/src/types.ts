@@ -55,6 +55,20 @@ export interface AgentRunRequest {
   teammates?: PokeTeammate[];
   /** Host callback. Dropped on the wire to guest runtimes. */
   pokeTeammate?: (input: { name: string; message: string }) => Promise<string>;
+  /** Composio entity for this workspace. */
+  composioUserId?: string;
+  /** Connected toolkit slugs for this turn. */
+  pluginToolkits?: string[];
+  /** Host callbacks. Dropped on the wire to guest runtimes. */
+  composioSearch?: (query: string) => Promise<string>;
+  composioExecute?: (
+    slug: string,
+    args: Record<string, unknown>,
+  ) => Promise<string>;
+}
+
+export function composioUserId(workspaceId: string): string {
+  return `grogbot:ws:${workspaceId}`;
 }
 
 export type AgentRuntimeEvent =

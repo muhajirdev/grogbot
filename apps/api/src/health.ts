@@ -14,6 +14,7 @@ export function healthPayload(
     | "emailFrom"
     | "cloudflareAccountId"
     | "cloudflareEmailToken"
+    | "composioApiKey"
   >,
 ) {
   return {
@@ -26,5 +27,6 @@ export function healthPayload(
     mail: cloudflareMailConfigured(env)
       ? ("cloudflare" as const)
       : ("log" as const),
+    composio: Boolean(env.composioApiKey?.trim()),
   };
 }

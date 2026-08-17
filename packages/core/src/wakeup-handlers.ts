@@ -12,6 +12,15 @@ export function createWakeHandlers(opts: {
     env: NodeJS.ProcessEnv;
     model: string;
   }) => AgentRuntime;
+  pluginTools?: (input: { workspaceId: string; toolkits: string[] }) =>
+    | {
+        search: (query: string) => Promise<string>;
+        execute: (
+          slug: string,
+          args: Record<string, unknown>,
+        ) => Promise<string>;
+      }
+    | undefined;
 }) {
   return {
     "run.continue": async (payload: Record<string, unknown>) => {
@@ -24,6 +33,7 @@ export function createWakeHandlers(opts: {
         runId,
         guests: opts.guests,
         bindRuntime: opts.bindRuntime,
+        pluginTools: opts.pluginTools,
       });
       if (botId) {
         await opts.wakeup.enqueue({

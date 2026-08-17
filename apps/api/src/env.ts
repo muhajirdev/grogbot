@@ -26,6 +26,7 @@ export interface Env {
   emailFrom?: string;
   cloudflareEmailToken?: string;
   encryptionKey?: string;
+  composioApiKey?: string;
   production: boolean;
 }
 
@@ -111,6 +112,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     emailFrom: source.EMAIL_FROM,
     cloudflareEmailToken: source.CLOUDFLARE_EMAIL_API_TOKEN,
     encryptionKey: source.ENCRYPTION_KEY,
+    composioApiKey: source.COMPOSIO_API_KEY?.trim() || undefined,
     production: source.NODE_ENV === "production",
   };
 }

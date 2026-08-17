@@ -143,7 +143,12 @@ export class GuestHub {
     this.runBots.set(request.runId, request.botId);
     this.push(request.botId, {
       type: "run",
-      request: { ...request, pokeTeammate: undefined },
+      request: {
+        ...request,
+        pokeTeammate: undefined,
+        composioSearch: undefined,
+        composioExecute: undefined,
+      },
     });
     try {
       while (!waiter.done) {

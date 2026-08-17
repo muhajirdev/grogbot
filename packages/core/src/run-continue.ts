@@ -24,6 +24,7 @@ import {
   missingModelMessage,
   resolveRunModel,
 } from "./models.js";
+import { composioUserId, listConnectedToolkits } from "./plugin-connections.js";
 import { listPokeTeammates, pokeBot } from "./poke.js";
 import { assertTransition } from "./run-state.js";
 import { redactSecrets } from "./secret-box.js";
@@ -55,6 +56,15 @@ export async function continueRun(opts: {
     env: NodeJS.ProcessEnv;
     model: string;
   }) => AgentRuntime;
+  pluginTools?: (input: { workspaceId: string; toolkits: string[] }) =>
+    | {
+        search: (query: string) => Promise<string>;
+        execute: (
+          slug: string,
+          args: Record<string, unknown>,
+        ) => Promise<string>;
+      }
+    | undefined;
 }): Promise<void> {
   const { db, runId, guests } = opts;
   const [run] = await db.select().from(runs).where(eq(runs.id, runId)).limit(1);
@@ -175,6 +185,11 @@ export async function continueRun(opts: {
   const bound = opts.bindRuntime ? opts.bindRuntime(overlay) : opts.runtime;
   const runner = guestEnabled && guests ? new GuestAgentRuntime(guests) : bound;
   const teammates = await listPokeTeammates(db, bot);
+  const pluginToolkits = await listConnectedToolkits(db, run.workspaceId);
+  const plugins = opts.pluginTools?.({
+    workspaceId: run.workspaceId,
+    toolkits: pluginToolkits,
+  });
   const pokeStack = opts.pokeStack ?? [];
   const pokeTeammate =
     teammates.length === 0
@@ -213,6 +228,10 @@ export async function continueRun(opts: {
         model: overlay.model,
         teammates,
         pokeTeammate,
+        composioUserId: composioUserId(run.workspaceId),
+        pluginToolkits,
+        composioSearch: plugins?.search,
+        composioExecute: plugins?.execute,
       },
       {
         operationId: newId(),

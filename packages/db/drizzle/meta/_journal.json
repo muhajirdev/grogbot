@@ -71,6 +71,13 @@
       "when": 1786943000000,
       "tag": "0009_poke_threads",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1786944000000,
+      "tag": "0010_plugin_connections",
+      "breakpoints": true
     }
   ]
 }

@@ -343,3 +343,33 @@ export const workspaceModels = pgTable("workspace_models", {
     .notNull()
     .defaultNow(),
 });
+
+/** Composio toolkit connection for a workspace. Tokens stay at Composio. */
+export const pluginConnections = pgTable(
+  "plugin_connections",
+  {
+    id: text("id").primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id),
+    toolkit: text("toolkit").notNull(),
+    status: text("status").notNull(),
+    connectedAccountId: text("connected_account_id"),
+    lastError: text("last_error"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("plugin_connections_workspace_toolkit").on(
+      t.workspaceId,
+      t.toolkit,
+    ),
+  ],
+);

@@ -5,6 +5,7 @@ export * from "./guest-runtime.js";
 export * from "./guest-token.js";
 export * from "./ids.js";
 export * from "./models.js";
+export * from "./plugin-connections.js";
 export * from "./poke.js";
 export * from "./run-continue.js";
 export * from "./run-state.js";

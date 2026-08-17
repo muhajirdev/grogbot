@@ -4,6 +4,7 @@ import { useInstruction, useModel, useTool } from "@flue/runtime";
 import * as v from "valibot";
 import { peekTeammateTurn } from "./context.js";
 import { ECHO_MODEL } from "./echo.js";
+import { useComposio } from "./tools.js";
 
 /**
  * One Grogbot teammate type. Instances are `botId:threadId`, not new modules.
@@ -16,7 +17,8 @@ export function Teammate(props: { id: string }) {
   useModel(turn?.model ?? ECHO_MODEL);
   if (turn?.instructions) useInstruction(turn.instructions);
   usePoke(props.id, turn);
-  return "You are a Grogbot teammate in an office thread. Be concise and useful. The human talks primarily to you. If another teammate must do a slice of work, poke them and bring their reply back here. Do not send the human to their office.";
+  useComposio(props.id);
+  return "You are a Grogbot teammate in an office thread. Be concise and useful. The human talks primarily to you. If another teammate must do a slice of work, poke them and bring their reply back here. Do not send the human to their office. Connected plugins are available via composio_search and composio_execute. Draft mail, events, issues, and PRs; do not send, pay, merge, or delete unless the human clearly asked.";
 }
 
 function usePoke(
