@@ -67,12 +67,16 @@ describe("FlueAgentRuntime", () => {
     const events = [];
     for await (const event of runtime.run(
       {
-        ...runRequest,
+        botId: "bot-flue-poke",
+        threadId: "thread-flue-poke",
         runId: "run-flue-poke",
+        prompt: "summarize the handoff",
+        instructions: "You are Piper.",
+        history: [{ role: "user", content: "summarize the handoff" }],
         teammates: [{ id: "look", name: "Lookout", title: "Watch" }],
         pokeTeammate: async () => "should not run on echo",
       },
-      { ...adapterContext, runId: "run-flue-poke" },
+      { ...adapterContext, botId: "bot-flue-poke", runId: "run-flue-poke" },
     )) {
       events.push(event);
     }
