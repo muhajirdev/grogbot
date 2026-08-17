@@ -17,6 +17,8 @@ describe("createSandboxProvider", () => {
   });
 
   it("rejects unknown kinds", () => {
-    expect(() => createSandboxProvider("modal")).toThrow(/Unknown SANDBOX_PROVIDER/);
+    expect(() => createSandboxProvider("modal")).toThrow(
+      /Unknown SANDBOX_PROVIDER/,
+    );
   });
 });
