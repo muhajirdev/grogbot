@@ -2,6 +2,7 @@ import {
   type DiscoveryOrigins,
   GROGBOT_ALTERNATE_NAMES,
   GROGBOT_APP,
+  GROGBOT_EMAIL,
   GROGBOT_GITHUB,
   GROGBOT_LANGUAGE,
   GROGBOT_LICENSE,
@@ -82,6 +83,7 @@ ${list(GROGBOT_NOT_SERVICES)}
 ## Contact
 
 - Website: ${web}
+- Email: ${GROGBOT_EMAIL}
 - Source: ${GROGBOT_GITHUB}
 - License: ${GROGBOT_LICENSE}
 
@@ -155,6 +157,7 @@ See robots.txt and robots-ai.txt. Authenticated app routes are not a public corp
 
 Site: ${GROGBOT_NAME}
 Domain: grogbot.com
+Email: ${GROGBOT_EMAIL}
 Source: ${GROGBOT_GITHUB}
 Canonical URL: ${web}
 
@@ -214,6 +217,7 @@ Markdown: ${abs(origins.web, "/press.md")}
 ## Contact
 
 - Website: ${origins.web}
+- Email: ${GROGBOT_EMAIL}
 - Source: ${GROGBOT_GITHUB}
 
 # ---
@@ -284,6 +288,11 @@ URL: [ai.txt](${abs(web, "/ai.txt")})
 
 ---
 
+Q: Does my data leave the office?
+A: Self-host and the office stays in your Postgres and sandboxes — grogbot.com never sees it. Hosted grogbot.com stores the office for you. Either way, a Bot talking to a model sends the prompt to the provider behind your key. Pick one with a zero-retention agreement if you need that. Grogbot does not claim zero retention: the office is meant to remember.
+
+---
+
 Q: What models does it use?
 A: Bring your own keys (Pi catalog). Tests use a scripted runtime so they stay offline.
 
@@ -305,7 +314,12 @@ A: No. Bring your own keys. OpenRouter is one key for many models, or paste Anth
 ---
 
 Q: Can I measure AI adoption across the team?
-A: Yes. A leaderboard of who is putting Bots to work — plus spend and which models the team uses. Personal agents hide in laptops. This is visible to the team.
+A: Yes — and that’s the point. A personal agent hides on a laptop. Who is putting Bots to work is on the board, plus spend and which models. That’s how the rest of the team starts.
+
+---
+
+Q: How do I talk to a person?
+A: Email ${GROGBOT_EMAIL}. GitHub issues for the source. The office is for the product — this mailbox is for you.
 
 ---
 
@@ -384,6 +398,7 @@ packages/contracts rpc adapter-kit core db auth adapters seo
 
 ## Contact
 
+- Email: ${GROGBOT_EMAIL}
 - Source: ${GROGBOT_GITHUB}
 
 # ---
@@ -550,6 +565,11 @@ export function identityJson(
     contactPoints: [
       {
         type: "GeneralEnquiries",
+        email: GROGBOT_EMAIL,
+        url: `mailto:${GROGBOT_EMAIL}`,
+      },
+      {
+        type: "Source",
         url: GROGBOT_GITHUB,
       },
     ],

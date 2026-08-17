@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Breadcrumbs, SiteChrome } from "../../components/SiteChrome";
+import { UseCaseApps } from "../../components/UseCaseApps";
 import { USE_CASES } from "../../data/use-cases";
 import { appLoginUrl } from "../../lib/app-url";
 import { breadcrumbJsonLd, itemListJsonLd } from "../../lib/json-ld";
@@ -35,29 +36,39 @@ function UseCasesIndex() {
   const { startUrl, items } = Route.useLoaderData();
   return (
     <SiteChrome startUrl={startUrl}>
-      <main className="job-index">
+      <main>
         <Breadcrumbs
           items={[{ label: "Home", to: "/" }, { label: "Use cases" }]}
         />
-        <section className="hero job-hero">
+        <section className="hero !py-8 sm:!py-12 sm:!pb-10">
           <p className="kicker">Use cases</p>
-          <h1>Hire for the work, not a template gallery.</h1>
-          <p className="lede">
+          <h1 className="!my-2 !mb-4">
+            Hire for the work, not a template gallery.
+          </h1>
+          <p className="lede !mb-3 !text-xl">
             Each Bot is a person in the sidebar. Job title optional. These are
             the jobs founders actually message first.
           </p>
         </section>
-        <section className="band">
-          <div className="cards use-cards">
+        <section className="py-2 pb-6">
+          <div className="grid grid-cols-1 gap-3.5 md:grid-cols-3">
             {items.map((item) => (
-              <article key={item.slug} className="card">
+              <article key={item.slug} className="card flex flex-col">
                 <p className="kicker">{item.kicker}</p>
-                <h2>
-                  <Link to="/use-cases/$slug" params={{ slug: item.slug }}>
+                <h2 className="!mb-2 !text-xl">
+                  <Link
+                    className="no-underline hover:underline"
+                    to="/use-cases/$slug"
+                    params={{ slug: item.slug }}
+                  >
                     {item.title}
                   </Link>
                 </h2>
                 <p>{item.lede}</p>
+                <UseCaseApps
+                  className="mt-auto flex list-none flex-wrap items-center gap-2 p-0 pt-4"
+                  slugs={item.integrationSlugs}
+                />
               </article>
             ))}
           </div>

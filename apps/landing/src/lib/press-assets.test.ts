@@ -1,6 +1,11 @@
 import { PRESS_ASSETS } from "@grogbot/seo";
 import { describe, expect, it } from "vitest";
-import { lookupPressAsset, pressAssetFiles } from "./press-assets";
+import {
+  PRESS_ASSET_VERSION,
+  lookupPressAsset,
+  pressAssetFiles,
+  pressAssetHref,
+} from "./press-assets";
 
 describe("press assets", () => {
   it("serves an SVG for every listed logo", () => {
@@ -11,10 +16,18 @@ describe("press assets", () => {
       expect(file?.contentType).toContain("image/svg+xml");
       expect(file?.body).toContain("<svg");
       expect(file?.body).toContain("Grogbot");
+      expect(file?.body).toContain("<rect");
+      expect(file?.body).not.toContain("pupil");
     }
   });
 
   it("does not invent extra files", () => {
     expect(lookupPressAsset("logo.png")).toBeUndefined();
+  });
+
+  it("cache-busts download hrefs when the mark changes", () => {
+    expect(pressAssetHref("grogbot-mark.svg")).toBe(
+      `/press/grogbot-mark.svg?v=${PRESS_ASSET_VERSION}`,
+    );
   });
 });

@@ -228,8 +228,7 @@ export function Onboarding() {
         avatarShape: shape,
       });
       localStorage.setItem("grogbot.onboarded", "1");
-      cacheCreatedBot(queryClient, bot);
-      void queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
+      await cacheCreatedBot(bot);
       await navigate({
         to: "/$botId",
         params: { botId: bot.id },

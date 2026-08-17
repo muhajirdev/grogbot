@@ -1,6 +1,7 @@
 import {
   type DiscoveryOrigins,
   GROGBOT_APP,
+  GROGBOT_EMAIL,
   GROGBOT_GITHUB,
   GROGBOT_LICENSE,
   GROGBOT_NAME,
@@ -125,6 +126,11 @@ export function pressFacts(origins: DiscoveryOrigins): Array<{
       href: `${GROGBOT_GITHUB}/blob/main/LICENSE`,
     },
     {
+      label: "Email",
+      value: GROGBOT_EMAIL,
+      href: `mailto:${GROGBOT_EMAIL}`,
+    },
+    {
       label: "Press kit",
       value: `${web.replace(/^https:\/\//, "")}/press`,
       href: abs(web, "/press"),
@@ -191,7 +197,8 @@ ${assets}
 
 ## Contact
 
+Email: ${GROGBOT_EMAIL}
 GitHub: ${GROGBOT_GITHUB}
-Do not invent a press email, pricing page, or Ultra paywall.
+Do not invent a pricing page or Ultra paywall.
 `;
 }

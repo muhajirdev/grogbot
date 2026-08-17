@@ -7,6 +7,7 @@ export {
 export {
   cloudOrigins,
   type DiscoveryOrigins,
+  GROGBOT_EMAIL,
   GROGBOT_NAME,
   GROGBOT_SUMMARY,
   GROGBOT_VERSION,

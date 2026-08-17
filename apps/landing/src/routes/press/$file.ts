@@ -12,7 +12,7 @@ export const Route = createFileRoute("/press/$file")({
         return new Response(asset.body, {
           headers: {
             "content-type": asset.contentType,
-            "cache-control": "public, max-age=86400",
+            "cache-control": "public, max-age=3600, must-revalidate",
             "content-disposition": `inline; filename="${asset.filename}"`,
           },
         });

@@ -1,3 +1,27 @@
+@import "tailwindcss/theme" layer(theme);
+@import "tailwindcss/utilities" layer(utilities);
+
+@theme {
+  --color-bg: var(--bg);
+  --color-bg-side: var(--bg-side);
+  --color-bg-thread: var(--bg-thread);
+  --color-bg-pane: var(--bg-pane);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-card: var(--card);
+  --color-card-2: var(--card-2);
+  --color-hover: var(--hover);
+  --color-selected: var(--selected);
+  --color-accent: var(--accent);
+  --color-ok: var(--ok);
+  --radius-card: var(--radius);
+  --radius-pill: var(--pill);
+  --shadow-modal: var(--shadow);
+  --font-sans: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --font-serif: "Source Serif 4", "Iowan Old Style", "Palatino Linotype", serif;
+}
+
 :root {
   color-scheme: dark;
   --bg: #000000;
@@ -772,7 +796,8 @@ img.avatar {
 .cta,
 #how,
 #jobs,
-#faq {
+#faq,
+#enterprise {
   scroll-margin-top: 72px;
 }
 
@@ -1297,7 +1322,7 @@ img.avatar {
 
 .board li {
   display: grid;
-  grid-template-columns: 1.25rem 2.25rem 6.5rem minmax(72px, 1fr) 3.6rem;
+  grid-template-columns: 1.25rem 2.25rem 6.5rem minmax(72px, 1fr) 4.25rem;
   align-items: center;
   gap: 12px;
   padding: 13px 0;
@@ -1364,12 +1389,23 @@ img.avatar {
 }
 
 .board-n {
+  display: grid;
+  justify-items: end;
+  gap: 1px;
   color: var(--ink);
   font-size: 14px;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   text-align: right;
   letter-spacing: -0.03em;
+}
+
+.board-n em {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0;
+  color: var(--muted);
 }
 
 .demo {
@@ -1575,6 +1611,66 @@ img.avatar {
 .faq-band .faqs {
   max-width: none;
   text-align: left;
+}
+
+.enterprise {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: 28px 56px;
+  align-items: center;
+  margin: 24px 0 56px;
+  padding: 48px 40px 48px 44px;
+  background: #141414;
+  border-radius: 28px;
+}
+
+.enterprise-copy .kicker {
+  margin-bottom: 10px;
+}
+
+.enterprise h2 {
+  font-size: clamp(28px, 4.2vw, 44px);
+  margin-bottom: 14px;
+}
+
+.enterprise .lede {
+  margin: 0 0 24px;
+  font-size: 17px;
+  max-width: 34rem;
+}
+
+.enterprise-facts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.enterprise-facts li {
+  display: grid;
+  gap: 4px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.enterprise-facts li:first-child {
+  padding-top: 0;
+}
+
+.enterprise-facts li:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.enterprise-facts strong {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.enterprise-facts span {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 .cta {
@@ -1947,256 +2043,8 @@ a.chip.on .chip-count,
   text-decoration: none;
 }
 
-.use-cards h2 {
-  font-size: 20px;
-  margin-bottom: 8px;
-}
-
-.use-cards h2 a {
-  text-decoration: none;
-}
-
-.use-cards h2 a:hover {
-  text-decoration: underline;
-}
-
-.job-hero {
-  padding: 48px 0 40px;
-}
-
-.job-hero h1 {
-  margin: 8px 0 16px;
-}
-
-.job-hero .lede {
-  font-size: 20px;
-  margin-bottom: 12px;
-}
-
-.job-hero .thesis {
-  margin-bottom: 28px;
-  max-width: 36rem;
-}
-
-.job-hero .row {
-  margin-top: 4px;
-}
-
-.job-split {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  padding: 8px 0 56px;
-}
-
-.job-panel {
-  background: #141414;
-  border-radius: 24px;
-  padding: 28px 28px 32px;
-}
-
-.job-panel h3 {
-  font-size: 22px;
-  letter-spacing: -0.03em;
-  margin-bottom: 12px;
-}
-
-.job-panel .points {
-  padding-top: 4px;
-  font-size: 15px;
-  line-height: 1.6;
-}
-
-.job-handoff {
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  gap: 40px;
-  align-items: center;
-  padding: 8px 0 64px;
-}
-
-.job-handoff h2 {
-  font-size: clamp(28px, 4.2vw, 44px);
-  margin-bottom: 10px;
-}
-
-.job-handoff .lede {
-  margin-bottom: 0;
-}
-
 .demo-thread.compact {
   min-height: 0;
-}
-
-.job-page .band {
-  padding: 8px 0 48px;
-}
-
-.job-page .catalog .chips {
-  margin: 4px 0 0;
-}
-
-.job-page .faq-band {
-  padding: 24px 0 16px;
-}
-
-.job-related {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 8px;
-  padding-bottom: 0;
-}
-
-.job-index .band {
-  padding: 8px 0 24px;
-}
-
-.use-cards {
-  gap: 14px;
-}
-
-.boilerplate-list {
-  display: grid;
-  gap: 12px;
-  max-width: 44rem;
-}
-
-.boilerplate {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 16px 18px;
-  display: grid;
-  gap: 10px;
-}
-
-.boilerplate-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-.boilerplate-head .kicker {
-  margin: 0;
-}
-
-.boilerplate pre {
-  margin: 0;
-  white-space: pre-wrap;
-  font: inherit;
-  font-size: 15px;
-  line-height: 1.5;
-}
-
-.fact-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin: 0;
-}
-
-.fact {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 16px 18px;
-}
-
-.fact dt {
-  color: var(--muted);
-  font-size: 12px;
-  margin-bottom: 6px;
-}
-
-.fact dd {
-  margin: 0;
-  font-size: 15px;
-}
-
-.fact a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.fact a:hover {
-  text-decoration: underline;
-}
-
-.do-dont {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.logo-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.logo-tile {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 20px;
-  display: grid;
-  gap: 10px;
-  justify-items: start;
-}
-
-.logo-tile.light {
-  background: #f4f1ea;
-  color: #171614;
-}
-
-.logo-tile.light .kicker,
-.logo-tile.light p {
-  color: #6b675f;
-}
-
-.logo-tile .btn.ghost {
-  color: inherit;
-  border-color: currentColor;
-}
-
-.logo-stage {
-  min-height: 140px;
-  width: 100%;
-  display: grid;
-  place-items: center;
-}
-
-.logo-mark {
-  width: 96px;
-  height: 96px;
-}
-
-.logo-lockup {
-  width: min(320px, 100%);
-  height: auto;
-}
-
-.swatches {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.swatch {
-  padding: 0 0 16px;
-  overflow: hidden;
-}
-
-.swatch-chip {
-  height: 88px;
-  margin-bottom: 12px;
-}
-
-.swatch h3,
-.swatch p {
-  padding: 0 16px;
 }
 
 .sr-only {
@@ -2239,21 +2087,15 @@ a.chip.on .chip-count,
   .pair,
   .versus,
   .faq-band,
+  .enterprise,
   .tiles,
   .demo,
   .statement,
   .int-hero,
-  .logo-grid,
-  .swatches,
-  .do-dont,
-  .fact-list,
   .tile.wide,
   .handoff-scene,
   .know-loop,
-  .adopt,
-  .job-split,
-  .job-handoff,
-  .job-related {
+  .adopt {
     grid-template-columns: 1fr;
   }
 
@@ -2272,13 +2114,14 @@ a.chip.on .chip-count,
     padding: 36px 24px;
   }
 
-  .adopt {
+  .adopt,
+  .enterprise {
     padding: 36px 24px;
     gap: 24px;
   }
 
   .board li {
-    grid-template-columns: 1.1rem 2rem 5.25rem minmax(48px, 1fr) 3.2rem;
+    grid-template-columns: 1.1rem 2rem 5.25rem minmax(48px, 1fr) 3.8rem;
     gap: 8px;
   }
 
@@ -2291,20 +2134,6 @@ a.chip.on .chip-count,
   .chapter .lede {
     margin-left: 0;
     margin-right: 0;
-  }
-
-  .job-hero {
-    padding: 32px 0 28px;
-  }
-
-  .job-split,
-  .job-handoff {
-    gap: 16px;
-    padding-bottom: 36px;
-  }
-
-  .job-panel {
-    padding: 22px 22px 24px;
   }
 
   .tile {

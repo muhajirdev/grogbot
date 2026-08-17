@@ -19,6 +19,7 @@ describe("discovery documents", () => {
     expect(cloudOrigins().web).toBe(CLOUD_LANDING_ORIGIN);
     const txt = llmsTxt(origins);
     expect(txt.startsWith("# Grogbot\n")).toBe(true);
+    expect(txt).toContain("hello@grogbot.com");
     expect(txt).toContain(`](${CLOUD_LANDING_ORIGIN}/llms.txt)`);
     expect(txt).toContain("/press");
     expect(identityJson(origins).name).toBe("Grogbot");
@@ -42,5 +43,13 @@ describe("discovery documents", () => {
     expect(faqAiTxt(origins)).toMatch(/self-host/i);
     expect(llmsFullTxt(origins)).not.toMatch(/Rivet/i);
     expect(GROGBOT_STACK.join("\n")).not.toMatch(/Rivet/i);
+  });
+
+  it("does not claim zero retention as a Grogbot product feature", () => {
+    const faq = faqAiTxt(origins);
+    expect(faq).toMatch(/Does my data leave the office/i);
+    expect(faq).toMatch(/does not claim zero retention/i);
+    expect(faq).toMatch(/office is meant to remember/i);
+    expect(faq).toContain("hello@grogbot.com");
   });
 });

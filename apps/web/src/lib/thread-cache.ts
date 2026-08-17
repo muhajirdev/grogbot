@@ -1,12 +1,12 @@
-import type { Bot, ThreadMessage } from "@grogbot/contracts";
+import type { ThreadMessage } from "@grogbot/contracts";
 import type { QueryClient } from "@tanstack/react-query";
 import {
   messagesCollection,
+  patchBot,
   threadMetaCollection,
   type CachedMessage,
   type ThreadMeta,
 } from "./collections";
-import { orpc } from "./orpc";
 import { client as rpcClient } from "./rpc";
 
 export const THREAD_GC_MS = 30 * 60_000;
@@ -74,7 +74,6 @@ export function upsertCachedMessage(
 }
 
 export function appendOptimisticMessage(
-  client: QueryClient,
   botId: string,
   text: string,
 ): CachedMessage {
@@ -94,7 +93,7 @@ export function appendOptimisticMessage(
   };
   messagesCollection.insert(optimistic);
   patchThreadMeta(botId, { working: "working…", error: "" });
-  touchBotPreview(client, botId, text);
+  touchBotPreview(botId, text);
   return optimistic;
 }
 
@@ -115,19 +114,10 @@ export function prefetchComputer(client: QueryClient, botId: string): void {
   });
 }
 
-export function touchBotPreview(
-  client: QueryClient,
-  botId: string,
-  preview: string,
-): void {
-  const now = new Date().toISOString();
-  client.setQueryData<Bot[]>(orpc.bots.list.queryOptions().queryKey, (list) => {
-    if (!list) return list;
-    return list.map((bot) =>
-      bot.id === botId
-        ? { ...bot, lastPreview: preview.slice(0, 140), lastAt: now }
-        : bot,
-    );
+export function touchBotPreview(botId: string, preview: string): void {
+  patchBot(botId, {
+    lastPreview: preview.slice(0, 140),
+    lastAt: new Date().toISOString(),
   });
 }
 

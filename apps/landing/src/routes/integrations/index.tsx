@@ -69,7 +69,7 @@ function IntegrationsIndex() {
         <Breadcrumbs
           items={[{ label: "Home", to: "/" }, { label: "Integrations" }]}
         />
-        <section className="hero">
+        <section className="hero pb-12">
           <p className="kicker">Integrations</p>
           <h1>Gmail, Slack, GitHub — plus a computer for the rest.</h1>
           <p className="lede">
@@ -102,7 +102,7 @@ function IntegrationsIndex() {
             <IntegrationGrid items={matches} />
           </section>
         ) : (
-          <>
+          <div className="flex flex-col gap-12">
             <section className="band">
               <h2>Indie tools on the computer</h2>
               <p className="lede tight">
@@ -120,7 +120,7 @@ function IntegrationsIndex() {
             </section>
             <section className="band">
               <h2>Browse by category</h2>
-              <div className="chips">
+              <div className="chips !mb-0">
                 {categories.slice(0, 24).map((item) => (
                   <Link
                     key={item.slug}
@@ -138,7 +138,7 @@ function IntegrationsIndex() {
               <h2>Popular connectors</h2>
               <IntegrationGrid items={popular} />
             </section>
-          </>
+          </div>
         )}
 
         <section className="cta">

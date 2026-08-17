@@ -1,3 +1,4 @@
+import { GROGBOT_EMAIL } from "@grogbot/seo";
 import { canonicalUrl, landingOrigin, SITE_NAME } from "./site";
 import type { Integration } from "./integrations";
 import type { UseCase } from "../data/use-cases";
@@ -8,6 +9,7 @@ export function organizationJsonLd(): Record<string, unknown> {
     "@type": "Organization",
     name: SITE_NAME,
     url: landingOrigin(),
+    email: GROGBOT_EMAIL,
     sameAs: ["https://github.com/muhajirdev/grogbot"],
   };
 }

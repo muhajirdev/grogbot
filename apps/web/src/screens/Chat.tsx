@@ -39,8 +39,11 @@ import {
   isArchivedBot,
 } from "../lib/session";
 import {
+  botsCollection,
   clearThreadStore,
   messagesCollection,
+  patchBot,
+  peekBots,
   threadMetaCollection,
 } from "../lib/collections";
 import {
@@ -53,6 +56,7 @@ import {
   prefetchComputer,
   readCursor,
   THREAD_GC_MS,
+  touchBotPreview,
   upsertCachedMessage,
 } from "../lib/thread-cache";
 import { applyTheme, readTheme, type Theme } from "../lib/theme";
@@ -148,9 +152,14 @@ export function Chat(props: { botId: string }) {
   const navigate = useNavigate();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const botsQuery = useQuery(orpc.bots.list.queryOptions());
+  const botsQuery = useLiveQuery((q) => q.from({ bot: botsCollection }));
   const meQuery = useQuery(orpc.me.queryOptions());
-  const bots = botsQuery.data ?? [];
+  const liveBotsRows = botsQuery.data ?? [];
+  const peekedBots = peekBots();
+  const bots =
+    liveBotsRows.length > 0 || peekedBots.length === 0
+      ? liveBotsRows
+      : peekedBots;
   const me = meQuery.data;
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [search, setSearch] = useState("");
@@ -233,24 +242,17 @@ export function Chat(props: { botId: string }) {
   }
 
   async function refreshBots(selectId?: string) {
-    await queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
+    await botsCollection.utils.refetch();
     await queryClient.invalidateQueries({ queryKey: orpc.computers.key() });
-    const list = await queryClient.ensureQueryData(
-      orpc.bots.list.queryOptions(),
-    );
-    const next = selectId ?? props.botId ?? firstLiveBot(list)?.id;
+    const next = selectId ?? props.botId ?? firstLiveBot(peekBots())?.id;
     if (next && next !== props.botId) {
       await navigate({ to: "/$botId", params: { botId: next } });
     }
   }
 
   async function applyArchiveChange(next: Bot) {
-    cacheBot(queryClient, next);
-    await queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
+    cacheBot(next);
     await queryClient.invalidateQueries({ queryKey: orpc.computers.key() });
-    const list = await queryClient.ensureQueryData(
-      orpc.bots.list.queryOptions(),
-    );
     if (!next.archivedAt) {
       if (next.id !== props.botId) {
         await navigate({ to: "/$botId", params: { botId: next.id } });
@@ -258,7 +260,7 @@ export function Chat(props: { botId: string }) {
       return;
     }
     const fallback =
-      firstLiveBot(list.filter((item) => item.id !== next.id)) ?? next;
+      firstLiveBot(peekBots().filter((item) => item.id !== next.id)) ?? next;
     if (fallback.id !== props.botId) {
       await navigate({ to: "/$botId", params: { botId: fallback.id } });
       setPaneMode(null);
@@ -274,8 +276,8 @@ export function Chat(props: { botId: string }) {
           avatarColor: AVATAR_COLORS[0],
           computer: computerChoice,
         });
-        cacheCreatedBot(queryClient, created);
-        void queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
+        await cacheCreatedBot(created);
+        void queryClient.invalidateQueries({ queryKey: orpc.computers.key() });
         void navigate({ to: "/$botId", params: { botId: created.id } });
         setPaneMode("settings");
       } catch (caught) {
@@ -312,15 +314,8 @@ export function Chat(props: { botId: string }) {
     if (!activeId) return;
     let cancelled = false;
     let iterator: AsyncIterator<ProductEvent> | undefined;
-    let botsTimer: ReturnType<typeof setTimeout> | undefined;
     let cursor = readCursor(activeId);
     ensureThreadMeta(activeId);
-    const bumpBots = () => {
-      clearTimeout(botsTimer);
-      botsTimer = setTimeout(() => {
-        void queryClient.invalidateQueries({ queryKey: orpc.bots.key() });
-      }, 400);
-    };
     void (async () => {
       iterator = (await client.threads.subscribe({
         botId: activeId,
@@ -338,7 +333,7 @@ export function Chat(props: { botId: string }) {
             upsertCachedMessage(activeId, message);
             patchThreadMeta(activeId, { cursor });
             patched = true;
-            bumpBots();
+            touchBotPreview(activeId, messageText(message));
           }
         }
         if (event.type === "run.updated") {
@@ -369,7 +364,9 @@ export function Chat(props: { botId: string }) {
           );
         }
         if (event.type === "guest.updated") {
-          bumpBots();
+          patchBot(activeId, {
+            guestOnline: Boolean(event.payload.connected),
+          });
         }
       }
     })().catch((caught: unknown) => {
@@ -382,7 +379,6 @@ export function Chat(props: { botId: string }) {
     });
     return () => {
       cancelled = true;
-      clearTimeout(botsTimer);
       void iterator?.return?.();
     };
   }, [activeId, queryClient]);
@@ -401,7 +397,7 @@ export function Chat(props: { botId: string }) {
     }
     const text = draft.trim();
     setDraft("");
-    const optimistic = appendOptimisticMessage(queryClient, bot.id, text);
+    const optimistic = appendOptimisticMessage(bot.id, text);
     try {
       await client.threads.send({ botId: bot.id, text });
     } catch (caught) {
@@ -798,8 +794,8 @@ export function Chat(props: { botId: string }) {
           onSignOut={() => {
             void (async () => {
               await authClient.signOut();
-              queryClient.clear();
               clearThreadStore();
+              queryClient.clear();
               await router.invalidate();
               await navigate({ to: "/" });
             })();

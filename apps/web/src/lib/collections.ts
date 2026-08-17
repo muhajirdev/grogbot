@@ -1,5 +1,8 @@
-import type { ThreadMessage } from "@grogbot/contracts";
+import type { Bot, ThreadMessage } from "@grogbot/contracts";
+import { queryCollectionOptions } from "@tanstack/query-db-collection";
 import { createCollection, localOnlyCollectionOptions } from "@tanstack/react-db";
+import { orpc, queryClient } from "./orpc";
+import { client } from "./rpc";
 
 export type CachedMessage = ThreadMessage & { botId: string };
 
@@ -24,9 +27,47 @@ export const threadMetaCollection = createCollection(
   }),
 );
 
+export const botsCollection = createCollection(
+  queryCollectionOptions<Bot>({
+    id: "bots",
+    queryClient,
+    queryKey: orpc.bots.list.queryOptions().queryKey,
+    queryFn: () => client.bots.list(),
+    getKey: (bot) => bot.id,
+    staleTime: 30_000,
+    gcTime: 30 * 60_000,
+    retry: false,
+    refetchOnWindowFocus: false,
+  }),
+);
+
+export function peekBots(): Bot[] {
+  return [...botsCollection.values()];
+}
+
+export function upsertBot(bot: Bot): void {
+  botsCollection.utils.writeUpsert(bot);
+}
+
+export function patchBot(id: string, patch: Partial<Omit<Bot, "id">>): void {
+  if (!botsCollection.has(id)) return;
+  try {
+    botsCollection.utils.writeUpdate({ id, ...patch });
+  } catch {
+    // Row is not in the synced store yet (preload in flight).
+  }
+}
+
 export function clearThreadStore(): void {
   const messageKeys = [...messagesCollection.keys()];
   if (messageKeys.length > 0) messagesCollection.delete(messageKeys);
   const metaKeys = [...threadMetaCollection.keys()];
   if (metaKeys.length > 0) threadMetaCollection.delete(metaKeys);
+  const botKeys = [...botsCollection.keys()];
+  if (botKeys.length === 0) return;
+  try {
+    botsCollection.utils.writeDelete(botKeys);
+  } catch {
+    // Query sync never started; there is nothing durable to drop.
+  }
 }

@@ -4,6 +4,7 @@ export const GROGBOT_LANGUAGE = "en-US";
 export const GROGBOT_LICENSE = "Grogbot License (Apache 2.0 plus conditions)";
 export const GROGBOT_UPDATED = "2026-08-16";
 export const GROGBOT_GITHUB = "https://github.com/muhajirdev/grogbot";
+export const GROGBOT_EMAIL = "hello@grogbot.com";
 export const GROGBOT_APP = "https://app.grogbot.com";
 export const GROGBOT_SUMMARY =
   "Like Grok Bot, for the team: named AI teammates with a real computer. If OpenClaw is for personal use, Grogbot is the office. Self-hostable, fair-code. Gmail, Slack, GitHub, and 1,000+ tools — plus a computer for the rest. Bring your own model keys. Self-host for your organization is free; hosted Grogbot for others is grogbot.com.";
@@ -42,7 +43,7 @@ export const GROGBOT_SERVICES = [
   "oRPC product API for web, desktop, and mobile",
   "Plugins for Gmail, Slack, GitHub, and 1,000+ tools",
   "Bring-your-own model keys — Claude, GPT, Grok, Kimi, DeepSeek; not locked to one vendor",
-  "See who on the team is putting Bots to work",
+  "Who is putting Bots to work is on the board — so the rest of the team starts",
   "Opt-in guest runtimes (Hermes or OpenClaw) that dial out to Grogbot",
 ] as const;
 

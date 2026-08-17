@@ -1,8 +1,11 @@
 import { mascotMarkElements, mascotMarkSvg } from "@grogbot/mascot";
 import { PRESS_ASSETS } from "@grogbot/seo";
 
+/** Bump when the mark geometry changes so browsers drop stale /press/*.svg. */
+export const PRESS_ASSET_VERSION = "slit-2026-08-17";
+
 const FONT =
-  "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif";
+  "'Source Sans 3', 'Segoe UI', system-ui, sans-serif";
 
 function framedMark(bg: string, paintId: string): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -16,7 +19,7 @@ function framedMark(bg: string, paintId: string): string {
 
 function lockup(theme: "dark" | "light"): string {
   const ink = theme === "dark" ? "#f4f4f4" : "#171614";
-  const bg = theme === "dark" ? "#000000" : "#f4f1ea";
+  const bg = theme === "dark" ? "#000000" : "#f4f4f4";
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 128" role="img">
   <title>Grogbot</title>
@@ -33,10 +36,14 @@ const BODIES: Record<string, string> = {
     paintId: "grogbot-mark",
   }),
   "grogbot-mark-dark.svg": framedMark("#000000", "grogbot-mark-dark"),
-  "grogbot-mark-light.svg": framedMark("#f4f1ea", "grogbot-mark-light"),
+  "grogbot-mark-light.svg": framedMark("#f4f4f4", "grogbot-mark-light"),
   "grogbot-lockup-dark.svg": lockup("dark"),
   "grogbot-lockup-light.svg": lockup("light"),
 };
+
+export function pressAssetHref(file: string): string {
+  return `/press/${file}?v=${PRESS_ASSET_VERSION}`;
+}
 
 export function lookupPressAsset(file: string):
   | {

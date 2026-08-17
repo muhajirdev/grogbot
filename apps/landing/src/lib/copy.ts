@@ -1,3 +1,8 @@
+import { GROGBOT_EMAIL } from "@grogbot/seo";
+
+export const CONTACT_EMAIL = GROGBOT_EMAIL;
+export const CONTACT_MAILTO = `mailto:${CONTACT_EMAIL}`;
+
 export const DEMOS = [
   {
     id: "linkedin",
@@ -169,7 +174,15 @@ export const FAQS = [
   },
   {
     q: "Can I see adoption across the team?",
-    a: "Yes. A leaderboard of who is putting Bots to work — plus spend and which models the team uses. Personal agents hide in laptops. This is visible to the team.",
+    a: "Yes — and that’s the point. A personal agent hides on a laptop. Who is putting Bots to work is on the board, plus spend and which models. That’s how the rest of the team starts.",
+  },
+  {
+    q: "Does my data leave the office?",
+    a: "Self-host and the office stays in your Postgres and sandboxes — grogbot.com never sees it. Hosted stores it for you. Either way, a Bot talking to a model sends the prompt to the provider behind your key. Pick one with a zero-retention agreement if you need that. We do not claim zero retention: the office is meant to remember.",
+  },
+  {
+    q: "How do I talk to a person?",
+    a: `Email ${CONTACT_EMAIL}. GitHub issues for the source. The office is for the product — this mailbox is for you.`,
   },
 ] as const;
 

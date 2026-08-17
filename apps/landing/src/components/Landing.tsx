@@ -1,7 +1,7 @@
 import { MascotMark } from "@grogbot/mascot";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { COMPARE, DEMOS, FAQS, HOME_ADOPTION, HOME_MODELS, SOURCE_REPO, demoLogo } from "../lib/copy";
+import { COMPARE, CONTACT_MAILTO, DEMOS, FAQS, HOME_ADOPTION, HOME_MODELS, SOURCE_REPO, demoLogo } from "../lib/copy";
 import { HOME_INTEGRATIONS } from "../lib/teasers";
 import { DemoThread } from "./DemoThread";
 import { OfficePreview } from "./OfficePreview";
@@ -208,13 +208,13 @@ export function Landing(props: { startUrl: string }) {
           </article>
         </section>
 
-        <section className="adopt" aria-label="Track AI adoption">
+        <section className="adopt" aria-label="Get the team on AI">
           <div className="adopt-copy">
             <p className="kicker">This week</p>
-            <h2>Track AI adoption</h2>
+            <h2>They won’t use it if nobody can see it.</h2>
             <p className="lede tight">
-              Who is putting Bots to work. A personal agent hides on a laptop.
-              This is visible to the team.
+              A personal agent hides on a laptop. Who is putting Bots to work is
+              on the board. That’s how the rest of the team starts.
             </p>
           </div>
           <ol className="board">
@@ -235,7 +235,10 @@ export function Landing(props: { startUrl: string }) {
                   <span className="board-bar" aria-hidden>
                     <i style={{ width: `${width}%` }} />
                   </span>
-                  <span className="board-n">{person.label}</span>
+                  <span className="board-n">
+                    {person.label}
+                    <em>tasks</em>
+                  </span>
                 </li>
               );
             })}
@@ -274,6 +277,48 @@ export function Landing(props: { startUrl: string }) {
               All integrations
             </Link>
           </div>
+        </section>
+
+        <section id="enterprise" className="enterprise" aria-label="Enterprise ready">
+          <div className="enterprise-copy">
+            <p className="kicker">Self-host</p>
+            <h2>Enterprise ready.</h2>
+            <p className="lede tight">
+              Keep the office on your machines. grogbot.com never sees the
+              threads. The office still remembers — on your Postgres. Model
+              calls go to the key you paste.
+            </p>
+            <div className="row">
+              <a
+                className="btn ghost"
+                href={CONTACT_MAILTO}
+              >
+                Email
+              </a>
+              <a
+                className="btn ghost"
+                href={SOURCE_REPO}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View source
+              </a>
+            </div>
+          </div>
+          <ul className="enterprise-facts">
+            <li>
+              <strong>Your data</strong>
+              <span>Threads and computers stay in your deployment.</span>
+            </li>
+            <li>
+              <strong>Your keys</strong>
+              <span>Bring your own. Encrypted at rest. Not locked in.</span>
+            </li>
+            <li>
+              <strong>Your source</strong>
+              <span>Fair-code on GitHub. Security can inspect it.</span>
+            </li>
+          </ul>
         </section>
 
         <section id="faq" className="band faq-band">

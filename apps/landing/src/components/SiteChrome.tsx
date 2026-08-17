@@ -1,7 +1,7 @@
 import { MascotMark } from "@grogbot/mascot";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { FOOTER_BLURB, MAC_DOWNLOAD_URL, SOURCE_REPO } from "../lib/copy";
+import { FOOTER_BLURB, MAC_DOWNLOAD_URL, SOURCE_REPO, CONTACT_EMAIL, CONTACT_MAILTO } from "../lib/copy";
 
 export function SiteHeader(props: { startUrl: string }) {
   return (
@@ -17,12 +17,10 @@ export function SiteHeader(props: { startUrl: string }) {
         <Link className="nav-hide-sm" to="/use-cases">
           Use cases
         </Link>
-        <Link className="nav-hide-sm" to="/press">
-          Press
-        </Link>
         <a href={SOURCE_REPO} target="_blank" rel="noreferrer">
           GitHub
         </a>
+        <a href={CONTACT_MAILTO}>Email</a>
         <a className="btn" href={props.startUrl}>
           Get started
         </a>
@@ -42,6 +40,7 @@ export function SiteFooter() {
         <a href={SOURCE_REPO} target="_blank" rel="noreferrer">
           GitHub
         </a>
+        <a href={CONTACT_MAILTO}>{CONTACT_EMAIL}</a>
         <a href={MAC_DOWNLOAD_URL} target="_blank" rel="noreferrer">
           Download Mac app
         </a>
