@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AiDotjsonRouteImport } from './routes/ai[.]json'
 import { Route as AiDottxtRouteImport } from './routes/ai[.]txt'
 import { Route as BrandDottxtRouteImport } from './routes/brand[.]txt'
+import { Route as CompareDotmdRouteImport } from './routes/compare[.]md'
 import { Route as DeveloperAiDottxtRouteImport } from './routes/developer-ai[.]txt'
 import { Route as FaqAiDottxtRouteImport } from './routes/faq-ai[.]txt'
 import { Route as IdentityDotjsonRouteImport } from './routes/identity[.]json'
@@ -28,12 +29,15 @@ import { Route as PressDotmdRouteImport } from './routes/press[.]md'
 import { Route as RobotsAiDottxtRouteImport } from './routes/robots-ai[.]txt'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as CompareIndexRouteImport } from './routes/compare/index'
+import { Route as CompareSlugRouteImport } from './routes/compare/$slug'
 import { Route as IntegrationsIndexRouteImport } from './routes/integrations/index'
 import { Route as IntegrationsSlugRouteImport } from './routes/integrations/$slug'
 import { Route as PressIndexRouteImport } from './routes/press/index'
 import { Route as PressFileRouteImport } from './routes/press/$file'
 import { Route as UseCasesIndexRouteImport } from './routes/use-cases/index'
 import { Route as UseCasesSlugRouteImport } from './routes/use-cases/$slug'
+import { Route as CompareMdSlugRouteImport } from './routes/compare/md/$slug'
 import { Route as IntegrationsCategoryCategoryRouteImport } from './routes/integrations/category/$category'
 
 const IndexRoute = IndexRouteImport.update({
@@ -54,6 +58,11 @@ const AiDottxtRoute = AiDottxtRouteImport.update({
 const BrandDottxtRoute = BrandDottxtRouteImport.update({
   id: '/brand.txt',
   path: '/brand.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompareDotmdRoute = CompareDotmdRouteImport.update({
+  id: '/compare.md',
+  path: '/compare.md',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeveloperAiDottxtRoute = DeveloperAiDottxtRouteImport.update({
@@ -131,6 +140,16 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CompareIndexRoute = CompareIndexRouteImport.update({
+  id: '/compare/',
+  path: '/compare/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompareSlugRoute = CompareSlugRouteImport.update({
+  id: '/compare/$slug',
+  path: '/compare/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IntegrationsIndexRoute = IntegrationsIndexRouteImport.update({
   id: '/integrations/',
   path: '/integrations/',
@@ -161,6 +180,11 @@ const UseCasesSlugRoute = UseCasesSlugRouteImport.update({
   path: '/use-cases/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CompareMdSlugRoute = CompareMdSlugRouteImport.update({
+  id: '/compare/md/$slug',
+  path: '/compare/md/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IntegrationsCategoryCategoryRoute =
   IntegrationsCategoryCategoryRouteImport.update({
     id: '/integrations/category/$category',
@@ -173,6 +197,7 @@ export interface FileRoutesByFullPath {
   '/ai.json': typeof AiDotjsonRoute
   '/ai.txt': typeof AiDottxtRoute
   '/brand.txt': typeof BrandDottxtRoute
+  '/compare.md': typeof CompareDotmdRoute
   '/developer-ai.txt': typeof DeveloperAiDottxtRoute
   '/faq-ai.txt': typeof FaqAiDottxtRoute
   '/identity.json': typeof IdentityDotjsonRoute
@@ -188,12 +213,15 @@ export interface FileRoutesByFullPath {
   '/robots-ai.txt': typeof RobotsAiDottxtRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/compare/$slug': typeof CompareSlugRoute
   '/integrations/$slug': typeof IntegrationsSlugRoute
   '/press/$file': typeof PressFileRoute
   '/use-cases/$slug': typeof UseCasesSlugRoute
+  '/compare/': typeof CompareIndexRoute
   '/integrations/': typeof IntegrationsIndexRoute
   '/press/': typeof PressIndexRoute
   '/use-cases/': typeof UseCasesIndexRoute
+  '/compare/md/$slug': typeof CompareMdSlugRoute
   '/integrations/category/$category': typeof IntegrationsCategoryCategoryRoute
 }
 export interface FileRoutesByTo {
@@ -201,6 +229,7 @@ export interface FileRoutesByTo {
   '/ai.json': typeof AiDotjsonRoute
   '/ai.txt': typeof AiDottxtRoute
   '/brand.txt': typeof BrandDottxtRoute
+  '/compare.md': typeof CompareDotmdRoute
   '/developer-ai.txt': typeof DeveloperAiDottxtRoute
   '/faq-ai.txt': typeof FaqAiDottxtRoute
   '/identity.json': typeof IdentityDotjsonRoute
@@ -216,12 +245,15 @@ export interface FileRoutesByTo {
   '/robots-ai.txt': typeof RobotsAiDottxtRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/compare/$slug': typeof CompareSlugRoute
   '/integrations/$slug': typeof IntegrationsSlugRoute
   '/press/$file': typeof PressFileRoute
   '/use-cases/$slug': typeof UseCasesSlugRoute
+  '/compare': typeof CompareIndexRoute
   '/integrations': typeof IntegrationsIndexRoute
   '/press': typeof PressIndexRoute
   '/use-cases': typeof UseCasesIndexRoute
+  '/compare/md/$slug': typeof CompareMdSlugRoute
   '/integrations/category/$category': typeof IntegrationsCategoryCategoryRoute
 }
 export interface FileRoutesById {
@@ -230,6 +262,7 @@ export interface FileRoutesById {
   '/ai.json': typeof AiDotjsonRoute
   '/ai.txt': typeof AiDottxtRoute
   '/brand.txt': typeof BrandDottxtRoute
+  '/compare.md': typeof CompareDotmdRoute
   '/developer-ai.txt': typeof DeveloperAiDottxtRoute
   '/faq-ai.txt': typeof FaqAiDottxtRoute
   '/identity.json': typeof IdentityDotjsonRoute
@@ -245,12 +278,15 @@ export interface FileRoutesById {
   '/robots-ai.txt': typeof RobotsAiDottxtRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/compare/$slug': typeof CompareSlugRoute
   '/integrations/$slug': typeof IntegrationsSlugRoute
   '/press/$file': typeof PressFileRoute
   '/use-cases/$slug': typeof UseCasesSlugRoute
+  '/compare/': typeof CompareIndexRoute
   '/integrations/': typeof IntegrationsIndexRoute
   '/press/': typeof PressIndexRoute
   '/use-cases/': typeof UseCasesIndexRoute
+  '/compare/md/$slug': typeof CompareMdSlugRoute
   '/integrations/category/$category': typeof IntegrationsCategoryCategoryRoute
 }
 export interface FileRouteTypes {
@@ -260,6 +296,7 @@ export interface FileRouteTypes {
     | '/ai.json'
     | '/ai.txt'
     | '/brand.txt'
+    | '/compare.md'
     | '/developer-ai.txt'
     | '/faq-ai.txt'
     | '/identity.json'
@@ -275,12 +312,15 @@ export interface FileRouteTypes {
     | '/robots-ai.txt'
     | '/robots.txt'
     | '/sitemap.xml'
+    | '/compare/$slug'
     | '/integrations/$slug'
     | '/press/$file'
     | '/use-cases/$slug'
+    | '/compare/'
     | '/integrations/'
     | '/press/'
     | '/use-cases/'
+    | '/compare/md/$slug'
     | '/integrations/category/$category'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -288,6 +328,7 @@ export interface FileRouteTypes {
     | '/ai.json'
     | '/ai.txt'
     | '/brand.txt'
+    | '/compare.md'
     | '/developer-ai.txt'
     | '/faq-ai.txt'
     | '/identity.json'
@@ -303,12 +344,15 @@ export interface FileRouteTypes {
     | '/robots-ai.txt'
     | '/robots.txt'
     | '/sitemap.xml'
+    | '/compare/$slug'
     | '/integrations/$slug'
     | '/press/$file'
     | '/use-cases/$slug'
+    | '/compare'
     | '/integrations'
     | '/press'
     | '/use-cases'
+    | '/compare/md/$slug'
     | '/integrations/category/$category'
   id:
     | '__root__'
@@ -316,6 +360,7 @@ export interface FileRouteTypes {
     | '/ai.json'
     | '/ai.txt'
     | '/brand.txt'
+    | '/compare.md'
     | '/developer-ai.txt'
     | '/faq-ai.txt'
     | '/identity.json'
@@ -331,12 +376,15 @@ export interface FileRouteTypes {
     | '/robots-ai.txt'
     | '/robots.txt'
     | '/sitemap.xml'
+    | '/compare/$slug'
     | '/integrations/$slug'
     | '/press/$file'
     | '/use-cases/$slug'
+    | '/compare/'
     | '/integrations/'
     | '/press/'
     | '/use-cases/'
+    | '/compare/md/$slug'
     | '/integrations/category/$category'
   fileRoutesById: FileRoutesById
 }
@@ -345,6 +393,7 @@ export interface RootRouteChildren {
   AiDotjsonRoute: typeof AiDotjsonRoute
   AiDottxtRoute: typeof AiDottxtRoute
   BrandDottxtRoute: typeof BrandDottxtRoute
+  CompareDotmdRoute: typeof CompareDotmdRoute
   DeveloperAiDottxtRoute: typeof DeveloperAiDottxtRoute
   FaqAiDottxtRoute: typeof FaqAiDottxtRoute
   IdentityDotjsonRoute: typeof IdentityDotjsonRoute
@@ -360,12 +409,15 @@ export interface RootRouteChildren {
   RobotsAiDottxtRoute: typeof RobotsAiDottxtRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  CompareSlugRoute: typeof CompareSlugRoute
   IntegrationsSlugRoute: typeof IntegrationsSlugRoute
   PressFileRoute: typeof PressFileRoute
   UseCasesSlugRoute: typeof UseCasesSlugRoute
+  CompareIndexRoute: typeof CompareIndexRoute
   IntegrationsIndexRoute: typeof IntegrationsIndexRoute
   PressIndexRoute: typeof PressIndexRoute
   UseCasesIndexRoute: typeof UseCasesIndexRoute
+  CompareMdSlugRoute: typeof CompareMdSlugRoute
   IntegrationsCategoryCategoryRoute: typeof IntegrationsCategoryCategoryRoute
 }
 
@@ -397,6 +449,13 @@ declare module '@tanstack/react-router' {
       path: '/brand.txt'
       fullPath: '/brand.txt'
       preLoaderRoute: typeof BrandDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare.md': {
+      id: '/compare.md'
+      path: '/compare.md'
+      fullPath: '/compare.md'
+      preLoaderRoute: typeof CompareDotmdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/developer-ai.txt': {
@@ -504,6 +563,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/compare/': {
+      id: '/compare/'
+      path: '/compare'
+      fullPath: '/compare/'
+      preLoaderRoute: typeof CompareIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare/$slug': {
+      id: '/compare/$slug'
+      path: '/compare/$slug'
+      fullPath: '/compare/$slug'
+      preLoaderRoute: typeof CompareSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/integrations/': {
       id: '/integrations/'
       path: '/integrations'
@@ -546,6 +619,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UseCasesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/compare/md/$slug': {
+      id: '/compare/md/$slug'
+      path: '/compare/md/$slug'
+      fullPath: '/compare/md/$slug'
+      preLoaderRoute: typeof CompareMdSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/integrations/category/$category': {
       id: '/integrations/category/$category'
       path: '/integrations/category/$category'
@@ -561,6 +641,7 @@ const rootRouteChildren: RootRouteChildren = {
   AiDotjsonRoute: AiDotjsonRoute,
   AiDottxtRoute: AiDottxtRoute,
   BrandDottxtRoute: BrandDottxtRoute,
+  CompareDotmdRoute: CompareDotmdRoute,
   DeveloperAiDottxtRoute: DeveloperAiDottxtRoute,
   FaqAiDottxtRoute: FaqAiDottxtRoute,
   IdentityDotjsonRoute: IdentityDotjsonRoute,
@@ -576,12 +657,15 @@ const rootRouteChildren: RootRouteChildren = {
   RobotsAiDottxtRoute: RobotsAiDottxtRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  CompareSlugRoute: CompareSlugRoute,
   IntegrationsSlugRoute: IntegrationsSlugRoute,
   PressFileRoute: PressFileRoute,
   UseCasesSlugRoute: UseCasesSlugRoute,
+  CompareIndexRoute: CompareIndexRoute,
   IntegrationsIndexRoute: IntegrationsIndexRoute,
   PressIndexRoute: PressIndexRoute,
   UseCasesIndexRoute: UseCasesIndexRoute,
+  CompareMdSlugRoute: CompareMdSlugRoute,
   IntegrationsCategoryCategoryRoute: IntegrationsCategoryCategoryRoute,
 }
 export const routeTree = rootRouteImport

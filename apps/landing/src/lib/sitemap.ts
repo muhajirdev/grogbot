@@ -1,3 +1,4 @@
+import { COMPARISONS } from "../data/comparisons";
 import { USE_CASES } from "../data/use-cases";
 import { DISCOVERY_SITEMAP_PATHS } from "./discovery";
 import { INTEGRATIONS, integrationCategories } from "./integrations";
@@ -14,6 +15,8 @@ export function sitemapEntries(): SitemapEntry[] {
     { path: "/", changefreq: "weekly", priority: "1.0" },
     { path: "/integrations", changefreq: "weekly", priority: "0.9" },
     { path: "/use-cases", changefreq: "weekly", priority: "0.9" },
+    { path: "/compare", changefreq: "weekly", priority: "0.9" },
+    { path: "/compare.md", changefreq: "weekly", priority: "0.7" },
     { path: "/press", changefreq: "monthly", priority: "0.6" },
   ];
   for (const path of DISCOVERY_SITEMAP_PATHS) {
@@ -39,6 +42,18 @@ export function sitemapEntries(): SitemapEntry[] {
       path: `/use-cases/${item.slug}`,
       changefreq: "weekly",
       priority: "0.8",
+    });
+  }
+  for (const item of COMPARISONS) {
+    entries.push({
+      path: `/compare/${item.slug}`,
+      changefreq: "weekly",
+      priority: "0.8",
+    });
+    entries.push({
+      path: `/compare/md/${item.slug}`,
+      changefreq: "weekly",
+      priority: "0.6",
     });
   }
   return entries;

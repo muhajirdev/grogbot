@@ -102,11 +102,20 @@ export function Landing(props: { startUrl: string }) {
                 className={`versus-col${item.ours ? " ours" : ""}`}
               >
                 <p className="kicker">{item.kicker}</p>
-                <h3>{item.name}</h3>
+                <h3>
+                  <a className="no-underline hover:underline" href={item.href}>
+                    {item.name}
+                  </a>
+                </h3>
                 <p>{item.line}</p>
               </article>
             ))}
           </div>
+          <p className="versus-more">
+            <Link to="/compare">
+              Grogbot vs OpenClaw, Grok Bot, and the rest
+            </Link>
+          </p>
         </section>
 
         <section id="how" className="statement">

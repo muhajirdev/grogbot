@@ -1,8 +1,7 @@
 import { CLOUD_LANDING_ORIGIN } from "@grogbot/contracts";
 
 export const SITE_NAME = "Grogbot";
-export const DEFAULT_TITLE =
-  "Grogbot — Like Grok Bot, for the team.";
+export const DEFAULT_TITLE = "Grogbot — Like Grok Bot, for the team.";
 export const DEFAULT_DESCRIPTION =
   "If OpenClaw is for your personal use, Grogbot is for the office. Named teammates, a shared computer, open source. Self-host for your team.";
 
@@ -21,6 +20,7 @@ export type SeoInput = {
   description: string;
   path: string;
   jsonLd?: unknown[];
+  markdownPath?: string;
 };
 
 export function seoHead(input: SeoInput): {
@@ -55,7 +55,7 @@ export function seoHead(input: SeoInput): {
       },
       {
         rel: "alternate",
-        href: canonicalUrl("/index.md"),
+        href: canonicalUrl(input.markdownPath ?? "/index.md"),
         type: "text/markdown",
       },
     ],

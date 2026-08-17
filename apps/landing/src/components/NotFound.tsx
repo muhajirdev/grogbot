@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { SiteChrome } from "./SiteChrome";
 import { appLoginUrl } from "../lib/app-url";
+import { SiteChrome } from "./SiteChrome";
 
 export function NotFoundPage() {
   return (
@@ -10,7 +10,7 @@ export function NotFoundPage() {
           <p className="kicker">404</p>
           <h1>That page is not here.</h1>
           <p className="lede">
-            Try integrations or use cases, or start a Bot.
+            Try integrations, use cases, or compare, or start a Bot.
           </p>
           <div className="row">
             <Link className="btn" to="/integrations">
@@ -18,6 +18,9 @@ export function NotFoundPage() {
             </Link>
             <Link className="btn ghost" to="/use-cases">
               Use cases
+            </Link>
+            <Link className="btn ghost" to="/compare">
+              Compare
             </Link>
           </div>
         </section>

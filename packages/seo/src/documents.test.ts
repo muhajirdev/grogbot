@@ -22,10 +22,12 @@ describe("discovery documents", () => {
     expect(txt).toContain("hello@grogbot.com");
     expect(txt).toContain(`](${CLOUD_LANDING_ORIGIN}/llms.txt)`);
     expect(txt).toContain("/press");
+    expect(txt).toContain("/compare");
     expect(identityJson(origins).name).toBe("Grogbot");
     expect(aiJson(origins).name).toBe("Grogbot");
     const pages = identityJson(origins).sitePages as Array<{ name: string }>;
     expect(pages.some((page) => page.name === "Press kit")).toBe(true);
+    expect(pages.some((page) => page.name === "Compare")).toBe(true);
   });
 
   it("lists public pages in the sitemap and allows AI crawlers", () => {
@@ -33,6 +35,7 @@ describe("discovery documents", () => {
     expect(sitemap).toContain(`${CLOUD_LANDING_ORIGIN}/llms.txt`);
     expect(sitemap).toContain(`${CLOUD_LANDING_ORIGIN}/mcp`);
     expect(sitemap).toContain(`${CLOUD_LANDING_ORIGIN}/press`);
+    expect(sitemap).toContain(`${CLOUD_LANDING_ORIGIN}/compare`);
     expect(robotsTxt(origins)).toContain("User-agent: GPTBot");
     expect(robotsTxt(origins)).toContain("Allow: /llms.txt");
   });
@@ -41,6 +44,7 @@ describe("discovery documents", () => {
     expect(llmsTxt(origins)).toMatch(/self-host/i);
     expect(developerAiTxt(origins)).toMatch(/Flue/);
     expect(faqAiTxt(origins)).toMatch(/self-host/i);
+    expect(faqAiTxt(origins)).toContain("/compare/grogbot-vs-openclaw");
     expect(llmsFullTxt(origins)).not.toMatch(/Rivet/i);
     expect(GROGBOT_STACK.join("\n")).not.toMatch(/Rivet/i);
     expect(GROGBOT_STACK.join("\n")).toMatch(/useSandbox/);

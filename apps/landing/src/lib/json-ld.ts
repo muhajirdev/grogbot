@@ -1,7 +1,8 @@
 import { GROGBOT_EMAIL } from "@grogbot/seo";
-import { canonicalUrl, landingOrigin, SITE_NAME } from "./site";
-import type { Integration } from "./integrations";
+import type { Comparison } from "../data/comparisons";
 import type { UseCase } from "../data/use-cases";
+import type { Integration } from "./integrations";
+import { canonicalUrl, landingOrigin, SITE_NAME } from "./site";
 
 export function organizationJsonLd(): Record<string, unknown> {
   return {
@@ -81,7 +82,9 @@ export function itemListJsonLd(
   };
 }
 
-export function integrationJsonLd(item: Integration): Record<string, unknown>[] {
+export function integrationJsonLd(
+  item: Integration,
+): Record<string, unknown>[] {
   return [
     breadcrumbJsonLd([
       { name: "Home", path: "/" },
@@ -107,5 +110,33 @@ export function useCaseJsonLd(item: UseCase): Record<string, unknown>[] {
       { name: item.title, path: `/use-cases/${item.slug}` },
     ]),
     faqJsonLd(item.faqs),
+  ];
+}
+
+export function comparisonJsonLd(item: Comparison): Record<string, unknown>[] {
+  const path = `/compare/${item.slug}`;
+  return [
+    breadcrumbJsonLd([
+      { name: "Home", path: "/" },
+      { name: "Compare", path: "/compare" },
+      { name: item.title, path },
+    ]),
+    faqJsonLd(item.faqs),
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      name: item.title,
+      url: canonicalUrl(path),
+      description: item.answer,
+      speakable: {
+        "@type": "SpeakableSpecification",
+        cssSelector: [".answer-box", "h1"],
+      },
+      mainEntity: {
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: { "@type": "Answer", text: item.answer },
+      },
+    },
   ];
 }

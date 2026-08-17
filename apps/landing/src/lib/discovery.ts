@@ -6,6 +6,11 @@ import {
   mcpGetResponse,
   mcpPostResponse,
 } from "@grogbot/seo";
+import {
+  COMPARISONS,
+  compareIndexMarkdown,
+  comparisonMarkdown,
+} from "../data/comparisons";
 import { USE_CASES } from "../data/use-cases";
 import { computerIntegrations, featuredIntegrations } from "./integrations";
 import { canonicalUrl } from "./site";
@@ -46,9 +51,21 @@ function extraSections(): string {
     (item) =>
       `- [${item.title}](${canonicalUrl(`/use-cases/${item.slug}`)}): ${item.lede}`,
   ).join("\n");
+  const compares = COMPARISONS.map(
+    (item) =>
+      `- [${item.title}](${canonicalUrl(`/compare/${item.slug}`)}): ${item.question} ${item.answer}`,
+  ).join("\n");
   return `## Use cases
 
 ${jobs}
+
+## Comparisons
+
+Direct answers to questions people ask ChatGPT, Claude, and Perplexity.
+
+- [Compare hub](${canonicalUrl("/compare")})
+- [Compare markdown](${canonicalUrl("/compare.md")})
+${compares}
 
 ## Indie / computer integrations
 
@@ -91,7 +108,11 @@ export function landingLlmsFull(): string {
     "/faq-ai.txt",
     "/developer-ai.txt",
   ].map((path) => lookupDiscovery(path, LANDING_ORIGINS)?.body ?? "");
-  return [landingLlmsTxt(), ...companions].join("\n\n---\n\n");
+  const compares = [
+    compareIndexMarkdown(LANDING_ORIGINS.web),
+    ...COMPARISONS.map((item) => comparisonMarkdown(item, LANDING_ORIGINS.web)),
+  ];
+  return [landingLlmsTxt(), ...companions, ...compares].join("\n\n---\n\n");
 }
 
 export function corsHeaders(): Record<string, string> {

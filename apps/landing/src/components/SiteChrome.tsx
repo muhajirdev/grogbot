@@ -1,7 +1,13 @@
 import { MascotMark } from "@grogbot/mascot";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { FOOTER_BLURB, MAC_DOWNLOAD_URL, SOURCE_REPO, CONTACT_EMAIL, CONTACT_MAILTO } from "../lib/copy";
+import {
+  CONTACT_EMAIL,
+  CONTACT_MAILTO,
+  FOOTER_BLURB,
+  MAC_DOWNLOAD_URL,
+  SOURCE_REPO,
+} from "../lib/copy";
 
 export function SiteHeader(props: { startUrl: string }) {
   return (
@@ -16,6 +22,9 @@ export function SiteHeader(props: { startUrl: string }) {
         </Link>
         <Link className="nav-hide-sm" to="/use-cases">
           Use cases
+        </Link>
+        <Link className="nav-hide-sm" to="/compare">
+          Compare
         </Link>
         <a href={SOURCE_REPO} target="_blank" rel="noreferrer">
           GitHub
@@ -36,6 +45,7 @@ export function SiteFooter() {
       <nav className="foot-links" aria-label="Footer">
         <Link to="/integrations">Integrations</Link>
         <Link to="/use-cases">Use cases</Link>
+        <Link to="/compare">Compare</Link>
         <Link to="/press">Press</Link>
         <a href={SOURCE_REPO} target="_blank" rel="noreferrer">
           GitHub

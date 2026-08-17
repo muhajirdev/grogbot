@@ -7,7 +7,8 @@ export const DEMOS = [
   {
     id: "linkedin",
     title: "Post to LinkedIn",
-    blurb: "Write it in your voice. Queue it. Nothing goes live until you look.",
+    blurb:
+      "Write it in your voice. Queue it. Nothing goes live until you look.",
     toolLine: "LinkedIn",
     slugs: ["linkedin"],
     color: "#5b7cff",
@@ -120,18 +121,21 @@ export const COMPARE = [
     kicker: "Personal",
     line: "An agent on your machine. Capable, and yours alone.",
     ours: false,
+    href: "/compare/grogbot-vs-openclaw",
   },
   {
     name: "Grok Bot",
     kicker: "Closed",
     line: "Named teammates with a computer — behind a paywall.",
     ours: false,
+    href: "/compare/grogbot-vs-grok-bot",
   },
   {
     name: "Grogbot",
     kicker: "The office",
     line: "The same idea, for the team. Shared knowledge. Source on GitHub.",
     ours: true,
+    href: "/compare",
   },
 ] as const;
 
@@ -232,4 +236,3 @@ export const HOME_ADOPTION = [
   { ...PEOPLE.you, role: "Lead", tasks: 1240, label: "1,240" },
   { ...PEOPLE.rahul, role: "Scout", tasks: 980, label: "980" },
 ] as const;
-

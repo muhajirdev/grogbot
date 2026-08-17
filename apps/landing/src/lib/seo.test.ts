@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { COMPARISONS, getComparison } from "../data/comparisons";
 import { INDIE_INTEGRATIONS } from "../data/indie-integrations";
 import { getUseCase, USE_CASES } from "../data/use-cases";
 import { categoryFamily } from "./category-copy";
@@ -118,12 +119,39 @@ describe("use cases", () => {
   });
 });
 
+describe("comparisons", () => {
+  it("answers chatbot questions in the first sentence", () => {
+    expect(COMPARISONS.length).toBeGreaterThanOrEqual(16);
+    const slugs = new Set(COMPARISONS.map((item) => item.slug));
+    expect(slugs.has("grogbot-vs-openclaw")).toBe(true);
+    expect(slugs.has("grogbot-vs-grok-bot")).toBe(true);
+    expect(slugs.has("openclaw-alternatives")).toBe(true);
+    for (const item of COMPARISONS) {
+      expect(item.question.endsWith("?")).toBe(true);
+      expect(item.answer.length).toBeGreaterThan(40);
+      expect(item.answer).toMatch(/Grogbot/);
+      expect(item.faqs.length).toBeGreaterThan(0);
+      for (const slug of item.related) {
+        expect(getComparison(slug), slug).toBeDefined();
+      }
+      for (const option of item.options ?? []) {
+        if (option.slug)
+          expect(getComparison(option.slug), option.slug).toBeDefined();
+      }
+    }
+  });
+});
+
 describe("sitemap", () => {
-  it("includes hubs, categories, integrations, and use cases", () => {
+  it("includes hubs, categories, integrations, use cases, and comparisons", () => {
     const paths = sitemapEntries().map((entry) => entry.path);
     expect(paths).toContain("/");
     expect(paths).toContain("/integrations");
     expect(paths).toContain("/use-cases");
+    expect(paths).toContain("/compare");
+    expect(paths).toContain("/compare.md");
+    expect(paths).toContain("/compare/grogbot-vs-openclaw");
+    expect(paths).toContain("/compare/md/grogbot-vs-openclaw");
     expect(paths).toContain("/press");
     expect(paths).toContain("/press.md");
     expect(paths).toContain("/integrations/gmail");
@@ -135,11 +163,12 @@ describe("sitemap", () => {
     expect(paths).toContain("/llms.txt");
     expect(paths).toContain("/mcp");
     expect(paths.length).toBe(
-      4 +
+      6 +
         DISCOVERY_SITEMAP_PATHS.length +
         integrationCategories().length +
         INTEGRATIONS.length +
-        USE_CASES.length,
+        USE_CASES.length +
+        COMPARISONS.length * 2,
     );
   });
 
@@ -157,6 +186,8 @@ describe("llms discovery", () => {
     expect(txt).toContain("/mcp");
     expect(txt).toContain("/identity.json");
     expect(txt).toContain("/use-cases/");
+    expect(txt).toContain("/compare/");
+    expect(txt).toContain("/compare.md");
     expect(txt).toContain("/press");
   });
 });
