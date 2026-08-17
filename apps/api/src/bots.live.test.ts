@@ -110,7 +110,18 @@ describe.skipIf(!dbUp)("bot thread loop", () => {
     const rpc = client();
     const me = await rpc.me();
     expect(me.email).toBe(email);
-    expect(me.workspaceId.length).toBeGreaterThan(0);
+    expect(me.needsWorkspace).toBe(true);
+    expect(me.workspaceId).toBeNull();
+    await expect(rpc.bots.create({ name: "Too soon" })).rejects.toMatchObject({
+      code: "FAILED_PRECONDITION",
+    });
+
+    const office = await rpc.workspaces.create({ name: "Test office" });
+    expect(office.name).toBe("Test office");
+    const ready = await rpc.me();
+    expect(ready.needsWorkspace).toBe(false);
+    expect(ready.workspaceId).toBe(office.id);
+    expect(ready.workspaceName).toBe("Test office");
 
     const bot = await rpc.bots.create({
       name: "Piper",
@@ -194,6 +205,7 @@ describe.skipIf(!dbUp)("bot thread loop", () => {
     expect(signUp.status, await signUp.text()).toBe(200);
 
     const rpc = client();
+    await rpc.workspaces.create({ name: "Desk office" });
     const piper = await rpc.bots.create({
       name: "Piper",
       title: "Product",
@@ -262,6 +274,7 @@ describe.skipIf(!dbUp)("bot thread loop", () => {
     expect(signUp.status, await signUp.text()).toBe(200);
 
     const rpc = client();
+    await rpc.workspaces.create({ name: "Guest office" });
     const bot = await rpc.bots.create({
       name: "Hermes stand-in",
       title: "External",
@@ -394,6 +407,7 @@ describe.skipIf(!dbUp)("bot thread loop", () => {
     expect(signUp.status, await signUp.text()).toBe(200);
 
     const rpc = client();
+    await rpc.workspaces.create({ name: "Archive office" });
     const piper = await rpc.bots.create({
       name: "Piper",
       title: "Product",
@@ -543,6 +557,7 @@ describe.skipIf(!dbUp)("bot thread loop", () => {
     expect(signUp.status, await signUp.text()).toBe(200);
 
     const rpc = client();
+    await rpc.workspaces.create({ name: "Poke office" });
     const mayaBot = await rpc.bots.create({
       name: "Maya",
       title: "Chief of Staff",
