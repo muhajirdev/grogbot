@@ -17,8 +17,8 @@ import {
 } from "../lib/prefs";
 import { client } from "../lib/rpc";
 import type { Theme } from "../lib/theme";
-import { ChevronDownIcon, CloseIcon } from "./Icons";
 import { ModalShell } from "../ui";
+import { ChevronDownIcon, CloseIcon } from "./Icons";
 
 type Tab = "general" | "models" | "billing" | "updates";
 
@@ -102,6 +102,13 @@ export function AppSettings(props: {
                   </div>
                 </section>
                 <section className="set-block">
+                  <p className="group-label">Workspace</p>
+                  <WorkspaceInvite
+                    name={props.me?.workspaceName}
+                    enabled={Boolean(props.me && !props.me.needsWorkspace)}
+                  />
+                </section>
+                <section className="set-block">
                   <p className="group-label">Appearance</p>
                   <label className="field">
                     <span>Theme</span>
@@ -156,7 +163,8 @@ export function AppSettings(props: {
                     <p className="hint">
                       Let the assistant open files and run tasks on your
                       computer. Auto-review still checks everything first. Never
-                      enable this when the sandbox is E2B.
+                      enable this when the desk is a hosted Computer, Sandbox,
+                      or E2B.
                     </p>
                   </label>
                   <label className="toggle-row">
@@ -205,6 +213,68 @@ export function AppSettings(props: {
         </div>
       </div>
     </ModalShell>
+  );
+}
+
+function WorkspaceInvite(props: {
+  name: string | null | undefined;
+  enabled: boolean;
+}) {
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [sent, setSent] = useState<{ email: string; url: string } | null>(null);
+
+  async function send() {
+    const trimmed = email.trim();
+    if (!trimmed) return;
+    setBusy(true);
+    setError("");
+    setSent(null);
+    try {
+      const invite = await client.workspaces.invite({ email: trimmed });
+      setSent({ email: invite.email, url: invite.url });
+      setEmail("");
+    } catch (caught) {
+      setError(userFacingError(caught, "Could not send invite"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      <p className="muted">{props.name || "This workspace"}</p>
+      {props.enabled ? (
+        <>
+          <label className="field">
+            <span>Invite by email</span>
+            <input
+              type="email"
+              value={email}
+              placeholder="teammate@company.com"
+              autoComplete="off"
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          </label>
+          <button
+            className="mini"
+            type="button"
+            disabled={busy || !email.trim()}
+            onClick={() => void send()}
+          >
+            {busy ? "Sending…" : "Send invite"}
+          </button>
+          {error ? <p className="muted">{error}</p> : null}
+          {sent ? (
+            <p className="muted">
+              Invite sent to {sent.email}. Share this link if they need it:{" "}
+              {sent.url}
+            </p>
+          ) : null}
+        </>
+      ) : null}
+    </>
   );
 }
 

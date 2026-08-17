@@ -322,6 +322,10 @@ h3 {
   animation-delay: 0.26s;
 }
 
+.hero-home > :nth-child(6) {
+  animation-delay: 0.32s;
+}
+
 @keyframes rise {
   from {
     opacity: 0;
@@ -1762,11 +1766,28 @@ img.avatar {
   border-color: var(--ink);
 }
 
+.hero-jobs {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
 .job-pitch {
   max-width: 40rem;
   color: var(--muted);
   font-size: 16px;
   line-height: 1.5;
+  margin: 0;
+}
+
+.hero-jobs .job-pitch {
+  text-align: center;
+}
+
+.hero-jobs .chips {
+  justify-content: center;
   margin: 0;
 }
 

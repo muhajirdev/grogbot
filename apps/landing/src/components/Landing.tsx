@@ -1,8 +1,17 @@
 import { MascotMark } from "@grogbot/mascot";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { COMPARE, CONTACT_MAILTO, DEMOS, FAQS, HOME_ADOPTION, HOME_MODELS, SOURCE_REPO, demoLogo } from "../lib/copy";
-import { HOME_INTEGRATIONS } from "../lib/teasers";
+import {
+  COMPARE,
+  CONTACT_MAILTO,
+  DEMOS,
+  demoLogo,
+  FAQS,
+  HOME_ADOPTION,
+  HOME_MODELS,
+  SOURCE_REPO,
+} from "../lib/copy";
+import { HOME_INTEGRATIONS, HOME_USE_CASES } from "../lib/teasers";
 import { DemoThread } from "./DemoThread";
 import { OfficePreview } from "./OfficePreview";
 import { PersonFace } from "./PersonFace";
@@ -40,6 +49,24 @@ export function Landing(props: { startUrl: string }) {
             >
               View source
             </a>
+          </div>
+          <div className="hero-jobs">
+            <p className="job-pitch">Hire your first Chief of Staff.</p>
+            <nav className="chips" aria-label="First jobs">
+              {HOME_USE_CASES.map((item) => (
+                <Link
+                  key={item.slug}
+                  className={`chip${item.slug === "chief-of-staff" ? " on" : ""}`}
+                  to="/use-cases/$slug"
+                  params={{ slug: item.slug }}
+                >
+                  {item.title}
+                </Link>
+              ))}
+            </nav>
+            <p className="job-more">
+              <Link to="/use-cases">All jobs</Link>
+            </p>
           </div>
         </section>
 
@@ -156,9 +183,9 @@ export function Landing(props: { startUrl: string }) {
           <article className="tile wide">
             <h3>Works from anywhere</h3>
             <p>
-              Shut the laptop. Open the thread on your phone. The Bot’s
-              computer lives in the cloud — not on your machine — so the work
-              does not stop when you do.
+              Shut the laptop. Open the thread on your phone. The Bot’s computer
+              lives in the cloud — not on your machine — so the work does not
+              stop when you do.
             </p>
             <div className="tile-stage">
               <div className="handoff-scene" aria-hidden>
@@ -279,7 +306,11 @@ export function Landing(props: { startUrl: string }) {
           </div>
         </section>
 
-        <section id="enterprise" className="enterprise" aria-label="Enterprise ready">
+        <section
+          id="enterprise"
+          className="enterprise"
+          aria-label="Enterprise ready"
+        >
           <div className="enterprise-copy">
             <p className="kicker">Self-host</p>
             <h2>Enterprise ready.</h2>
@@ -289,10 +320,7 @@ export function Landing(props: { startUrl: string }) {
               calls go to the key you paste.
             </p>
             <div className="row">
-              <a
-                className="btn ghost"
-                href={CONTACT_MAILTO}
-              >
+              <a className="btn ghost" href={CONTACT_MAILTO}>
                 Email
               </a>
               <a
@@ -335,10 +363,10 @@ export function Landing(props: { startUrl: string }) {
 
         <section className="cta">
           <p className="kicker">Hire the first one</p>
-          <h2>Meet your first Bot.</h2>
+          <h2>Hire your first Chief of Staff.</h2>
           <p className="lede tight">
-            Name, optional job, how it should work. Open the thread. The first
-            message is a real task.
+            The job everyone starts with. Name it, open the thread, give it a
+            real task — then hire specialists.
           </p>
           <a className="btn lg" href={props.startUrl}>
             Get started

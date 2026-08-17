@@ -5,13 +5,19 @@ import {
   ComputerListItemSchema,
   ComputerStatusSchema,
   CreateBotInput,
+  CreateWorkspaceInput,
   GuestConnectSchema,
   GuestStatusSchema,
+  InviteWorkspaceInput,
+  JoinWorkspaceInput,
   MemoryDocumentSchema,
   MeSchema,
   PokeThreadSchema,
   RoutineSchema,
   UpdateBotInput,
+  WorkspaceInvitationSchema,
+  WorkspaceInviteSchema,
+  WorkspaceSchema,
 } from "./domain.js";
 import { ProductEventSchema } from "./events.js";
 import { GuestAgentKind, Id } from "./ids.js";
@@ -32,6 +38,12 @@ export const appContract = oc.router({
     }),
   ),
   me: oc.output(MeSchema),
+  workspaces: {
+    create: oc.input(CreateWorkspaceInput).output(WorkspaceSchema),
+    join: oc.input(JoinWorkspaceInput).output(WorkspaceSchema),
+    invite: oc.input(InviteWorkspaceInput).output(WorkspaceInviteSchema),
+    invitations: oc.output(z.array(WorkspaceInvitationSchema)),
+  },
   models: {
     get: oc.output(ModelSettingsSchema),
     save: oc.input(SaveModelSettingsInput).output(ModelSettingsSchema),

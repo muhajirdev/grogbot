@@ -33,11 +33,16 @@ describe("createMailer", () => {
   });
 
   it("posts to Cloudflare Email Sending", async () => {
-    const fetchMock = vi.fn<(url: string, init?: RequestInit) => Promise<Response>>(
+    const fetchMock = vi.fn<
+      (url: string, init?: RequestInit) => Promise<Response>
+    >(
       async () =>
-        new Response(JSON.stringify({ success: true, errors: [], result: {} }), {
-          status: 200,
-        }),
+        new Response(
+          JSON.stringify({ success: true, errors: [], result: {} }),
+          {
+            status: 200,
+          },
+        ),
     );
     vi.stubGlobal("fetch", fetchMock);
     const mailer = createMailer({
@@ -71,5 +76,39 @@ describe("createMailer", () => {
       name: "Grogbot",
     });
     expect(payload.subject).toBe("Sign in to Grogbot");
+  });
+
+  it("sends workspace invites through Cloudflare", async () => {
+    const fetchMock = vi.fn<
+      (url: string, init?: RequestInit) => Promise<Response>
+    >(
+      async () =>
+        new Response(
+          JSON.stringify({ success: true, errors: [], result: {} }),
+          {
+            status: 200,
+          },
+        ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const mailer = createMailer({
+      cloudflareAccountId: "acct",
+      cloudflareEmailToken: "token",
+      emailFrom: "Grogbot <noreply@grogbot.com>",
+    });
+    await mailer.sendInvitation({
+      email: "you@example.com",
+      url: "https://app.grogbot.com/onboarding?invite=inv_abc",
+      organizationName: "Acme",
+      inviterName: "Sam",
+    });
+    const payload = JSON.parse(
+      String(fetchMock.mock.calls[0]?.[1]?.body ?? ""),
+    ) as {
+      subject: string;
+      to: string;
+    };
+    expect(payload.to).toBe("you@example.com");
+    expect(payload.subject).toBe("Join Acme on Grogbot");
   });
 });

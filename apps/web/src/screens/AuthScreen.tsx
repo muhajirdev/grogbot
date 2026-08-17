@@ -4,11 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { GateMark, GateShell } from "../components/Gate";
 import { GitHubIcon, GoogleIcon } from "../components/Icons";
 import { authClient } from "../lib/auth";
+import { rememberInvite } from "../lib/invite";
 import { orpc } from "../lib/orpc";
 
 type OAuthId = "google" | "github";
 
-export function AuthScreen(props: { errorFromUrl?: string }) {
+export function AuthScreen(props: { errorFromUrl?: string; invite?: string }) {
   const health = useQuery(orpc.health.queryOptions());
   const [mode, setMode] = useState<"in" | "up">("up");
   const [emailOpen, setEmailOpen] = useState(false);
@@ -19,6 +20,10 @@ export function AuthScreen(props: { errorFromUrl?: string }) {
   const emailRef = useRef<HTMLInputElement>(null);
   const oauth: OAuthId[] = health.data?.oauth ?? ["google", "github"];
   const mail = health.data?.mail ?? "log";
+  const invite = props.invite?.trim();
+  const afterAuth = invite
+    ? `/onboarding?invite=${encodeURIComponent(invite)}`
+    : "/";
 
   useEffect(() => {
     if (props.errorFromUrl) setError(props.errorFromUrl);
@@ -31,12 +36,15 @@ export function AuthScreen(props: { errorFromUrl?: string }) {
   async function sendLink() {
     setBusy(true);
     setError("");
+    rememberInvite(invite);
     const result = await authClient.signIn.magicLink({
       email,
       name: email.split("@")[0] || "You",
-      callbackURL: "/",
-      newUserCallbackURL: "/",
-      errorCallbackURL: "/login",
+      callbackURL: afterAuth,
+      newUserCallbackURL: afterAuth,
+      errorCallbackURL: invite
+        ? `/login?invite=${encodeURIComponent(invite)}`
+        : "/login",
     });
     setBusy(false);
     if (result.error) {
@@ -63,10 +71,13 @@ export function AuthScreen(props: { errorFromUrl?: string }) {
       );
       return;
     }
+    rememberInvite(invite);
     const result = await authClient.signIn.social({
       provider,
-      callbackURL: "/",
-      errorCallbackURL: "/login",
+      callbackURL: afterAuth,
+      errorCallbackURL: invite
+        ? `/login?invite=${encodeURIComponent(invite)}`
+        : "/login",
     });
     setBusy(false);
     if (result.error) setError(result.error.message ?? "Could not continue");
@@ -77,8 +88,12 @@ export function AuthScreen(props: { errorFromUrl?: string }) {
       <div className="gate-auth">
         <GateMark hero mood={mode === "up" ? "happy" : "idle"} />
         <div className="gate-stage">
-          <h1>{mode === "up" ? "Create your workspace" : "Welcome back"}</h1>
-          <p className="lede">Like Grok Bot, for the whole team.</p>
+          <h1>{mode === "up" ? "Get started" : "Welcome back"}</h1>
+          <p className="lede">
+            {invite
+              ? "Sign in to join the workspace you were invited to."
+              : "Like Grok Bot, for the whole team."}
+          </p>
           <div className="oauth">
             <button
               className="btn ghost oauth-btn"
@@ -132,7 +147,11 @@ export function AuthScreen(props: { errorFromUrl?: string }) {
                   placeholder="you@company.com"
                 />
               </label>
-              <button className="btn" type="submit" disabled={busy || !email.trim()}>
+              <button
+                className="btn"
+                type="submit"
+                disabled={busy || !email.trim()}
+              >
                 {busy ? "Sending…" : "Email me a link"}
               </button>
             </form>
@@ -156,7 +175,9 @@ export function AuthScreen(props: { errorFromUrl?: string }) {
                 setError("");
               }}
             >
-              {mode === "up" ? "I already have an account" : "Create an account"}
+              {mode === "up"
+                ? "I already have an account"
+                : "Create an account"}
             </button>
             <Link to="/" viewTransition>
               Back

@@ -10,15 +10,25 @@ import {
 } from "@grogbot/contracts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AvatarMark, ShapePicks } from "../components/Avatar";
-import { GateAnywhere, GateMark, GateShell, GateSteps } from "../components/Gate";
+import {
+  GateAnywhere,
+  GateMark,
+  GateShell,
+  GateSteps,
+} from "../components/Gate";
 import { userFacingError } from "../lib/errors";
 import { runGateTransition } from "../lib/gate-transition";
+import {
+  clearRememberedInvite,
+  readRememberedInvite,
+  rememberInvite,
+} from "../lib/invite";
 import { AVATAR_COLORS, AVATAR_SHAPES, SUGGESTED_JOBS } from "../lib/jobs";
 import { orpc } from "../lib/orpc";
 import { client } from "../lib/rpc";
-import { cacheCreatedBot } from "../lib/session";
+import { cacheCreatedBot, firstLiveBot } from "../lib/session";
 import { Button, Chip, Field, Input, Select, Textarea } from "../ui";
 
 const TOOLS = [
@@ -47,13 +57,26 @@ const PROVIDER_ORDER: ModelProvider[] = [
   "cloudflare",
 ];
 
-export function Onboarding() {
+export function Onboarding(props: { invite?: string }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const meQuery = useQuery(orpc.me.queryOptions());
-  const modelsQuery = useQuery(orpc.models.get.queryOptions());
+  const invitesQuery = useQuery({
+    ...orpc.workspaces.invitations.queryOptions(),
+    enabled: Boolean(meQuery.data?.needsWorkspace),
+  });
+  const modelsQuery = useQuery({
+    ...orpc.models.get.queryOptions(),
+    enabled: Boolean(meQuery.data && !meQuery.data.needsWorkspace),
+  });
   const settings = modelsQuery.data;
 
+  const [phase, setPhase] = useState<"workspace" | "tour">();
+  const [workspaceStep, setWorkspaceStep] = useState<
+    "choose" | "create" | "join"
+  >("choose");
+  const [workspaceName, setWorkspaceName] = useState("");
+  const [inviteId, setInviteId] = useState("");
   const [step, setStep] = useState(0);
   const [tools, setTools] = useState<string[]>([]);
   const [name, setName] = useState("Piper");
@@ -144,6 +167,87 @@ export function Onboarding() {
   const heroMood =
     step === 0 || step === 4 ? "happy" : step === 2 ? "thinking" : "idle";
 
+  useEffect(() => {
+    if (!meQuery.data || phase) return;
+    if (!meQuery.data.needsWorkspace) {
+      setPhase("tour");
+      return;
+    }
+    const invite = props.invite?.trim() || readRememberedInvite();
+    if (invite) {
+      rememberInvite(invite);
+      setInviteId(invite);
+      setWorkspaceStep("join");
+    }
+    setPhase("workspace");
+  }, [meQuery.data, phase, props.invite]);
+
+  function goWorkspace(next: "choose" | "create" | "join") {
+    setError("");
+    runGateTransition(() => setWorkspaceStep(next));
+  }
+
+  async function createOffice() {
+    const name = workspaceName.trim();
+    if (!name) {
+      setError("Name the workspace to continue.");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    try {
+      await client.workspaces.create({ name });
+      clearRememberedInvite();
+      await queryClient.invalidateQueries({ queryKey: orpc.me.key() });
+      setBusy(false);
+      runGateTransition(() => {
+        setPhase("tour");
+        setStep(0);
+      });
+    } catch (caught) {
+      setError(userFacingError(caught, "Could not create workspace"));
+      setBusy(false);
+    }
+  }
+
+  async function joinOffice() {
+    const raw = inviteId.trim();
+    if (!raw) {
+      setError("Paste an invite to join.");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    try {
+      await client.workspaces.join({ invitationId: raw });
+      clearRememberedInvite();
+      await queryClient.invalidateQueries({ queryKey: orpc.me.key() });
+      const bots = await client.bots.list();
+      const first = firstLiveBot(bots);
+      if (first) {
+        try {
+          await cacheCreatedBot(first);
+        } catch {
+          // Office loader will fetch the roster.
+        }
+        await navigate({
+          to: "/$botId",
+          params: { botId: first.id },
+          viewTransition: true,
+        });
+        return;
+      }
+      setBusy(false);
+      runGateTransition(() => {
+        setPhase("tour");
+        setStep(0);
+      });
+    } catch (caught) {
+      setError(userFacingError(caught, "Could not join workspace"));
+      setBusy(false);
+    }
+  }
+
   async function saveModels() {
     if (!settings) return;
     if (modelsReady) {
@@ -188,10 +292,7 @@ export function Onboarding() {
       }
       const next = await client.models.save({
         defaultModel: selectedModel,
-        keys:
-          keys.length > 0
-            ? keys
-            : [{ provider: selectedProvider }],
+        keys: keys.length > 0 ? keys : [{ provider: selectedProvider }],
       });
       queryClient.setQueryData(orpc.models.get.queryOptions().queryKey, next);
       await queryClient.invalidateQueries({ queryKey: orpc.me.key() });
@@ -241,6 +342,137 @@ export function Onboarding() {
     } finally {
       setBusy(false);
     }
+  }
+
+  if (!phase) {
+    return (
+      <GateShell>
+        <p className="kicker">Grogbot</p>
+      </GateShell>
+    );
+  }
+
+  if (phase === "workspace") {
+    const pending = invitesQuery.data ?? [];
+    return (
+      <GateShell>
+        <p className="kicker">Your workspace</p>
+        <GateMark hero size="lg" mood="happy" />
+        {workspaceStep === "choose" ? (
+          <div className="gate-stage" key="choose">
+            <h1>Create or join?</h1>
+            <p className="lede">
+              A workspace is the office. Bots, files, and people share it.
+            </p>
+            <div className="gate-choices">
+              <button
+                type="button"
+                className="gate-choice"
+                onClick={() => goWorkspace("create")}
+              >
+                <strong>Create a new workspace</strong>
+                <span>
+                  Name the office. Hire teammates. Invite people later.
+                </span>
+              </button>
+              <button
+                type="button"
+                className="gate-choice"
+                onClick={() => goWorkspace("join")}
+              >
+                <strong>Join a workspace</strong>
+                <span>Use the invite a teammate sent you.</span>
+              </button>
+            </div>
+          </div>
+        ) : null}
+        {workspaceStep === "create" ? (
+          <div className="gate-stage" key="create">
+            <h1>Name the workspace.</h1>
+            <p className="lede">
+              This is the office bots and people share. You can invite others
+              from Settings.
+            </p>
+            <Field label="Workspace name">
+              <Input
+                value={workspaceName}
+                placeholder="Acme"
+                autoComplete="organization"
+                onValueChange={setWorkspaceName}
+              />
+            </Field>
+            {error ? <p className="error">{error}</p> : null}
+            <div className="gate-nav">
+              <Button
+                variant="ghost"
+                type="button"
+                onClick={() => goWorkspace("choose")}
+              >
+                Back
+              </Button>
+              <Button
+                type="button"
+                disabled={busy || !workspaceName.trim()}
+                onClick={() => void createOffice()}
+              >
+                {busy ? "Creating…" : "Continue"}
+              </Button>
+            </div>
+          </div>
+        ) : null}
+        {workspaceStep === "join" ? (
+          <div className="gate-stage" key="join">
+            <h1>Join a workspace.</h1>
+            <p className="lede">
+              Paste the invite link, or pick one waiting for{" "}
+              {meQuery.data?.email}.
+            </p>
+            {pending.length > 0 ? (
+              <div className="gate-tools">
+                {pending.map((item) => (
+                  <Chip
+                    key={item.id}
+                    selected={inviteId === item.id}
+                    onClick={() => {
+                      setError("");
+                      setInviteId(item.id);
+                    }}
+                  >
+                    {item.organizationName}
+                  </Chip>
+                ))}
+              </div>
+            ) : null}
+            <Field label="Invite">
+              <Input
+                value={inviteId}
+                placeholder="Paste invite link or id"
+                autoComplete="off"
+                spellCheck={false}
+                onValueChange={setInviteId}
+              />
+            </Field>
+            {error ? <p className="error">{error}</p> : null}
+            <div className="gate-nav">
+              <Button
+                variant="ghost"
+                type="button"
+                onClick={() => goWorkspace("choose")}
+              >
+                Back
+              </Button>
+              <Button
+                type="button"
+                disabled={busy || !inviteId.trim()}
+                onClick={() => void joinOffice()}
+              >
+                {busy ? "Joining…" : "Join"}
+              </Button>
+            </div>
+          </div>
+        ) : null}
+      </GateShell>
+    );
   }
 
   return (
@@ -367,10 +599,7 @@ export function Onboarding() {
                   label={
                     <>
                       OpenRouter key
-                      <em className="font-normal text-muted">
-                        {" "}
-                        · recommended
-                      </em>
+                      <em className="font-normal text-muted"> · recommended</em>
                     </>
                   }
                   hint={

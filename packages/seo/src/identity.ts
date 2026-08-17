@@ -2,7 +2,7 @@ export const GROGBOT_NAME = "Grogbot";
 export const GROGBOT_VERSION = "0.0.1";
 export const GROGBOT_LANGUAGE = "en-US";
 export const GROGBOT_LICENSE = "Grogbot License (Apache 2.0 plus conditions)";
-export const GROGBOT_UPDATED = "2026-08-16";
+export const GROGBOT_UPDATED = "2026-08-17";
 export const GROGBOT_GITHUB = "https://github.com/muhajirdev/grogbot";
 export const GROGBOT_EMAIL = "hello@grogbot.com";
 export const GROGBOT_APP = "https://app.grogbot.com";
@@ -61,5 +61,5 @@ export const GROGBOT_STACK = [
   "Postgres + Drizzle for team data",
   "Flue + Pi on Node; one wakeup queue per bot; Postgres for team data",
   "Better Auth (magic-link email, Google, GitHub)",
-  "Sandboxes: Docker locally, E2B hosted, desktop on a trusted machine only",
+  "Sandboxes: Flue useSandbox — Cloudflare Computer light, Docker / Cloudflare Sandbox / E2B heavy, desktop on a trusted machine only",
 ] as const;

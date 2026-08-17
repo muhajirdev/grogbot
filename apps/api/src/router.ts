@@ -1,5 +1,9 @@
 import { isOfflineAgentRuntime } from "@grogbot/adapters";
-import { appContract, labelForModel } from "@grogbot/contracts";
+import {
+  appContract,
+  labelForModel,
+  SUGGESTED_STARTER_MODEL,
+} from "@grogbot/contracts";
 import {
   encryptionSecret,
   getBotComputer,
@@ -41,14 +45,42 @@ import {
   rotateGuest,
 } from "./guests.js";
 import { healthPayload } from "./health.js";
-import { requireActor } from "./session.js";
+import { requireActor, requireUser } from "./session.js";
+import {
+  createWorkspace,
+  inviteToWorkspace,
+  joinWorkspace,
+  pendingInvitations,
+} from "./workspaces.js";
 
 const os = implement(appContract).$context<RpcContext>();
 
 export const appRouter = os.router({
   health: os.health.handler(async ({ context }) => healthPayload(context.env)),
   me: os.me.handler(async ({ context }) => {
-    const actor = await requireActor(context);
+    const user = await requireUser(context);
+    if (!user.workspaceId) {
+      return {
+        userId: user.userId,
+        email: user.email,
+        name: user.name,
+        workspaceId: null,
+        workspaceName: null,
+        needsWorkspace: true,
+        isDeploymentOwner: user.isDeploymentOwner,
+        needsModel: false,
+        defaultModel: SUGGESTED_STARTER_MODEL,
+        defaultModelLabel: labelForModel(SUGGESTED_STARTER_MODEL),
+        modelWarning: null,
+      };
+    }
+    const actor = {
+      userId: user.userId,
+      email: user.email,
+      name: user.name,
+      workspaceId: user.workspaceId,
+      isDeploymentOwner: user.isDeploymentOwner,
+    };
     const source = agentRuntimeSource(context.env);
     const secret = encryptionSecret(
       {
@@ -68,6 +100,8 @@ export const appRouter = os.router({
       email: actor.email,
       name: actor.name,
       workspaceId: actor.workspaceId,
+      workspaceName: user.workspaceName,
+      needsWorkspace: false,
       isDeploymentOwner: actor.isDeploymentOwner,
       needsModel:
         !isOfflineAgentRuntime(context.env.agentRuntime) &&
@@ -77,6 +111,23 @@ export const appRouter = os.router({
       modelWarning: settings.warning,
     };
   }),
+  workspaces: {
+    create: os.workspaces.create.handler(async ({ context, input }) => {
+      const user = await requireUser(context);
+      return createWorkspace(context, user, input.name);
+    }),
+    join: os.workspaces.join.handler(async ({ context, input }) => {
+      const user = await requireUser(context);
+      return joinWorkspace(context, user, input.invitationId);
+    }),
+    invite: os.workspaces.invite.handler(async ({ context, input }) => {
+      return inviteToWorkspace(context, input.email);
+    }),
+    invitations: os.workspaces.invitations.handler(async ({ context }) => {
+      const user = await requireUser(context);
+      return pendingInvitations(context, user.email);
+    }),
+  },
   models: {
     get: os.models.get.handler(async ({ context }) => {
       const actor = await requireActor(context);

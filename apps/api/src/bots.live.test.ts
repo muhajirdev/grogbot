@@ -443,6 +443,86 @@ describe.skipIf(!dbUp)("bot thread loop", () => {
     );
   }, 15_000);
 
+  it("lets a teammate join with an invite", async () => {
+    const stamp = Date.now();
+    const ownerEmail = `owner-${stamp}@example.com`;
+    const memberEmail = `member-${stamp}@example.com`;
+    let ownerCookie = "";
+    let memberCookie = "";
+
+    const ownerSignUp = await handles.app.request(
+      new Request(`${origin}/api/auth/sign-up/email`, {
+        method: "POST",
+        headers: {
+          origin,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          name: "Owner",
+          email: ownerEmail,
+          password: "password1",
+        }),
+      }),
+    );
+    ownerCookie = cookieHeader(ownerSignUp);
+    expect(ownerSignUp.status, await ownerSignUp.text()).toBe(200);
+
+    const ownerRpc = createGrogbotClient({
+      baseUrl: origin,
+      headers: () => ({ cookie: ownerCookie, origin }),
+      fetch: async (input, init) => {
+        const request =
+          input instanceof Request ? input : new Request(String(input), init);
+        const response = await handles.app.request(request);
+        ownerCookie = cookieHeader(response, ownerCookie);
+        return response;
+      },
+    });
+    const office = await ownerRpc.workspaces.create({ name: "Shared office" });
+    const invite = await ownerRpc.workspaces.invite({ email: memberEmail });
+    expect(invite.email).toBe(memberEmail);
+    expect(invite.url).toContain("invite=");
+
+    const memberSignUp = await handles.app.request(
+      new Request(`${origin}/api/auth/sign-up/email`, {
+        method: "POST",
+        headers: {
+          origin,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          name: "Member",
+          email: memberEmail,
+          password: "password1",
+        }),
+      }),
+    );
+    memberCookie = cookieHeader(memberSignUp);
+    expect(memberSignUp.status, await memberSignUp.text()).toBe(200);
+
+    const memberRpc = createGrogbotClient({
+      baseUrl: origin,
+      headers: () => ({ cookie: memberCookie, origin }),
+      fetch: async (input, init) => {
+        const request =
+          input instanceof Request ? input : new Request(String(input), init);
+        const response = await handles.app.request(request);
+        memberCookie = cookieHeader(response, memberCookie);
+        return response;
+      },
+    });
+    const pending = await memberRpc.workspaces.invitations();
+    expect(pending.some((item) => item.id === invite.id)).toBe(true);
+    const joined = await memberRpc.workspaces.join({
+      invitationId: invite.url,
+    });
+    expect(joined.id).toBe(office.id);
+    expect(joined.name).toBe("Shared office");
+    const me = await memberRpc.me();
+    expect(me.needsWorkspace).toBe(false);
+    expect(me.workspaceId).toBe(office.id);
+  }, 15_000);
+
   it("lets one bot poke another and brings the reply back", async () => {
     const email = `poke-${Date.now()}@example.com`;
     const signUp = await handles.app.request(

@@ -61,8 +61,15 @@
     {
       "idx": 8,
       "version": "7",
-      "when": 1786932000000,
-      "tag": "0008_poke_threads",
+      "when": 1786942200000,
+      "tag": "0008_invitation_created_at",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1786943000000,
+      "tag": "0009_poke_threads",
       "breakpoints": true
     }
   ]

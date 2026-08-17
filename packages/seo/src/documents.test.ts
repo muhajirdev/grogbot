@@ -43,6 +43,8 @@ describe("discovery documents", () => {
     expect(faqAiTxt(origins)).toMatch(/self-host/i);
     expect(llmsFullTxt(origins)).not.toMatch(/Rivet/i);
     expect(GROGBOT_STACK.join("\n")).not.toMatch(/Rivet/i);
+    expect(GROGBOT_STACK.join("\n")).toMatch(/useSandbox/);
+    expect(GROGBOT_STACK.join("\n")).toMatch(/Cloudflare Computer/);
   });
 
   it("does not claim zero retention as a Grogbot product feature", () => {

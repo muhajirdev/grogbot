@@ -1,11 +1,23 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { loadBotsForRoute } from "../../lib/session";
+import { orpc } from "../../lib/orpc";
+import { firstLiveBot, loadBotsForRoute } from "../../lib/session";
 import { Onboarding } from "../../screens/Onboarding";
 
+type OnboardingSearch = {
+  invite?: string;
+};
+
 export const Route = createFileRoute("/_authed/onboarding")({
-  loader: async () => {
+  validateSearch: (search: Record<string, unknown>): OnboardingSearch => ({
+    invite: typeof search.invite === "string" ? search.invite : undefined,
+  }),
+  loader: async ({ context }) => {
+    const me = await context.queryClient.ensureQueryData(
+      orpc.me.queryOptions(),
+    );
+    if (me.needsWorkspace) return;
     const bots = await loadBotsForRoute();
-    const first = bots[0];
+    const first = firstLiveBot(bots);
     if (first) {
       throw redirect({ to: "/$botId", params: { botId: first.id } });
     }
@@ -14,5 +26,6 @@ export const Route = createFileRoute("/_authed/onboarding")({
 });
 
 function OnboardingPage() {
-  return <Onboarding />;
+  const { invite } = Route.useSearch();
+  return <Onboarding invite={invite} />;
 }

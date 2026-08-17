@@ -16,7 +16,7 @@ Early scaffold: contracts, Postgres (team data), Node worker wakeup (one queue p
 - **Routines** — Postgres cron metadata; worker fires with croner onto that queue
 - Better Auth (magic-link email, Google, GitHub)
 - Local Compose Postgres; hosted cloud is Cloudflare (landing/email). API + worker stay Node.
-- Computers: Docker locally, E2B hosted, desktop only on a trusted machine
+- Computers: Flue `useSandbox` (Cloudflare Computer light, Docker / Cloudflare Sandbox / E2B heavy). Desktop only on a trusted machine.
 - Plugins: Composio (optional)
 - UI: **web first** (Grok Bot-simple) — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md). Desktop = Electron around web. Mobile = Expo later.
 

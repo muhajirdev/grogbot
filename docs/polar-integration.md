@@ -8,7 +8,7 @@ Polar docs index: [polar.sh/docs/llms.txt](https://polar.sh/docs/llms.txt). Prim
 
 ## Why Polar (for hosted cloud)
 
-Grogbot is fair-code (Apache 2.0 plus no competing hosted cloud), workspace-scoped, BYOK by default, and will eventually charge for **hosted** compute (E2B, Cloudflare), not for the source. Self-host for your own organization stays free; offering Grogbot as a cloud to third parties needs a commercial license.
+Grogbot is fair-code (Apache 2.0 plus no competing hosted cloud), workspace-scoped, BYOK by default, and will eventually charge for **hosted** compute (Flue sandboxes: Cloudflare Computer, Cloudflare Sandbox, E2B), not for the source. Self-host for your own organization stays free; offering Grogbot as a cloud to third parties needs a commercial license.
 
 | Need | Polar | Stripe-as-PSP |
 | --- | --- | --- |
@@ -31,13 +31,13 @@ Nothing Polar-related. Billing-shaped pieces:
 
 - Auth is Better Auth in `packages/auth`, mounted at `/api/auth/*` on the Hono API (`apps/api/src/app.ts`).
 - Workspaces are Better Auth **organizations**. Every bot, computer, thread, and secret is `workspaceId` → `organization.id` (`packages/db/src/schema`).
-- Sessions already carry `activeOrganizationId`. `requireActor` creates a Personal workspace if none exists (`apps/api/src/session.ts`).
+- Sessions already carry `activeOrganizationId`. `requireActor` needs a workspace; first-run onboarding asks to create one or join with an invite (`apps/api/src/session.ts`).
 - Product API is **oRPC** (`packages/contracts`). Web, desktop, and later mobile share that contract — not Better Auth client methods.
 - `MeSchema` has `workspaceId` and `isDeploymentOwner`. No plan, seats, or usage.
 - Self-host vs cloud is already a thing: packaged desktop talks to grogbot.com / api.grogbot.com; local Compose does not.
 - Tests are offline: `AGENT_RUNTIME=scripted`, `SANDBOX_PROVIDER=fake`. Polar must follow that rule.
 
-v1 does not need payments. Hosted E2B and a paid grogbot.com are later, same bucket as store signing.
+v1 does not need payments. Hosted computers and a paid grogbot.com are later, same bucket as store signing.
 
 ## Two Polar uses (keep them separate)
 
@@ -50,7 +50,7 @@ Polar’s Better Auth plugin creates a Polar **Customer** per **user**, with `ex
 
 Grogbot bills the **workspace**:
 
-- Computers and E2B cost sit on the workspace, not the human who clicked Send.
+- Computers and hosted sandbox cost sit on the workspace, not the human who clicked Send.
 - Several humans share one Desk.
 - `me.workspaceId` is already the unit of product data.
 
@@ -101,7 +101,7 @@ API (Hono) ── BillingPort ── Polar SDK (hosted only)
         v                         v
 Postgres workspace_billing     Polar Customer State
         ^
-        └── entitlement checks on E2B provision, bot caps, hosted models
+        └── entitlement checks on hosted sandbox provision, bot caps, hosted models
 ```
 
 ### Port (sketch)
@@ -174,18 +174,18 @@ Hosted grogbot.com (strawman — pricing TBD):
 
 | Plan | Polar product | Included | Metered overage |
 | --- | --- | --- | --- |
-| Free | none | BYOK, tiny or no E2B | blocked |
+| Free | none | BYOK, tiny or no hosted computer | blocked |
 | Hobby | subscription + feature flags | N bots, 1 Desk, included computer minutes | `computer_minutes` |
 | Team | subscription, optional seats | more members/computers, higher included minutes | same meters |
 
 Meters that match our costs:
 
-- **`computer_minutes`** — E2B (and later hosted VMs). Polar [delta-time ingestion](https://polar.sh/docs/features/usage-based-billing/ingestion-strategies/delta-time-strategy) is the right *idea*; implement with `events.ingest` from the worker on `computer.sleep` / stop, `externalCustomerId = workspaceId`, metadata `{ deltaTime, computerId, kind }`. Do not trust the browser.
+- **`computer_minutes`** — hosted Flue sandboxes (Cloudflare Computer, Cloudflare Sandbox, E2B). Polar [delta-time ingestion](https://polar.sh/docs/features/usage-based-billing/ingestion-strategies/delta-time-strategy) is the right *idea*; implement with `events.ingest` from the worker on `computer.sleep` / stop, `externalCustomerId = workspaceId`, metadata `{ deltaTime, computerId, kind }`. Do not trust the browser.
 - **`hosted_tokens`** — only if we sell model access. Polar’s [LLM strategy](https://polar.sh/docs/features/usage-based-billing/ingestion-strategies/llm-strategy) wraps Vercel AI SDK. We use **Pi**. Ingest after a run from the worker (`inputTokens`, `outputTokens`, `model`). Never meter BYOK keys.
 
 Usage is billed on a **subscription** (Polar meters attach to subscription products). Unit price is linear; Polar volume pricing for meters is still “coming soon.” Put included allowance in Polar [credits](https://polar.sh/docs/features/usage-based-billing/credits) / credited units, or a monthly cap on the metered price.
 
-Gate hosted features with Polar [feature-flag benefits](https://polar.sh/docs/features/benefits/feature-flags) (`e2b`, `isolated_computer`, `hosted_models`) and the same names in our entitlement mirror.
+Gate hosted features with Polar [feature-flag benefits](https://polar.sh/docs/features/benefits/feature-flags) (`hosted_computer`, `isolated_computer`, `hosted_models`) and the same names in our entitlement mirror.
 
 ## Adapter and SDK versions
 
@@ -210,7 +210,7 @@ POLAR_PRODUCT_TEAM=
 Production webhook URL: `https://api.grogbot.com/polar/webhooks`.  
 Local: Polar CLI `polar listen http://127.0.0.1:3100/` ([local webhooks](https://polar.sh/docs/integrate/webhooks/locally)). Copy the printed secret into `POLAR_WEBHOOK_SECRET`.
 
-Polar OATs are in GitHub secret scanning. A leaked token is revoked. Same rule as `BETTER_AUTH_SECRET` / E2B keys.
+Polar OATs are in GitHub secret scanning. A leaked token is revoked. Same rule as `BETTER_AUTH_SECRET` / computer Worker credentials.
 
 Checkout `successUrl` should be the **web** origin (`https://grogbot.com/settings/billing?checkout_id={CHECKOUT_ID}`), not the API. Polar `server`/`environment` must match the token.
 
@@ -219,7 +219,7 @@ Checkout `successUrl` should be the **web** origin (`https://grogbot.com/setting
 1. Billing manager calls `billing.checkout`. API creates Polar checkout: product from slug, `customerExternalId = workspaceId`, metadata `{ workspaceId, payerUserId }`.
 2. Polar hosted checkout (tax, card, invoice). Redirect back to web.
 3. Polar sends `customer.state_changed` (also subscription/order events). API verifies signature, upserts `workspace_billing`.
-4. Provision paths (`SandboxProvider` for `e2b`, extra computers, hosted models) call `BillingPort.getEntitlement(workspaceId)` and fail closed if the mirror is missing/expired and Polar is enabled.
+4. Provision paths (Flue `useSandbox` for hosted Computer / Sandbox / E2B, extra computers, hosted models) call `BillingPort.getEntitlement(workspaceId)` and fail closed if the mirror is missing/expired and Polar is enabled.
 5. Worker ingests usage after the metered work ran. Polar aggregates; portal shows estimated charges; we refresh meters from Customer State.
 
 Do not ingest from `apps/web`. Polar’s usage plugin client endpoint is unsafe for money.
@@ -236,7 +236,7 @@ Do not ingest from `apps/web`. Polar’s usage plugin client endpoint is unsafe 
 - **SDK split** — `createPolar` preview vs `new Polar()` adapters. Prefer the versioned SDK in our adapter.
 - **Seat benefit grant** — if we adopt Polar seats, the billing customer does not get benefits; claimed members do. Workspace-level access must not depend on that.
 - **Custom success URL** — buyer may need an explicit seat claim. Avoid seats until we need them.
-- **Webhook vs live Polar** — mirror can lag; fail closed on hosted E2B, fail open on chat for already-provisioned local Docker.
+- **Webhook vs live Polar** — mirror can lag; fail closed on hosted sandboxes, fail open on chat for already-provisioned local Docker.
 - **Self-host footgun** — Polar plugin on `createAuth` would try to create customers without a token. Keep Polar out of `packages/auth`.
 - **MoR tradeoffs** — Polar is the seller; we cannot reclaim inbound VAT. Fees are higher than raw Stripe. Fine for an OSS-hosted cloud.
 - **Seller country** — payouts need Stripe Connect Express in [supported countries](https://polar.sh/docs/merchant-of-record/supported-countries). Customers can pay from most places except US-sanctioned countries.
@@ -246,9 +246,9 @@ Do not ingest from `apps/web`. Polar’s usage plugin client endpoint is unsafe 
 
 1. `BillingPort` + fake + `workspace_billing` table. oRPC `billing.status` always `plan: none` / unlimited. No Polar dependency. Tests.
 2. Polar sandbox adapter: create customer by workspace id, checkout, webhook → mirror, portal URL. Manual sandbox only.
-3. Gate **hosted** E2B / extra computers on entitlement. Docker + fake sandbox unchanged.
+3. Gate **hosted** Flue sandboxes / extra computers on entitlement. Docker + fake unchanged.
 4. Ingest `computer_minutes` from the worker on sleep/stop. Credits/included allowance in Polar.
 5. Settings UI: plan, checkout button, portal link. Not in the office thread.
 6. Optional: Polar seats, hosted-token meter, project-funding Polar org.
 
-Step 1 is the only piece that belongs near the current scaffold. Steps 2–6 wait until grogbot.com is a real host with E2B keys and a Polar org.
+Step 1 is the only piece that belongs near the current scaffold. Steps 2–6 wait until grogbot.com is a real host with Flue sandboxes and a Polar org.

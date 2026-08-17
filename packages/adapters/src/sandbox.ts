@@ -50,7 +50,7 @@ export function createSandboxProvider(kind: string): SandboxProvider {
     case "e2b":
     case "desktop":
       throw new Error(
-        `${kind} sandbox is not implemented yet. Use SANDBOX_PROVIDER=fake for this scaffold.`,
+        `${kind} sandbox is not implemented yet. Use SANDBOX_PROVIDER=fake for this scaffold. Agent hands go through Flue useSandbox(), not this port.`,
       );
     default:
       throw new Error(`Unknown SANDBOX_PROVIDER "${kind}"`);
