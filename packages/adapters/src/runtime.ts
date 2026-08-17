@@ -42,6 +42,21 @@ export class ScriptedAgentRuntime implements AgentRuntime {
       this.running.delete(request.runId);
       return;
     }
+    const poke = parsePokePrompt(request.prompt);
+    if (poke && request.pokeTeammate) {
+      try {
+        const reply = await request.pokeTeammate(poke);
+        const text = `Asked ${poke.name}. They said: ${reply}`;
+        yield { type: "text", text };
+        yield { type: "done", text };
+      } catch (error) {
+        const text = error instanceof Error ? error.message : "Poke failed.";
+        yield { type: "text", text };
+        yield { type: "done", text };
+      }
+      this.running.delete(request.runId);
+      return;
+    }
     const reply = `Echo: ${request.prompt}`;
     yield { type: "text", text: reply };
     yield { type: "done", text: reply };
@@ -177,6 +192,15 @@ function isAbortError(error: unknown): boolean {
       error instanceof DOMException &&
       error.name === "AbortError")
   );
+}
+
+/** `poke Lookout: do the thing` — test/offline only. Live Flue uses poke_teammate. */
+export function parsePokePrompt(
+  prompt: string,
+): { name: string; message: string } | null {
+  const match = prompt.trim().match(/^poke\s+(\S+):\s*([\s\S]+)/i);
+  if (!match?.[1] || !match[2]?.trim()) return null;
+  return { name: match[1], message: match[2].trim() };
 }
 
 /** Product default: Flue bootstraps Pi (`useModel` + providers). */

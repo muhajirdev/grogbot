@@ -31,6 +31,7 @@ describe("GuestHub", () => {
           prompt: "hi",
           instructions: "",
           history: [],
+          pokeTeammate: async () => "should not cross the wire",
         },
         undefined,
       )) {
@@ -41,6 +42,9 @@ describe("GuestHub", () => {
     })();
     const message = await hub.wait(session.id, 500);
     expect(message.type).toBe("run");
+    if (message.type === "run") {
+      expect(message.request.pokeTeammate).toBeUndefined();
+    }
     expect(
       hub.onEvent(session.id, "r1", { type: "text", text: "Guest: hi" }),
     ).toBe(true);

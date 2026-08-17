@@ -1,6 +1,8 @@
 export interface TeammateTurn {
   instructions: string;
   model: string;
+  teammates?: Array<{ id: string; name: string; title: string }>;
+  poke?: (name: string, message: string) => Promise<string>;
 }
 
 const turns = new Map<string, TeammateTurn>();

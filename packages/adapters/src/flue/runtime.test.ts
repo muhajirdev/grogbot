@@ -62,6 +62,26 @@ describe("FlueAgentRuntime", () => {
     await runtime.stop();
   });
 
+  it("echoes through the Pi harness with poke mounted", async () => {
+    const runtime = createAgentRuntime("flue-echo");
+    const events = [];
+    for await (const event of runtime.run(
+      {
+        ...runRequest,
+        runId: "run-flue-poke",
+        teammates: [{ id: "look", name: "Lookout", title: "Watch" }],
+        pokeTeammate: async () => "should not run on echo",
+      },
+      { ...adapterContext, runId: "run-flue-poke" },
+    )) {
+      events.push(event);
+    }
+    expect(events).toContainEqual({
+      type: "text",
+      text: "Echo: summarize the handoff",
+    });
+  });
+
   it("echoes through the Pi harness offline", async () => {
     const runtime = createAgentRuntime("flue-echo");
     const events = [];

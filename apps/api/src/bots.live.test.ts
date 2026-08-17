@@ -413,7 +413,9 @@ describe.skipIf(!dbUp)("bot thread loop", () => {
     expect(archived.id).toBe(scout.id);
 
     const listed = await rpc.bots.list();
-    expect(listed.find((item) => item.id === scout.id)?.archivedAt).toBeTruthy();
+    expect(
+      listed.find((item) => item.id === scout.id)?.archivedAt,
+    ).toBeTruthy();
     expect(listed.find((item) => item.id === piper.id)?.archivedAt).toBeNull();
 
     await expect(
@@ -440,4 +442,102 @@ describe.skipIf(!dbUp)("bot thread loop", () => {
       true,
     );
   }, 15_000);
+
+  it("lets one bot poke another and brings the reply back", async () => {
+    const email = `poke-${Date.now()}@example.com`;
+    const signUp = await handles.app.request(
+      new Request(`${origin}/api/auth/sign-up/email`, {
+        method: "POST",
+        headers: {
+          origin,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          name: "Poke Tester",
+          email,
+          password: "password1",
+        }),
+      }),
+    );
+    cookie = cookieHeader(signUp, cookie);
+    expect(signUp.status, await signUp.text()).toBe(200);
+
+    const rpc = client();
+    const maya = await rpc.bots.create({
+      name: "Maya",
+      title: "Chief of Staff",
+      description: "Front door.",
+      instructions: "Front door.",
+    });
+    const lookout = await rpc.bots.create({
+      name: "Lookout",
+      title: "Watch",
+      description: "Specialist.",
+      instructions: "Specialist.",
+    });
+
+    await rpc.threads.send({
+      botId: maya.id,
+      text: "poke Lookout: summarize the week",
+    });
+
+    const mayaTexts = await collectThreadTexts(rpc, maya.id, (texts) =>
+      texts.some((text) => text.startsWith("Asked Lookout")),
+    );
+    expect(mayaTexts).toContain("poke Lookout: summarize the week");
+    expect(mayaTexts.some((text) => text.startsWith("Lookout:"))).toBe(true);
+    expect(mayaTexts.some((text) => text.startsWith("Asked Lookout"))).toBe(
+      true,
+    );
+
+    const lookoutTexts = await collectThreadTexts(rpc, lookout.id, (texts) =>
+      texts.some((text) => text.startsWith("Echo:")),
+    );
+    expect(
+      lookoutTexts.some((text) =>
+        text.includes("Maya (Chief of Staff) asked you"),
+      ),
+    ).toBe(true);
+    expect(lookoutTexts.some((text) => text.startsWith("Echo:"))).toBe(true);
+  }, 20_000);
 });
+
+async function collectThreadTexts(
+  rpc: ReturnType<typeof createGrogbotClient>,
+  botId: string,
+  done: (texts: string[]) => boolean,
+): Promise<string[]> {
+  const texts: string[] = [];
+  const iterator = (await rpc.threads.subscribe({
+    botId,
+    cursor: -1,
+  })) as AsyncGenerator<{
+    type: string;
+    payload: Record<string, unknown>;
+  }>;
+  const stop = setTimeout(() => void iterator.return(undefined), 12_000);
+  try {
+    for await (const event of iterator) {
+      if (event.type !== "message.created") continue;
+      const blocks = event.payload.blocks;
+      if (!Array.isArray(blocks)) continue;
+      for (const block of blocks) {
+        if (
+          block &&
+          typeof block === "object" &&
+          "kind" in block &&
+          block.kind === "text" &&
+          "text" in block &&
+          typeof block.text === "string"
+        ) {
+          texts.push(block.text);
+        }
+      }
+      if (done(texts)) break;
+    }
+  } finally {
+    clearTimeout(stop);
+    await iterator.return(undefined);
+  }
+  return texts;
+}

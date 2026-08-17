@@ -113,9 +113,12 @@ export class FlueAgentRuntime implements AgentRuntime {
     try {
       const model = request.model?.trim() || this.resolvedModel();
       await this.ensureStarted();
+      const poke = request.pokeTeammate;
       setTeammateTurn(instanceId, {
         instructions: request.instructions,
         model,
+        teammates: request.teammates,
+        poke: poke ? (name, message) => poke({ name, message }) : undefined,
       });
       const handle = init(Teammate, { id: instanceId });
       const receipt = await handle.dispatch({

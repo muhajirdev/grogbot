@@ -141,7 +141,10 @@ export class GuestHub {
     };
     session.runs.set(request.runId, waiter);
     this.runBots.set(request.runId, request.botId);
-    this.push(request.botId, { type: "run", request });
+    this.push(request.botId, {
+      type: "run",
+      request: { ...request, pokeTeammate: undefined },
+    });
     try {
       while (!waiter.done) {
         if (signal?.aborted) {

@@ -4,6 +4,20 @@ Ship **a room is a bot’s office**. Do not build group rooms, `@mention` routin
 
 v1 code stays: one thread per bot (`threads.bot_id` unique), `thread_members` for humans, `threads.send({ botId })`.
 
+## Poke — agent to agent, still one office each
+
+No group rooms. A bot may **poke** another bot: a note lands on the target’s office, that bot runs, and the reply is posted back on the caller’s office. The human keeps talking to one front door (usually CoS). Questions do not bounce to a second chat.
+
+```
+  You ---- CoS office ---- CoS --poke--> Lookout office
+                              ^               |
+                              +----- reply ---+
+```
+
+- Same workspace, not self, not archived. Chain depth max 2.
+- Nested run on the target actor (do not enqueue — that deadlocks the caller’s queue).
+- Flue: `poke_teammate` tool. Scripted tests: `poke Lookout: …`.
+
 ## v1 — office
 
 ```

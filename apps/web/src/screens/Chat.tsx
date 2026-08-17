@@ -630,6 +630,9 @@ export function Chat(props: { botId: string }) {
         <div className="min-h-0 flex-1">
           <ThreadList
             botId={activeId ?? "_"}
+            teammateNames={Object.fromEntries(
+              bots.map((item) => [item.id, item.name]),
+            )}
             messages={messages}
             empty={!working && messages.length === 0}
             working={working}
