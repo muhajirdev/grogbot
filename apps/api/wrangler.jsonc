@@ -1,0 +1,35 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "grogbot-api",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-08-16",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "observability": {
+    "enabled": true,
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "BOT_ACTOR",
+        "class_name": "BotActor",
+      },
+    ],
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["BotActor"],
+    },
+  ],
+  "vars": {
+    "NODE_ENV": "production",
+    "BETTER_AUTH_URL": "https://grogbot-api.qalam.workers.dev",
+    "API_URL": "https://grogbot-api.qalam.workers.dev",
+    "WEB_ORIGIN": "https://grogbot-web.qalam.workers.dev",
+    "CORS_ORIGINS": "https://grogbot-web.qalam.workers.dev,https://grogbot-landing.qalam.workers.dev",
+    "SANDBOX_PROVIDER": "fake",
+    "AGENT_RUNTIME": "flue",
+    "WAKEUP_KIND": "durable-object",
+  },
+}

@@ -13,12 +13,3 @@ export interface RpcContext {
   guests: GuestHub;
   headers?: Headers;
 }
-
-export interface RpcContext {
-  env: Env;
-  db: Database;
-  auth: Auth;
-  wakeup: WakeupDriver;
-  sandbox: SandboxProvider;
-  headers?: Headers;
-}

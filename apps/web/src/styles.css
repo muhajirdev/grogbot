@@ -1053,7 +1053,128 @@ a.btn {
 
 .screen-box.inset {
   margin: 0;
-  min-height: 180px;
+  min-height: 280px;
+  padding: 12px;
+}
+
+.desk {
+  display: grid;
+  gap: 14px;
+  min-height: 100%;
+}
+
+.desk-kicker {
+  margin: 0 0 6px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a8a8a;
+  font-family: inherit;
+}
+
+.desk-banner {
+  margin: 0;
+  color: #cfcfcf;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.desk-tree {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.desk-dir {
+  display: block;
+  color: #8a8a8a;
+}
+
+.desk-file {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: #d0d0d0;
+  padding: 2px 0 2px 14px;
+  font: inherit;
+  border-radius: 6px;
+}
+
+.desk-file:hover,
+.desk-file.on {
+  background: #1a1a1a;
+}
+
+.desk-file.on {
+  color: #fff;
+}
+
+.desk-artifact {
+  background: #141414;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.desk-artifact-title {
+  margin: 0 0 8px;
+  color: #f2f2f2;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+}
+
+.desk-artifact-body {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #c8c8c8;
+  font: inherit;
+}
+
+.desk-empty {
+  margin: 0;
+  color: #8a8a8a;
+  font-family: inherit;
+}
+
+.desk-now {
+  margin: 0 0 6px;
+  color: #f2f2f2;
+}
+
+.desk-log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  color: #8a8a8a;
+}
+
+.desk-log li {
+  padding: 2px 0;
+}
+
+:root[data-theme="light"] .desk-file:hover,
+:root[data-theme="light"] .desk-file.on {
+  background: #ececec;
+}
+
+:root[data-theme="light"] .desk-artifact {
+  background: #f3f3f3;
+}
+
+:root[data-theme="light"] .desk-artifact-title,
+:root[data-theme="light"] .desk-now,
+:root[data-theme="light"] .desk-file {
+  color: #111;
+}
+
+:root[data-theme="light"] .desk-artifact-body,
+:root[data-theme="light"] .desk-banner {
+  color: #333;
 }
 
 .routines {
@@ -1576,42 +1697,6 @@ html.electron .pane-head {
   align-items: center;
   gap: 8px;
   color: var(--muted);
-}
-
-.plugins-body {
-  padding: 16px 18px 24px;
-  overflow: auto;
-  max-height: min(70vh, 640px);
-}
-
-.plugin-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
-}
-
-.plugin-card {
-  background: var(--card-2);
-  border-radius: 14px;
-  padding: 12px;
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  align-items: flex-start;
-}
-
-.plugin-card strong {
-  display: block;
-  margin-bottom: 4px;
-}
-
-.plugin-card .muted {
-  margin: 0;
-  font-size: 12px;
-}
-
-.plugin-group {
-  margin-bottom: 18px;
 }
 
 .settings-shell {

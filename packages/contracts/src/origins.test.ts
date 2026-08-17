@@ -4,6 +4,9 @@ import {
   CLOUD_LANDING_ORIGIN,
   CLOUD_WEB_ORIGIN,
   grogbotCookieDomain,
+  STAGING_API_ORIGIN,
+  STAGING_LANDING_ORIGIN,
+  STAGING_WEB_ORIGIN,
 } from "./origins.js";
 
 describe("cloud origins", () => {
@@ -13,10 +16,19 @@ describe("cloud origins", () => {
     expect(CLOUD_API_ORIGIN).toBe("https://api.grogbot.com");
   });
 
+  it("names workers.dev staging hosts", () => {
+    expect(STAGING_LANDING_ORIGIN).toBe(
+      "https://grogbot-landing.qalam.workers.dev",
+    );
+    expect(STAGING_WEB_ORIGIN).toBe("https://grogbot-web.qalam.workers.dev");
+    expect(STAGING_API_ORIGIN).toBe("https://grogbot-api.qalam.workers.dev");
+  });
+
   it("sets a parent cookie domain on grogbot.com hosts", () => {
     expect(grogbotCookieDomain(CLOUD_LANDING_ORIGIN)).toBe(".grogbot.com");
     expect(grogbotCookieDomain(CLOUD_WEB_ORIGIN)).toBe(".grogbot.com");
     expect(grogbotCookieDomain(CLOUD_API_ORIGIN)).toBe(".grogbot.com");
     expect(grogbotCookieDomain("http://127.0.0.1:5173")).toBeUndefined();
+    expect(grogbotCookieDomain(STAGING_WEB_ORIGIN)).toBeUndefined();
   });
 });

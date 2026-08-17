@@ -389,6 +389,9 @@ export function Chat(props: { botId: string }) {
             patchThreadMeta(activeId, { cursor });
             patched = true;
             touchBotPreview(activeId, messageText(message));
+            void queryClient.invalidateQueries({
+              queryKey: computerKey(activeId),
+            });
           }
         }
         if (event.type === "run.updated") {
@@ -406,17 +409,29 @@ export function Chat(props: { botId: string }) {
               error: humanizeRunError(text.trim() || "Run failed"),
               cursor,
             });
+            void queryClient.invalidateQueries({
+              queryKey: computerKey(activeId),
+            });
           } else {
             patchThreadMeta(activeId, { working: "", cursor });
+            void queryClient.invalidateQueries({
+              queryKey: computerKey(activeId),
+            });
           }
           patched = true;
         }
         if (!patched) patchThreadMeta(activeId, { cursor });
         if (event.type === "computer.updated") {
-          queryClient.setQueryData(
-            computerKey(activeId),
-            event.payload as ComputerStatus,
-          );
+          if (Array.isArray(event.payload.files)) {
+            queryClient.setQueryData(
+              computerKey(activeId),
+              event.payload as ComputerStatus,
+            );
+          } else {
+            void queryClient.invalidateQueries({
+              queryKey: computerKey(activeId),
+            });
+          }
         }
         if (event.type === "guest.updated") {
           patchBot(activeId, {
@@ -480,24 +495,21 @@ export function Chat(props: { botId: string }) {
       computer.usingBotId !== bot?.id &&
       (computer.state === "running" || computer.state === "booting")
     ) {
-      return `${computer.usingBotName ?? "Teammate"} has the mouse`;
+      return `${computer.usingBotName ?? "Teammate"} has the desk`;
     }
     if (computer.state === "running" || computer.state === "booting")
       return "Working";
     return "Done";
   }, [bot, computer, working]);
 
-  const computerBody = useMemo(() => {
-    if (computer?.controlHolder === "user")
-      return "You're in control. Sign in, 2FA, or pay here — not in chat.";
-    if (bot?.guestKind && bot.guestKind !== "off" && !bot.guestOnline)
-      return `Waiting for ${bot.guestKind} to connect from your machine.`;
-    if (computer?.usingBotId && computer.usingBotId !== bot?.id)
-      return `${computer.usingBotName} has the mouse on ${computer.name}. Files and logins are shared; one mouse at a time.`;
-    if (working)
-      return `${bot?.name ?? "Bot"} is using ${computer?.name ?? "this computer"}.\n${working}`;
-    return `${computer?.name ?? "Computer"}. Work continues if you close this.`;
-  }, [bot, computer, working]);
+  const computerPreview = useMemo(() => {
+    if (computer?.artifact) {
+      return `${computer.artifact.title}\n${computer.artifact.body}`;
+    }
+    if (working) return working;
+    if (computer?.nowDoing) return computer.nowDoing;
+    return undefined;
+  }, [computer, working]);
 
   const showComputerCard =
     computer?.controlHolder === "user" ||
@@ -717,8 +729,10 @@ export function Chat(props: { botId: string }) {
                     status: statusLabel,
                     done: !working && computer?.controlHolder !== "user",
                     preview:
-                      working || computer?.controlHolder === "user"
-                        ? computerBody
+                      working ||
+                      computer?.controlHolder === "user" ||
+                      computer?.artifact
+                        ? computerPreview
                         : undefined,
                   }
                 : null
@@ -812,7 +826,7 @@ export function Chat(props: { botId: string }) {
           computer={computer}
           computerPending={computerQuery.isPending && !computer}
           statusLabel={statusLabel}
-          body={computerBody}
+          working={working}
           onSettings={() => setPaneMode("settings")}
           onCollapse={() => setPaneMode(null)}
           onTakeover={() => {

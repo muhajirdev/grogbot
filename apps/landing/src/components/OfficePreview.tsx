@@ -162,6 +162,12 @@ export function OfficePreview() {
           <div className="pane-head">Chief of Staff&apos;s screen</div>
           <p className="pane-label">Working</p>
           <div className="screen-box">
+            <div className="desk-kicker">Workspace</div>
+            /workspace
+            <br />
+            &nbsp;&nbsp;chief-of-staff.md
+            <br />
+            <br />
             Digest · since yesterday
             <br />
             • Venue deposit — you owe a yes
@@ -171,6 +177,10 @@ export function OfficePreview() {
             • Scout’s shortlist is ready
             <br />
             Do not send. Do not move meetings.
+            <br />
+            <br />
+            <div className="desk-kicker">Activity</div>
+            editing digest.md
           </div>
           <div className="routines">Routines</div>
         </aside>

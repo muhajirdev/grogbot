@@ -1,4 +1,4 @@
-import { isOfflineAgentRuntime } from "@grogbot/adapters";
+import { isOfflineAgentRuntime } from "@grogbot/adapters/edge";
 import {
   appContract,
   labelForModel,

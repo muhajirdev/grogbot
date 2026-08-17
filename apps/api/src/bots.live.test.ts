@@ -1,6 +1,6 @@
-import { ScriptedAgentRuntime } from "@grogbot/adapters";
+import { ScriptedAgentRuntime } from "@grogbot/adapters/edge";
 import { createWakeHandlers } from "@grogbot/core";
-import { createDb } from "@grogbot/db";
+import { createDb } from "@grogbot/db/node";
 import { createGrogbotClient } from "@grogbot/rpc";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { type AppHandles, createApp } from "./app.js";
@@ -52,13 +52,15 @@ describe.skipIf(!dbUp)("bot thread loop", () => {
     sandboxProvider: "fake",
     agentRuntime: "scripted",
     production: false,
+    wakeupKind: "in-process",
   };
 
   let handles: AppHandles;
   let cookie = "";
 
   beforeAll(async () => {
-    handles = createApp(env);
+    const { db, close } = createDb(databaseUrl);
+    handles = createApp(env, { db, close });
     await handles.wakeup.start(
       createWakeHandlers({
         db: handles.db,
@@ -176,6 +178,15 @@ describe.skipIf(!dbUp)("bot thread loop", () => {
 
     expect(texts).toContain("summarize the handoff");
     expect(texts.some((text) => text.startsWith("Echo:"))).toBe(true);
+
+    const desk = await rpc.computer.status({ botId: bot.id });
+    expect(desk.files.some((file) => file.path === "/workspace")).toBe(true);
+    expect(desk.artifact?.body).toMatch(/Echo:/);
+    expect(
+      desk.files.some(
+        (file) => file.kind === "file" && file.body?.includes("Echo:"),
+      ),
+    ).toBe(true);
 
     const taken = await rpc.computer.takeover({ botId: bot.id });
     expect(taken.controlHolder).toBe("user");

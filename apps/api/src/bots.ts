@@ -1,4 +1,4 @@
-import { isOfflineAgentRuntime } from "@grogbot/adapters";
+import { isOfflineAgentRuntime } from "@grogbot/adapters/edge";
 import {
   type Bot,
   type ComputerListItem,
@@ -13,6 +13,7 @@ import {
   encryptionSecret,
   fanoutComputerUpdated,
   getBotComputer,
+  getHomeThread,
   missingModelMessage,
   newId,
   nextSeq,
@@ -67,11 +68,7 @@ export async function getBotThread(
     .where(and(eq(bots.id, botId), eq(bots.workspaceId, actor.workspaceId)))
     .limit(1);
   if (!bot) throw new ORPCError("NOT_FOUND", { message: "Bot not found" });
-  const [thread] = await context.db
-    .select()
-    .from(threads)
-    .where(and(eq(threads.botId, bot.id), eq(threads.kind, "office")))
-    .limit(1);
+  const thread = await getHomeThread(context.db, bot);
   if (!thread) throw new ORPCError("NOT_FOUND", { message: "Thread missing" });
   return { bot, thread };
 }
@@ -98,10 +95,16 @@ export async function listBots(
     .from(threads)
     .where(eq(threads.workspaceId, actor.workspaceId));
   const threadByBot = new Map(
-    threadRows
-      .filter((row) => row.kind === "office" && row.botId)
-      .map((row) => [row.botId as string, row.id]),
+    rows
+      .filter((bot) => bot.homeThreadId)
+      .map((bot) => [bot.id, bot.homeThreadId as string]),
   );
+  for (const row of threadRows) {
+    if (row.kind !== "office" || !row.botId || threadByBot.has(row.botId)) {
+      continue;
+    }
+    threadByBot.set(row.botId, row.id);
+  }
   const desks =
     rows.length === 0
       ? []
@@ -318,6 +321,10 @@ export async function createBot(
     role: "owner",
     createdAt: now,
   });
+  await context.db
+    .update(bots)
+    .set({ homeThreadId: threadId, updatedAt: now })
+    .where(eq(bots.id, botId));
   const [bot] = await context.db
     .select()
     .from(bots)

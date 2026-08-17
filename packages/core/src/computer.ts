@@ -2,6 +2,7 @@ import type { ComputerListItem, ComputerStatus } from "@grogbot/contracts";
 import { ControlHolder } from "@grogbot/contracts";
 import { bots, computers, type Database, runs, threads } from "@grogbot/db";
 import { and, eq, inArray, isNull, ne } from "drizzle-orm";
+import { EMPTY_COMPUTER_DESK, loadComputerDesks } from "./computer-desk.js";
 import { appendEvent, sandboxKind, toComputerStatus } from "./threads.js";
 
 export const ACTIVE_RUN_STATUSES = [
@@ -35,10 +36,7 @@ export async function listComputerAgents(
       threadId: threads.id,
     })
     .from(bots)
-    .innerJoin(
-      threads,
-      and(eq(threads.botId, bots.id), eq(threads.kind, "office")),
-    )
+    .innerJoin(threads, eq(threads.id, bots.homeThreadId))
     .where(and(eq(bots.computerId, computerId), isNull(bots.archivedAt)));
   return rows;
 }
@@ -64,6 +62,10 @@ export async function activeBotIdsOnComputer(
   return [...new Set(rows.map((row) => row.botId))];
 }
 
+function deskRunning(computer: typeof computers.$inferSelect): boolean {
+  return computer.state === "running" || computer.state === "booting";
+}
+
 export async function computerStatusForBot(
   db: Database,
   computer: typeof computers.$inferSelect,
@@ -74,11 +76,17 @@ export async function computerStatusForBot(
     computer.controlHolder === "bot" ? computer.controlHolderId : null;
   const usingBotName =
     teammates.find((row) => row.id === usingBotId)?.name ?? null;
+  const desks = await loadComputerDesks(db, teammates, {
+    usingBotId,
+    running: deskRunning(computer),
+  });
+  const desk = desks.get(viewingBotId) ?? EMPTY_COMPUTER_DESK;
   return toComputerStatus(computer, {
     viewingBotId,
     usingBotId,
     usingBotName,
     teammates: teammates.map((row) => ({ id: row.id, name: row.name })),
+    ...desk,
   });
 }
 
@@ -94,13 +102,19 @@ export async function fanoutComputerUpdated(
   const usingBotName =
     agents.find((row) => row.id === usingBotId)?.name ?? null;
   const teammates = agents.map((row) => ({ id: row.id, name: row.name }));
+  const desks = await loadComputerDesks(db, agents, {
+    usingBotId,
+    running: deskRunning(computer),
+  });
   let viewing: ComputerStatus | undefined;
   for (const agent of agents) {
+    const desk = desks.get(agent.id) ?? EMPTY_COMPUTER_DESK;
     const status = toComputerStatus(computer, {
       viewingBotId: agent.id,
       usingBotId,
       usingBotName,
       teammates,
+      ...desk,
     });
     if (agent.id === viewingBotId) viewing = status;
     await appendEvent(db, {

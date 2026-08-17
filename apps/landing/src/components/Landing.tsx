@@ -11,7 +11,7 @@ import {
   HOME_MODELS,
   SOURCE_REPO,
 } from "../lib/copy";
-import { HOME_INTEGRATIONS, HOME_USE_CASES } from "../lib/teasers";
+import { HOME_INTEGRATIONS } from "../lib/teasers";
 import { DemoThread } from "./DemoThread";
 import { OfficePreview } from "./OfficePreview";
 import { PersonFace } from "./PersonFace";
@@ -41,32 +41,6 @@ export function Landing(props: { startUrl: string }) {
             <a className="btn lg" href={props.startUrl}>
               Get started
             </a>
-            <a
-              className="btn ghost lg"
-              href={SOURCE_REPO}
-              target="_blank"
-              rel="noreferrer"
-            >
-              View source
-            </a>
-          </div>
-          <div className="hero-jobs">
-            <p className="job-pitch">Hire your first Chief of Staff.</p>
-            <nav className="chips" aria-label="First jobs">
-              {HOME_USE_CASES.map((item) => (
-                <Link
-                  key={item.slug}
-                  className={`chip${item.slug === "chief-of-staff" ? " on" : ""}`}
-                  to="/use-cases/$slug"
-                  params={{ slug: item.slug }}
-                >
-                  {item.title}
-                </Link>
-              ))}
-            </nav>
-            <p className="job-more">
-              <Link to="/use-cases">All jobs</Link>
-            </p>
           </div>
         </section>
 

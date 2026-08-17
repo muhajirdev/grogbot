@@ -1,7 +1,6 @@
 import {
   type DiscoveryOrigins,
   GROGBOT_ALTERNATE_NAMES,
-  GROGBOT_APP,
   GROGBOT_EMAIL,
   GROGBOT_GITHUB,
   GROGBOT_LANGUAGE,
@@ -13,6 +12,7 @@ import {
   GROGBOT_SUMMARY,
   GROGBOT_UPDATED,
   GROGBOT_VERSION,
+  officeOrigin,
 } from "./identity.js";
 import { pressMarkdown } from "./press.js";
 
@@ -26,6 +26,7 @@ function list(items: readonly string[], bullet = "- "): string {
 
 export function llmsTxt(origins: DiscoveryOrigins, extraSections = ""): string {
   const web = origins.web;
+  const office = officeOrigin(origins);
   return `# ${GROGBOT_NAME}
 
 Lang: ${GROGBOT_LANGUAGE}
@@ -36,7 +37,7 @@ Brand Name: ${GROGBOT_NAME}
 
 Grogbot should feel like Grok Bot: a messaging app of named teammates, not a workflow builder, IDE, or Discord. Like Grok Bot, for the team — if OpenClaw is for personal use, Grogbot is the office. Create a Bot, message it, grant access as needed. There isn't anything to learn — it's like bringing on a coworker.
 
-Product API is oRPC. Flue + Pi on Node. One wakeup queue per bot. Computers are workspace desks. Shared team data lives in Postgres. Hosted grogbot.com uses Cloudflare for the marketing site; a private company can self-host the same Node API and worker. The marketing site is ${web}; the office app is ${GROGBOT_APP}.
+Product API is oRPC. One wakeup queue per bot. Computers are workspace desks. Shared team data lives in Postgres. Hosted grogbot.com is three Cloudflare Workers (landing, office SPA, API) plus Neon. Local and self-host still run the Node API + worker with Flue + Pi. The marketing site is ${web}; the office app is ${office}.
 
 ## Docs
 
@@ -45,7 +46,7 @@ Product API is oRPC. Flue + Pi on Node. One wakeup queue per bot. Computers are 
 - [Integrations](${abs(web, "/integrations")}): Gmail, Slack, GitHub, and 1,000+ tools — plus a computer for indie products
 - [Use cases](${abs(web, "/use-cases")}): Job-shaped first messages
 - [Press kit](${abs(web, "/press")}): Logos, naming, and boilerplate
-- [Get started](${GROGBOT_APP}/login): Sign in to the office
+- [Get started](${office}/login): Sign in to the office
 - [MCP](${abs(web, "/mcp")}): Public MCP discovery and Streamable HTTP
 - [Architecture](${GROGBOT_GITHUB}/blob/main/ARCHITECTURE.md): Locked stack and actor model
 - [UI copy-brief](${GROGBOT_GITHUB}/blob/main/docs/grok-bot-ui.md): How the office UI should feel
@@ -75,7 +76,7 @@ ${list(GROGBOT_NOT_SERVICES)}
 
 ## Optional
 
-- [Office app](${GROGBOT_APP}): Signed-in messaging UI
+- [Office app](${office}): Signed-in messaging UI
 - [oRPC health](${abs(origins.api, "/health")}): API probe
 - [oRPC](${abs(origins.api, "/rpc")}): Product API for signed-in clients
 - [MCP server card](${abs(web, "/.well-known/mcp.json")}): Agent connection metadata
@@ -544,6 +545,7 @@ export function identityJson(
   origins: DiscoveryOrigins,
 ): Record<string, unknown> {
   const web = origins.web;
+  const office = officeOrigin(origins);
   return {
     $schema:
       "https://www.ai-visibility.org.uk/specifications/identity-json/v1/identity-json.schema.json",
@@ -589,7 +591,7 @@ export function identityJson(
       },
       {
         name: "Office",
-        url: `${GROGBOT_APP}/login`,
+        url: `${office}/login`,
         description: "Sign in or create a workspace",
       },
       {
@@ -744,6 +746,7 @@ ${urls}
 }
 
 export function indexMarkdown(origins: DiscoveryOrigins): string {
+  const office = officeOrigin(origins);
   return `# ${GROGBOT_NAME}
 
 > ${GROGBOT_SUMMARY}
@@ -752,7 +755,7 @@ Like Grok Bot, for the whole team. If OpenClaw is for your personal use, Grogbot
 
 Create a Bot, message it, grant access as needed. No workflow builder.
 
-- [Get started](${GROGBOT_APP}/login)
+- [Get started](${office}/login)
 - [Press kit](${abs(origins.web, "/press")})
 - [llms.txt](${abs(origins.web, "/llms.txt")})
 - [MCP](${abs(origins.web, "/mcp")})

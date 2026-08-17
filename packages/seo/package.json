@@ -9,9 +9,10 @@
   "scripts": {
     "check": "tsc --noEmit -p tsconfig.json"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@grogbot/contracts": "workspace:*"
+  },
   "devDependencies": {
-    "@grogbot/contracts": "workspace:*",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   }

@@ -2,8 +2,8 @@
 
 - Public repo: never commit secrets, `.env`, or real user data.
 - Keep domain logic in `packages/*`. Apps wire adapters. Product API is oRPC (`@grogbot/contracts` + `@grogbot/rpc`).
-- One queue per bot on the Node worker. Computers are workspace-scoped: bots bind to a computer (the default computer, or a new isolated one). Shared team data lives in Postgres, not in the worker.
-- The Pi/executor must not import `fs`, `dockerode`, or Cloudflare bindings. The worker may import Node and Flue’s Node target (`@flue/runtime/node`). Flue sandbox adapters may import their SDKs.
+- One queue per bot. Local/self-host: Node worker. Hosted Cloudflare: Durable Object `BotActor` (`WAKEUP_KIND=durable-object`). Computers are workspace-scoped: bots bind to a computer (the default computer, or a new isolated one). Shared team data lives in Postgres, not in the worker.
+- The Pi/executor must not import `fs`, `dockerode`, or Cloudflare bindings. The Node worker may import Node and Flue’s Node target (`@flue/runtime/node`). The API Worker uses `@grogbot/adapters/edge` (scripted / gateway). Flue sandbox adapters may import their SDKs.
 - Auth, secrets, sandbox, and host commands are security-sensitive.
 - Tests stay offline: `AGENT_RUNTIME=scripted` (or `flue-echo` for the Pi harness), `SANDBOX_PROVIDER=fake`, in-process wakeup — no live OpenRouter / Cloudflare Computer / Cloudflare Sandbox / E2B.
 - Teammate loop: Flue + Pi (`AGENT_RUNTIME=flue`, product default). Flue boots the process; Pi is `useModel`, providers, and the tool loop. Hands are `useSandbox(factory)` keyed by `computerId`. One `Teammate` function; hires are `botId`, not new agent modules. Gateway remains a simpler chat-completions path.

@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { INDIE_INTEGRATIONS } from "../data/indie-integrations";
-import { getUseCase, USE_CASES } from "../data/use-cases";
+import { USE_CASES } from "../data/use-cases";
 import { categoryFamily } from "./category-copy";
 import { DISCOVERY_SITEMAP_PATHS, landingLlmsTxt } from "./discovery";
 import {
@@ -17,8 +17,6 @@ import {
 import { canonicalUrl } from "./site";
 import { sitemapEntries, sitemapXml } from "./sitemap";
 import { slugify } from "./slug";
-import { HOME_USE_CASES } from "./teasers";
-
 describe("slugify", () => {
   it("turns categories into url slugs", () => {
     expect(slugify("developer tools")).toBe("developer-tools");
@@ -107,15 +105,6 @@ describe("use cases", () => {
     }
   });
 
-  it("leads home job chips with Chief of Staff", () => {
-    expect(HOME_USE_CASES[0]).toEqual({
-      slug: "chief-of-staff",
-      title: "Chief of Staff",
-    });
-    for (const item of HOME_USE_CASES) {
-      expect(getUseCase(item.slug), item.slug).toBeDefined();
-    }
-  });
 });
 
 describe("sitemap", () => {

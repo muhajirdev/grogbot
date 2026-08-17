@@ -1,3 +1,13 @@
+import {
+  CLOUD_API_ORIGIN,
+  CLOUD_LANDING_ORIGIN,
+  CLOUD_WEB_ORIGIN,
+  isGrogbotStagingOrigin,
+  STAGING_API_ORIGIN,
+  STAGING_LANDING_ORIGIN,
+  STAGING_WEB_ORIGIN,
+} from "@grogbot/contracts";
+
 export const GROGBOT_NAME = "Grogbot";
 export const GROGBOT_VERSION = "0.0.1";
 export const GROGBOT_LANGUAGE = "en-US";
@@ -5,17 +15,34 @@ export const GROGBOT_LICENSE = "Grogbot License (Apache 2.0 plus conditions)";
 export const GROGBOT_UPDATED = "2026-08-17";
 export const GROGBOT_GITHUB = "https://github.com/muhajirdev/grogbot";
 export const GROGBOT_EMAIL = "hello@grogbot.com";
-export const GROGBOT_APP = "https://app.grogbot.com";
+export const GROGBOT_APP = CLOUD_WEB_ORIGIN;
 export const GROGBOT_SUMMARY =
   "Like Grok Bot, for the team: named AI teammates with a real computer. If OpenClaw is for personal use, Grogbot is the office. Self-hostable, fair-code. Gmail, Slack, GitHub, and 1,000+ tools — plus a computer for the rest. Bring your own model keys. Self-host for your organization is free; hosted Grogbot for others is grogbot.com.";
 
 export interface DiscoveryOrigins {
   web: string;
   api: string;
+  office?: string;
+}
+
+export function officeOrigin(origins: DiscoveryOrigins): string {
+  return origins.office ?? GROGBOT_APP;
 }
 
 export function cloudOrigins(): DiscoveryOrigins {
-  return { web: "https://grogbot.com", api: "https://api.grogbot.com" };
+  return {
+    web: CLOUD_LANDING_ORIGIN,
+    api: CLOUD_API_ORIGIN,
+    office: GROGBOT_APP,
+  };
+}
+
+export function stagingOrigins(): DiscoveryOrigins {
+  return {
+    web: STAGING_LANDING_ORIGIN,
+    api: STAGING_API_ORIGIN,
+    office: STAGING_WEB_ORIGIN,
+  };
 }
 
 export function originsFromWeb(webOrigin: string): DiscoveryOrigins {
@@ -23,6 +50,9 @@ export function originsFromWeb(webOrigin: string): DiscoveryOrigins {
     const { hostname } = new URL(webOrigin);
     if (hostname === "grogbot.com" || hostname.endsWith(".grogbot.com")) {
       return cloudOrigins();
+    }
+    if (isGrogbotStagingOrigin(webOrigin)) {
+      return stagingOrigins();
     }
   } catch {
     // fall through to local origins
@@ -56,10 +86,11 @@ export const GROGBOT_NOT_SERVICES = [
 
 export const GROGBOT_STACK = [
   "TypeScript, pnpm, Hono, React, Vite, TanStack Router",
-  "Marketing site: TanStack Start on Cloudflare Workers",
+  "Marketing, office SPA, and API: Cloudflare Workers",
   "oRPC contract in @grogbot/contracts, client in @grogbot/rpc",
-  "Postgres + Drizzle for team data",
-  "Flue + Pi on Node; one wakeup queue per bot; Postgres for team data",
+  "Postgres + Drizzle for team data (Neon on hosted Cloudflare)",
+  "Flue + Pi on Node for local/self-host; hosted API uses gateway/scripted until Flue’s Cloudflare target",
+  "One wakeup queue per bot — Node worker locally, Durable Object hosted",
   "Better Auth (magic-link email, Google, GitHub)",
   "Sandboxes: Flue useSandbox — Cloudflare Computer light, Docker / Cloudflare Sandbox / E2B heavy, desktop on a trusted machine only",
 ] as const;

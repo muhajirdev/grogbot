@@ -15,7 +15,7 @@ import {
   handleGuestRequest,
   nodeRequestFrom,
 } from "@grogbot/core";
-import { createDb } from "@grogbot/db";
+import { createDb } from "@grogbot/db/node";
 import { config } from "dotenv";
 
 function loadRootEnv() {

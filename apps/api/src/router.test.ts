@@ -14,6 +14,7 @@ const env = {
   sandboxProvider: "fake",
   agentRuntime: "scripted",
   production: false,
+  wakeupKind: "in-process",
 } as const;
 
 describe("oRPC", () => {
@@ -34,7 +35,7 @@ describe("oRPC", () => {
   it("reports in-process wakeup when the worker is local", () => {
     expect(healthPayload(env).wakeup).toBe("in-process");
     expect(
-      healthPayload({ ...env, workerUrl: "http://127.0.0.1:3101" }).wakeup,
+      healthPayload({ ...env, wakeupKind: "http" }).wakeup,
     ).toBe("http");
   });
 

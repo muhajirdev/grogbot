@@ -1,6 +1,5 @@
 import {
   type DiscoveryOrigins,
-  GROGBOT_APP,
   GROGBOT_EMAIL,
   GROGBOT_GITHUB,
   GROGBOT_LICENSE,
@@ -8,6 +7,7 @@ import {
   GROGBOT_SUMMARY,
   GROGBOT_UPDATED,
   GROGBOT_VERSION,
+  officeOrigin,
 } from "./identity.js";
 
 function abs(origin: string, path: string): string {
@@ -107,13 +107,14 @@ export function pressFacts(origins: DiscoveryOrigins): Array<{
   href?: string;
 }> {
   const web = origins.web.replace(/\/$/, "");
+  const office = officeOrigin(origins);
   return [
     { label: "Product", value: GROGBOT_NAME },
     { label: "Site", value: web.replace(/^https:\/\//, ""), href: `${web}/` },
     {
       label: "Office",
-      value: GROGBOT_APP.replace(/^https:\/\//, ""),
-      href: `${GROGBOT_APP}/login`,
+      value: office.replace(/^https:\/\//, ""),
+      href: `${office}/login`,
     },
     {
       label: "Source",

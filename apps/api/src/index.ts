@@ -11,10 +11,12 @@ loadRootEnv();
 
 import { createApp } from "./app.js";
 import { agentRuntimeSource, loadEnv } from "./env.js";
+import { createDb } from "@grogbot/db/node";
 
 async function main() {
   const env = loadEnv();
-  const handles = createApp(env);
+  const { db, close } = createDb(env.databaseUrl);
+  const handles = createApp(env, { db, close });
 
   if (!env.workerUrl) {
     const runtime = createAgentRuntime(
@@ -37,8 +39,12 @@ async function main() {
     );
   }
 
-  serve({ fetch: handles.app.fetch, port: 3100, hostname: "127.0.0.1" }, () => {
-    console.log("grogbot api http://127.0.0.1:3100");
+  const port = Number(process.env.PORT ?? process.env.API_PORT ?? 3100);
+  const hostname =
+    process.env.LISTEN_HOST ??
+    (env.production ? "0.0.0.0" : "127.0.0.1");
+  serve({ fetch: handles.app.fetch, port, hostname }, () => {
+    console.log(`grogbot api http://${hostname}:${port}`);
   });
 }
 

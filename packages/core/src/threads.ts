@@ -1,5 +1,8 @@
 import type {
   Bot,
+  ComputerActivityItem,
+  ComputerArtifact,
+  ComputerDeskFile,
   ComputerStatus,
   MessageBlock,
   ProductEvent,
@@ -20,6 +23,7 @@ import {
   events,
   messages,
   type routines,
+  threads,
 } from "@grogbot/db";
 import { and, asc, desc, eq, gt } from "drizzle-orm";
 
@@ -106,6 +110,10 @@ export function toComputerStatus(
     usingBotId?: string | null;
     usingBotName?: string | null;
     teammates?: Array<{ id: string; name: string }>;
+    nowDoing?: string | null;
+    files?: ComputerDeskFile[];
+    artifact?: ComputerArtifact | null;
+    activity?: ComputerActivityItem[];
   },
 ): ComputerStatus {
   const holder = ControlHolder.safeParse(row.controlHolder);
@@ -130,6 +138,10 @@ export function toComputerStatus(
     usingBotName: extras.usingBotName ?? null,
     teammates: extras.teammates ?? [],
     screenAvailable: state === "running" || state === "booting",
+    nowDoing: extras.nowDoing ?? null,
+    files: extras.files ?? [{ path: "/workspace", kind: "dir" }],
+    artifact: extras.artifact ?? null,
+    activity: extras.activity ?? [],
   };
 }
 
@@ -268,4 +280,26 @@ export async function listEventsAfter(
     .orderBy(asc(events.seq))
     .limit(limit);
   return rows.map(toProductEvent);
+}
+
+/** v1 home office. Extra office threads for the same bot are schema-legal; this still returns one. */
+export async function getHomeThread(
+  db: Database,
+  bot: { id: string; homeThreadId?: string | null },
+): Promise<typeof threads.$inferSelect | undefined> {
+  if (bot.homeThreadId) {
+    const [home] = await db
+      .select()
+      .from(threads)
+      .where(eq(threads.id, bot.homeThreadId))
+      .limit(1);
+    if (home) return home;
+  }
+  const [office] = await db
+    .select()
+    .from(threads)
+    .where(and(eq(threads.botId, bot.id), eq(threads.kind, "office")))
+    .orderBy(asc(threads.createdAt))
+    .limit(1);
+  return office;
 }

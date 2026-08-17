@@ -10,12 +10,11 @@ import {
   type Database,
   guestConnectors,
   runs,
-  threads,
 } from "@grogbot/db";
 import { and, eq } from "drizzle-orm";
 import type { GuestHub } from "./guest-hub.js";
 import { parseGuestToken, tokenMatches } from "./guest-token.js";
-import { appendEvent } from "./threads.js";
+import { appendEvent, getHomeThread } from "./threads.js";
 
 export interface GuestHttpContext {
   db: Database;
@@ -76,11 +75,7 @@ async function emitGuest(
   payload: Record<string, unknown>,
 ): Promise<void> {
   const [bot] = await db.select().from(bots).where(eq(bots.id, botId)).limit(1);
-  const [thread] = await db
-    .select()
-    .from(threads)
-    .where(and(eq(threads.botId, botId), eq(threads.kind, "office")))
-    .limit(1);
+  const thread = bot ? await getHomeThread(db, bot) : undefined;
   if (!bot || !thread) return;
   await appendEvent(db, {
     workspaceId: bot.workspaceId,

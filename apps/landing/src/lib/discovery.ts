@@ -5,12 +5,24 @@ import {
   lookupDiscovery,
   mcpGetResponse,
   mcpPostResponse,
+  originsFromWeb,
 } from "@grogbot/seo";
 import { USE_CASES } from "../data/use-cases";
+import { appOrigin } from "./app-url";
 import { computerIntegrations, featuredIntegrations } from "./integrations";
-import { canonicalUrl } from "./site";
+import { canonicalUrl, landingOrigin } from "./site";
 
-export const LANDING_ORIGINS = cloudOrigins();
+function resolveLandingOrigins() {
+  const web = landingOrigin();
+  const office = appOrigin();
+  const explicitApi = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
+  if (explicitApi) return { web, api: explicitApi, office };
+  const canonical = cloudOrigins();
+  if (web === canonical.web) return { ...canonical, office };
+  return { ...originsFromWeb(web), office };
+}
+
+export const LANDING_ORIGINS = resolveLandingOrigins();
 
 export const DISCOVERY_SITEMAP_PATHS = [
   "/llms.txt",

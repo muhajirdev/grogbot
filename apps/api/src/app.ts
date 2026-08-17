@@ -1,8 +1,9 @@
-import { createSandboxProvider, createWakeupDriver } from "@grogbot/adapters";
+import { createSandboxProvider, createWakeupDriver } from "@grogbot/adapters/edge";
+import type { WakeupDriver } from "@grogbot/adapter-kit";
 import { createAuth } from "@grogbot/auth";
 import { grogbotCookieDomain } from "@grogbot/contracts";
 import { GuestHub, handleGuestRequest } from "@grogbot/core";
-import { createDb } from "@grogbot/db";
+import type { Database } from "@grogbot/db";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { RpcContext } from "./context.js";
@@ -18,11 +19,17 @@ export interface AppHandles extends Omit<RpcContext, "headers"> {
   close: () => Promise<void>;
 }
 
-export function createApp(env: Env): AppHandles {
-  const { db, client } = createDb(env.databaseUrl);
+export function createApp(
+  env: Env,
+  opts: {
+    db: Database;
+    close: () => Promise<void>;
+    wakeup?: WakeupDriver;
+  },
+): AppHandles {
   const oauth = oauthCredentials(env);
   const mail = createMailer(env);
-  const auth = createAuth(db, {
+  const auth = createAuth(opts.db, {
     secret: env.authSecret,
     baseURL: env.authUrl,
     trustedOrigins: env.corsOrigins,
@@ -33,7 +40,7 @@ export function createApp(env: Env): AppHandles {
     sendMagicLink: mail.sendMagicLink,
     sendInvitationEmail: mail.sendInvitation,
   });
-  const wakeup = createWakeupDriver(env.workerUrl);
+  const wakeup = opts.wakeup ?? createWakeupDriver(env.workerUrl);
   const sandbox = createSandboxProvider(env.sandboxProvider);
   const guests = new GuestHub();
 
@@ -50,7 +57,7 @@ export function createApp(env: Env): AppHandles {
 
   const handles: AppHandles = {
     app,
-    db,
+    db: opts.db,
     auth,
     wakeup,
     sandbox,
@@ -59,7 +66,7 @@ export function createApp(env: Env): AppHandles {
     close: async () => {
       guests.stop();
       await wakeup.stop();
-      await client.end({ timeout: 5 });
+      await opts.close();
     },
   };
   mountRpc(app, handles);
@@ -77,10 +84,10 @@ export function createApp(env: Env): AppHandles {
     return c.html(pluginCallbackPage(env.webOrigin));
   });
 
-  if (!env.workerUrl) {
+  if (!env.workerUrl && env.wakeupKind !== "durable-object") {
     app.all("/guest/*", async (c) => {
       const response = await handleGuestRequest(c.req.raw, {
-        db,
+        db: opts.db,
         hub: guests,
         wakeup,
       });

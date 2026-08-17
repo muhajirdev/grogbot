@@ -1,6 +1,12 @@
-import type { Bot, ComputerStatus, Routine } from "@grogbot/contracts";
+import type {
+  Bot,
+  ComputerActivityItem,
+  ComputerDeskFile,
+  ComputerStatus,
+  Routine,
+} from "@grogbot/contracts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { client } from "../lib/rpc";
 import { CloseIcon, GearIcon } from "./Icons";
 import { ModalShell } from "../ui";
@@ -16,7 +22,7 @@ export function ComputerPane(props: {
   computer: ComputerStatus | null;
   computerPending?: boolean;
   statusLabel: string;
-  body: string;
+  working?: string;
   onSettings: () => void;
   onCollapse: () => void;
   onTakeover: () => void;
@@ -40,11 +46,14 @@ export function ComputerPane(props: {
   const routines: Routine[] = routinesQuery.data ?? [];
 
   const user = props.computer?.controlHolder === "user";
+  const otherHasMouse =
+    Boolean(props.computer?.usingBotId) &&
+    props.computer?.usingBotId !== props.bot.id;
 
   return (
     <aside className="pane computer-pane">
       <div className="pane-head drag">
-        <span className="pane-title">{props.bot.name}'s computer</span>
+        <span className="pane-title">{props.bot.name}'s screen</span>
         <div className="row tight no-drag">
           <button
             className="icon-btn"
@@ -70,7 +79,7 @@ export function ComputerPane(props: {
         <div className="boot-card">
           {booting ? (
             <>
-              <p>Starting desktop</p>
+              <p>{waiting ? "Opening desk" : props.statusLabel}</p>
               <div className="progress">
                 <i />
               </div>
@@ -79,9 +88,15 @@ export function ComputerPane(props: {
             <p className="boot-status">{props.statusLabel}</p>
           )}
         </div>
-        <p className="screen-label">{props.bot.name}'s screen</p>
         <div className="screen-box inset">
-          {waiting ? "" : props.body}
+          {waiting ? null : (
+            <DeskScreen
+              computer={props.computer}
+              working={props.working ?? ""}
+              user={user}
+              otherHasMouse={otherHasMouse}
+            />
+          )}
         </div>
         {waiting ? null : (
           <div className="stage-actions" style={{ padding: "12px 0 8px" }}>
@@ -198,4 +213,118 @@ export function ComputerPane(props: {
       ) : null}
     </aside>
   );
+}
+
+function DeskScreen(props: {
+  computer: ComputerStatus | null;
+  working: string;
+  user: boolean;
+  otherHasMouse: boolean;
+}) {
+  const files = props.computer?.files ?? [{ path: "/workspace", kind: "dir" }];
+  const artifact = props.computer?.artifact ?? null;
+  const activity = props.computer?.activity ?? [];
+  const nowDoing =
+    props.working.trim() || props.computer?.nowDoing || null;
+  const [selectedPath, setSelectedPath] = useState(artifact?.path ?? "");
+
+  useEffect(() => {
+    setSelectedPath(artifact?.path ?? "");
+  }, [artifact?.path, props.computer?.id]);
+
+  const selected = useMemo(
+    () => selectedFile(files, selectedPath, artifact),
+    [files, selectedPath, artifact],
+  );
+
+  const banner = props.user
+    ? "You're in control. Complete the blocked step here — not in chat."
+    : props.otherHasMouse
+      ? `${props.computer?.usingBotName ?? "A teammate"} has the desk. Files are shared; one editor at a time.`
+      : null;
+
+  return (
+    <div className="desk">
+      {banner ? <p className="desk-banner">{banner}</p> : null}
+      <section className="desk-workspace">
+        <p className="desk-kicker">Workspace</p>
+        <ul className="desk-tree">
+          {files.map((file) => (
+            <li key={file.path}>
+              {file.kind === "dir" ? (
+                <span className="desk-dir">{file.path}</span>
+              ) : (
+                <button
+                  className={
+                    file.path === selected?.path ? "desk-file on" : "desk-file"
+                  }
+                  type="button"
+                  onClick={() => setSelectedPath(file.path)}
+                >
+                  {baseName(file.path)}
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+      <section className="desk-artifact">
+        {selected ? (
+          <>
+            <p className="desk-artifact-title">{selected.title}</p>
+            <pre className="desk-artifact-body">{selected.body}</pre>
+          </>
+        ) : (
+          <p className="desk-empty">
+            Files this teammate writes land here. Work continues if you close
+            this.
+          </p>
+        )}
+      </section>
+      <section className="desk-activity">
+        <p className="desk-kicker">Activity</p>
+        {nowDoing ? <p className="desk-now">{nowDoing}</p> : null}
+        <ActivityList items={activity} nowDoing={nowDoing} />
+      </section>
+    </div>
+  );
+}
+
+function ActivityList(props: {
+  items: ComputerActivityItem[];
+  nowDoing: string | null;
+}) {
+  const rows = props.items.filter((item) => item.text !== props.nowDoing);
+  if (rows.length === 0 && !props.nowDoing) {
+    return <p className="desk-empty">No recent steps.</p>;
+  }
+  if (rows.length === 0) return null;
+  return (
+    <ul className="desk-log">
+      {rows.map((item) => (
+        <li key={item.id}>{item.text}</li>
+      ))}
+    </ul>
+  );
+}
+
+function selectedFile(
+  files: ComputerDeskFile[],
+  path: string,
+  artifact: ComputerStatus["artifact"],
+): { path: string; title: string; body: string } | null {
+  const file = files.find((item) => item.kind === "file" && item.path === path);
+  if (file?.body) {
+    return {
+      path: file.path,
+      title: file.title || baseName(file.path),
+      body: file.body,
+    };
+  }
+  if (artifact && (path === artifact.path || !path)) return artifact;
+  return artifact;
+}
+
+function baseName(path: string): string {
+  return path.split("/").filter(Boolean).at(-1) ?? path;
 }

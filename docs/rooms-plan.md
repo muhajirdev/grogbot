@@ -42,10 +42,10 @@ Realtime stays `threadId` (today the API keys off `botId` and looks up that thre
 
 ## Later B — several bots, one room
 
-This is a new product surface (not Discord in v1). Schema work then, not now:
+This is a new product surface (not Discord in v1). **Schema already allows extra office threads per bot** (`bots.home_thread_id` is the sidebar shortcut; there is no unique office-per-bot index). v1 still creates one home office and does not open a second.
 
-- Drop unique `threads.bot_id`.
-- `bots.home_thread_id` = office shortcut.
+Product work then, not now:
+
 - `thread_participants`: humans **and** bots (`owner` | `member`).
 - `send({ threadId, text, targetBotId? })`.
 - Default wake = the only bot, else the `owner` bot. Several bots and no target → **fail closed** (do not wake everyone).

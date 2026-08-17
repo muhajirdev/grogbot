@@ -10,7 +10,7 @@ import {
   robotsTxt,
   sitemapXml,
 } from "./documents.js";
-import { cloudOrigins, GROGBOT_STACK } from "./identity.js";
+import { cloudOrigins, GROGBOT_STACK, originsFromWeb } from "./identity.js";
 
 const origins = cloudOrigins();
 
@@ -39,12 +39,20 @@ describe("discovery documents", () => {
 
   it("describes Flue on Node and self-host, not Rivet", () => {
     expect(llmsTxt(origins)).toMatch(/self-host/i);
+    expect(llmsTxt(origins)).toMatch(/Cloudflare Workers/i);
     expect(developerAiTxt(origins)).toMatch(/Flue/);
     expect(faqAiTxt(origins)).toMatch(/self-host/i);
     expect(llmsFullTxt(origins)).not.toMatch(/Rivet/i);
     expect(GROGBOT_STACK.join("\n")).not.toMatch(/Rivet/i);
     expect(GROGBOT_STACK.join("\n")).toMatch(/useSandbox/);
     expect(GROGBOT_STACK.join("\n")).toMatch(/Cloudflare Computer/);
+  });
+
+  it("maps workers.dev staging hosts to the hosted API", () => {
+    const staging = originsFromWeb("https://grogbot-web.qalam.workers.dev");
+    expect(staging.api).toBe("https://grogbot-api.qalam.workers.dev");
+    expect(staging.web).toBe("https://grogbot-landing.qalam.workers.dev");
+    expect(staging.office).toBe("https://grogbot-web.qalam.workers.dev");
   });
 
   it("does not claim zero retention as a Grogbot product feature", () => {

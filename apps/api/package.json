@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
+    "deploy": "wrangler deploy",
+    "cf-typegen": "wrangler types",
     "check": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
@@ -26,6 +28,7 @@
     "@grogbot/rpc": "workspace:*",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "wrangler": "^4.28.0"
   }
 }

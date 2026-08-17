@@ -12,6 +12,7 @@ export {
   GROGBOT_SUMMARY,
   GROGBOT_VERSION,
   originsFromWeb,
+  stagingOrigins,
 } from "./identity.js";
 export {
   apiCatalog,

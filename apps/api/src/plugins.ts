@@ -2,7 +2,7 @@ import {
   ComposioError,
   composioConfigured,
   createComposioGateway,
-} from "@grogbot/adapters";
+} from "@grogbot/adapters/edge";
 import type { PluginConnection } from "@grogbot/contracts";
 import {
   addPluginConnection,

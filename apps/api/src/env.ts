@@ -1,8 +1,11 @@
-import { resolveAgentRuntimeKind } from "@grogbot/adapters";
+import { resolveAgentRuntimeKind } from "@grogbot/adapters/edge";
 import {
   CLOUD_API_ORIGIN,
   CLOUD_LANDING_ORIGIN,
   CLOUD_WEB_ORIGIN,
+  STAGING_API_ORIGIN,
+  STAGING_LANDING_ORIGIN,
+  STAGING_WEB_ORIGIN,
 } from "@grogbot/contracts";
 
 export type OAuthProviderId = "google" | "github";
@@ -28,6 +31,7 @@ export interface Env {
   encryptionKey?: string;
   composioApiKey?: string;
   production: boolean;
+  wakeupKind: "in-process" | "http" | "durable-object";
 }
 
 function pair(
@@ -92,6 +96,9 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
       CLOUD_LANDING_ORIGIN,
       CLOUD_WEB_ORIGIN,
       CLOUD_API_ORIGIN,
+      STAGING_WEB_ORIGIN,
+      STAGING_LANDING_ORIGIN,
+      STAGING_API_ORIGIN,
       "http://127.0.0.1:5173",
       "http://localhost:5173",
       "http://127.0.0.1:5174",
@@ -114,6 +121,12 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     encryptionKey: source.ENCRYPTION_KEY,
     composioApiKey: source.COMPOSIO_API_KEY?.trim() || undefined,
     production: source.NODE_ENV === "production",
+    wakeupKind:
+      source.WAKEUP_KIND === "durable-object"
+        ? "durable-object"
+        : source.WORKER_URL
+          ? "http"
+          : "in-process",
   };
 }
 

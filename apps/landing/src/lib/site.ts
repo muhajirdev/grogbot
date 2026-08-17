@@ -6,8 +6,23 @@ export const DEFAULT_TITLE =
 export const DEFAULT_DESCRIPTION =
   "If OpenClaw is for your personal use, Grogbot is for the office. Named teammates, a shared computer, open source. Self-host for your team.";
 
+const LOCAL_LANDING_ORIGIN = "http://127.0.0.1:5174";
+
+export function resolveLandingOrigin(env: {
+  viteLandingUrl?: string;
+  prod: boolean;
+}): string {
+  const explicit = env.viteLandingUrl?.replace(/\/$/, "");
+  if (explicit) return explicit;
+  if (env.prod) return CLOUD_LANDING_ORIGIN;
+  return LOCAL_LANDING_ORIGIN;
+}
+
 export function landingOrigin(): string {
-  return CLOUD_LANDING_ORIGIN;
+  return resolveLandingOrigin({
+    viteLandingUrl: import.meta.env.VITE_LANDING_URL,
+    prod: import.meta.env.PROD,
+  });
 }
 
 export function canonicalUrl(path: string): string {

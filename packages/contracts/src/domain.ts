@@ -103,6 +103,30 @@ export const ComputerTeammateSchema = z.object({
 });
 export type ComputerTeammate = z.infer<typeof ComputerTeammateSchema>;
 
+export const ComputerDeskFileSchema = z.object({
+  path: z.string(),
+  kind: z.enum(["file", "dir"]),
+  title: z.string().optional(),
+  body: z.string().optional(),
+  updatedAt: z.string().optional(),
+});
+export type ComputerDeskFile = z.infer<typeof ComputerDeskFileSchema>;
+
+export const ComputerArtifactSchema = z.object({
+  path: z.string(),
+  title: z.string(),
+  body: z.string(),
+  updatedAt: z.string(),
+});
+export type ComputerArtifact = z.infer<typeof ComputerArtifactSchema>;
+
+export const ComputerActivityItemSchema = z.object({
+  id: z.string(),
+  text: z.string(),
+  createdAt: z.string(),
+});
+export type ComputerActivityItem = z.infer<typeof ComputerActivityItemSchema>;
+
 export const ComputerStatusSchema = z.object({
   id: Id,
   name: z.string(),
@@ -116,6 +140,10 @@ export const ComputerStatusSchema = z.object({
   usingBotName: z.string().nullable(),
   teammates: z.array(ComputerTeammateSchema),
   screenAvailable: z.boolean(),
+  nowDoing: z.string().nullable(),
+  files: z.array(ComputerDeskFileSchema),
+  artifact: ComputerArtifactSchema.nullable(),
+  activity: z.array(ComputerActivityItemSchema),
 });
 export type ComputerStatus = z.infer<typeof ComputerStatusSchema>;
 

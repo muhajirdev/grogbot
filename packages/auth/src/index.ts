@@ -47,18 +47,7 @@ export function createAuth(
     secret: opts.secret,
     baseURL: opts.baseURL,
     trustedOrigins: opts.trustedOrigins,
-    advanced: opts.cookieDomain
-      ? {
-          crossSubDomainCookies: {
-            enabled: true,
-            domain: opts.cookieDomain,
-          },
-          defaultCookieAttributes: {
-            sameSite: "none",
-            secure: true,
-          },
-        }
-      : undefined,
+    advanced: cookieAdvanced(opts),
     database: drizzleAdapter(db, {
       provider: "pg",
       schema: {
@@ -116,6 +105,40 @@ export function createAuth(
       }),
     ],
   });
+}
+
+function hostnameOf(origin: string): string | undefined {
+  try {
+    return new URL(origin).hostname;
+  } catch {
+    return undefined;
+  }
+}
+
+function cookieAdvanced(opts: {
+  baseURL: string;
+  webOrigin: string;
+  cookieDomain?: string;
+}) {
+  const secureNone = {
+    sameSite: "none" as const,
+    secure: true,
+  };
+  if (opts.cookieDomain) {
+    return {
+      crossSubDomainCookies: {
+        enabled: true,
+        domain: opts.cookieDomain,
+      },
+      defaultCookieAttributes: secureNone,
+    };
+  }
+  const authHost = hostnameOf(opts.baseURL);
+  const webHost = hostnameOf(opts.webOrigin);
+  if (authHost && webHost && authHost !== webHost) {
+    return { defaultCookieAttributes: secureNone };
+  }
+  return undefined;
 }
 
 export type Auth = ReturnType<typeof createAuth>;

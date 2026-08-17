@@ -11,7 +11,7 @@ import {
 } from "@grogbot/db";
 import { and, asc, eq, isNull } from "drizzle-orm";
 import { newId } from "./ids.js";
-import { appendThreadMessage, iso } from "./threads.js";
+import { appendThreadMessage, getHomeThread, iso } from "./threads.js";
 
 export const MAX_POKE_DEPTH = 2;
 
@@ -218,11 +218,7 @@ export async function pokeBot(opts: {
     fromBotId: fromBot.id,
     toBotId: target.id,
   });
-  const [fromThread] = await db
-    .select()
-    .from(threads)
-    .where(and(eq(threads.botId, fromBot.id), eq(threads.kind, "office")))
-    .limit(1);
+  const fromThread = await getHomeThread(db, fromBot);
   if (!fromThread) throw new PokeError("Your office thread is missing.");
 
   const briefing = pokeBriefing(fromBot.name, fromBot.title, opts.text);

@@ -4,7 +4,7 @@ Source-available **Grok Bot** — Grok, then grog. Teammates with a real compute
 
 Packages live under `@grogbot/*`.
 
-Early scaffold: contracts, Postgres (team data), Node worker wakeup (one queue per bot), Flue + Pi on the **Node target**. Hosted grogbot.com sits on Cloudflare for landing/email; the office is still Node so private companies can self-host. Chat UI and live computers next.
+Early scaffold: contracts, Postgres (team data), one queue per bot, Flue + Pi on the **Node target** for local/self-host. Hosted grogbot.com is three Cloudflare Workers (landing, office SPA, API). Chat UI and live computers next.
 
 ## Stack (locked)
 
@@ -12,10 +12,10 @@ Early scaffold: contracts, Postgres (team data), Node worker wakeup (one queue p
 - **oRPC** — one contract for web, desktop, and mobile
 - Postgres + Drizzle — workspaces, threads, skills
 - **Flue + Pi** — Node target. One `Teammate`; hires are `botId`
-- **One queue per bot** on the Node worker — wakeup, serial runs, delayed sleep
+- **One queue per bot** — Node worker locally; Durable Object `BotActor` on hosted Cloudflare
 - **Routines** — Postgres cron metadata; worker fires with croner onto that queue
 - Better Auth (magic-link email, Google, GitHub)
-- Local Compose Postgres; hosted cloud is Cloudflare (landing/email). API + worker stay Node.
+- Local Compose Postgres + Node API/worker. Hosted cloud is Cloudflare Workers (landing, web, API) + Neon Postgres.
 - Computers: Flue `useSandbox` (Cloudflare Computer light, Docker / Cloudflare Sandbox / E2B heavy). Desktop only on a trusted machine.
 - Plugins: Composio (optional)
 - UI: **web first** (Grok Bot-simple) — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md). Desktop = Electron around web. Mobile = Expo later.
@@ -58,7 +58,7 @@ Google / GitHub need client IDs in `.env`. Use **127.0.0.1**, not localhost:
 - Google redirect: `http://127.0.0.1:5173/api/auth/callback/google`
 - GitHub callback: `http://127.0.0.1:5173/api/auth/callback/github`
 
-Email sign-in sends a magic link through **Cloudflare Email Sending** (REST). There is no `wrangler.toml` — this API is Node, not a Worker. Set `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_EMAIL_API_TOKEN`, and `EMAIL_FROM`. Without those, local dev prints the link in the API terminal.
+Email sign-in sends a magic link through **Cloudflare Email Sending** (REST). Set `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_EMAIL_API_TOKEN`, and `EMAIL_FROM`. Without those, local (and hosted until those secrets exist) prints the link / uses `mail: log`.
 
 Office chats run **Flue + Pi** (`AGENT_RUNTIME=flue`). Flue is the Node bootstrap; Pi is the agent loop (`useModel`, providers, compaction). Paste provider keys and pick a default model in the office (**Settings → Models**). Each bot can override the workspace default from its settings pane. Offline Flue: `AGENT_RUNTIME=flue-echo`. Tests stay on `scripted`.
 
@@ -70,12 +70,16 @@ Landing (marketing site, TanStack Start):
 pnpm dev:landing
 ```
 
-Deploy to Cloudflare Workers (grogbot.com). Config lives in `apps/landing/wrangler.jsonc` — no account IDs. Attach the custom domain in the dashboard.
+Deploy hosted staging to Cloudflare Workers. Config lives in each app’s `wrangler.jsonc` — no account IDs or secrets. Attach `grogbot.com` / `app.grogbot.com` / `api.grogbot.com` in the dashboard when the domain is ready.
 
 ```bash
-pnpm --filter @grogbot/landing exec wrangler login
-pnpm deploy:landing
+pnpm --filter @grogbot/api exec wrangler login
+pnpm deploy:landing   # https://grogbot-landing.qalam.workers.dev
+pnpm deploy:web       # https://grogbot-web.qalam.workers.dev
+pnpm deploy:api       # https://grogbot-api.qalam.workers.dev/health
 ```
+
+API Worker secrets (`wrangler secret put` in `apps/api`): `DATABASE_URL` (Neon), `BETTER_AUTH_SECRET`, `ENCRYPTION_KEY`. Hosted wakeup is a Durable Object per `botId`; hosted brains are gateway-if-keys / scripted (Flue + Pi stays on the Node worker for local and self-host). `SANDBOX_PROVIDER=fake` on the Worker until Computer/Sandbox factories are wired.
 
 Advanced, off by default: a bot can let **Hermes** or **OpenClaw** connect outbound (`pnpm guest -- --url http://127.0.0.1:3101 --token … --kind hermes`). Enable it under Profile → Advanced. Default teammates still use the scripted/Pi runtime.
 
@@ -87,10 +91,10 @@ pnpm dev:desktop
 
 That loads local Vite. A **packaged** desktop build opens **https://app.grogbot.com**, which talks to **https://api.grogbot.com**. Override with `WEB_ORIGIN` if you self-host. The marketing site is **https://grogbot.com**.
 
-Production OAuth callbacks:
+OAuth callbacks (hosted staging until grogbot.com is attached):
 
-- `https://api.grogbot.com/api/auth/callback/google`
-- `https://api.grogbot.com/api/auth/callback/github`
+- `https://grogbot-api.qalam.workers.dev/api/auth/callback/google`
+- `https://grogbot-api.qalam.workers.dev/api/auth/callback/github`
 
 Mobile (Expo stub, later):
 

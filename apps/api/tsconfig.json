@@ -4,5 +4,6 @@
     "rootDir": "src",
     "noEmit": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/worker.ts", "src/index.ts", "src/**/*.test.ts"]
 }

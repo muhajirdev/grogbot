@@ -1,6 +1,8 @@
 import { sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   boolean,
+  index,
   integer,
   jsonb,
   pgTable,
@@ -57,13 +59,18 @@ export const bots = pgTable("bots", {
   model: text("model").notNull().default(""),
   /** Set when the teammate is archived (hidden + paused). Null = active. */
   archivedAt: timestamp("archived_at", { withTimezone: true }),
+  /** Sidebar office. Extra human↔bot threads for this bot are allowed; v1 never creates them. */
+  homeThreadId: text("home_thread_id").references(
+    (): AnyPgColumn => threads.id,
+    { onDelete: "set null" },
+  ),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
-});
+}, (t) => [uniqueIndex("bots_home_thread_id_unique").on(t.homeThreadId)]);
 
 export const threads = pgTable(
   "threads",
@@ -72,7 +79,7 @@ export const threads = pgTable(
     workspaceId: text("workspace_id")
       .notNull()
       .references(() => organization.id, { onDelete: "cascade" }),
-    /** office = human 1:1. poke = two bots talking. */
+    /** office = human↔bot (home or extra). poke = two bots talking. */
     kind: text("kind").notNull().default("office"),
     botId: text("bot_id").references(() => bots.id, { onDelete: "cascade" }),
     aBotId: text("a_bot_id").references(() => bots.id, { onDelete: "cascade" }),
@@ -82,9 +89,7 @@ export const threads = pgTable(
       .defaultNow(),
   },
   (t) => [
-    uniqueIndex("threads_office_bot")
-      .on(t.botId)
-      .where(sql`${t.kind} = 'office'`),
+    index("threads_bot_id").on(t.botId),
     uniqueIndex("threads_poke_pair")
       .on(t.aBotId, t.bBotId)
       .where(sql`${t.kind} = 'poke'`),

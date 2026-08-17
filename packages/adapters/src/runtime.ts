@@ -1,222 +1,30 @@
-import type {
-  AdapterContext,
-  AgentRunRequest,
-  AgentRuntime,
-  AgentRuntimeEvent,
-} from "@grogbot/adapter-kit";
+import type { AgentRuntime } from "@grogbot/adapter-kit";
 import { flueConfigured, getFlueAgentRuntime } from "./flue/runtime.js";
 import {
-  chatMessages,
-  deltaText,
-  type GatewayConfig,
   type GatewayEnv,
-  type GatewayProvider,
-  gatewayChatUrl,
   gatewayConfigured,
-  gatewayErrorMessage,
-  gatewayHeaders,
   isGatewayProvider,
+  type GatewayProvider,
   loadGatewayConfig,
-  readSseData,
-  unwrapGatewayPayload,
 } from "./gateway.js";
+import { GatewayAgentRuntime } from "./runtime-core.js";
 
-export class ScriptedAgentRuntime implements AgentRuntime {
-  private running = new Map<string, AbortController>();
+export {
+  DEFAULT_AGENT_RUNTIME,
+  GatewayAgentRuntime,
+  isOfflineAgentRuntime,
+  OFFLINE_AGENT_RUNTIME,
+  parsePokePrompt,
+  resolveAgentRuntimeKind,
+  ScriptedAgentRuntime,
+} from "./runtime-core.js";
 
-  async abort(runId: string): Promise<void> {
-    this.running.get(runId)?.abort();
-  }
-
-  async *run(
-    request: AgentRunRequest,
-    context: AdapterContext,
-  ): AsyncIterable<AgentRuntimeEvent> {
-    const controller = new AbortController();
-    this.running.set(request.runId, controller);
-    const signal = mergeSignals(context.signal, controller.signal);
-    yield { type: "progress", text: "working…" };
-    await new Promise((resolve) => setTimeout(resolve, 450));
-    if (signal.aborted) {
-      yield { type: "done", text: "stopped" };
-      this.running.delete(request.runId);
-      return;
-    }
-    const poke = parsePokePrompt(request.prompt);
-    if (poke && request.pokeTeammate) {
-      try {
-        const reply = await request.pokeTeammate(poke);
-        const text = `Asked ${poke.name}. They said: ${reply}`;
-        yield { type: "text", text };
-        yield { type: "done", text };
-      } catch (error) {
-        const text = error instanceof Error ? error.message : "Poke failed.";
-        yield { type: "text", text };
-        yield { type: "done", text };
-      }
-      this.running.delete(request.runId);
-      return;
-    }
-    const reply = `Echo: ${request.prompt}`;
-    yield { type: "text", text: reply };
-    yield { type: "done", text: reply };
-    this.running.delete(request.runId);
-  }
-}
-
-export class GatewayAgentRuntime implements AgentRuntime {
-  private running = new Map<string, AbortController>();
-
-  constructor(private readonly config: GatewayConfig) {}
-
-  async abort(runId: string): Promise<void> {
-    this.running.get(runId)?.abort();
-  }
-
-  async *run(
-    request: AgentRunRequest,
-    context: AdapterContext,
-  ): AsyncIterable<AgentRuntimeEvent> {
-    const controller = new AbortController();
-    this.running.set(request.runId, controller);
-    const signal = mergeSignals(context.signal, controller.signal);
-    yield { type: "progress", text: "working…" };
-    let reply = "";
-    try {
-      const response = await this.config.fetch(gatewayChatUrl(this.config), {
-        method: "POST",
-        headers: gatewayHeaders(this.config),
-        body: JSON.stringify({
-          model: request.model?.trim() || this.config.model,
-          stream: true,
-          messages: chatMessages(request),
-        }),
-        signal,
-      });
-      const raw = await readResponseBody(response);
-      if (!response.ok) {
-        const text =
-          raw.text || (raw.stream ? await new Response(raw.stream).text() : "");
-        throw new Error(gatewayErrorMessage(response.status, text));
-      }
-      if (raw.stream) {
-        for await (const data of readSseData(raw.stream, signal)) {
-          if (signal.aborted) break;
-          let payload: unknown;
-          try {
-            payload = JSON.parse(data) as unknown;
-          } catch {
-            continue;
-          }
-          const chunk = deltaText(payload);
-          if (!chunk) continue;
-          reply += chunk;
-          yield { type: "progress", text: reply };
-        }
-      } else {
-        reply = completionText(raw.text);
-      }
-      if (signal.aborted) {
-        yield { type: "done", text: reply || "stopped" };
-        return;
-      }
-      if (!reply.trim()) {
-        throw new Error("AI gateway returned an empty reply");
-      }
-      yield { type: "text", text: reply };
-      yield { type: "done", text: reply };
-    } catch (error) {
-      if (isAbortError(error) || signal.aborted) {
-        yield { type: "done", text: reply || "stopped" };
-        return;
-      }
-      const message =
-        error instanceof Error ? error.message : "AI gateway failed";
-      yield { type: "error", text: message };
-    } finally {
-      this.running.delete(request.runId);
-    }
-  }
-}
-
-function completionText(body: string): string {
-  try {
-    const payload = unwrapGatewayPayload(JSON.parse(body) as unknown);
-    return deltaText(payload).trim();
-  } catch {
-    return body.trim();
-  }
-}
-
-async function readResponseBody(response: Response): Promise<{
-  text: string;
-  stream?: ReadableStream<Uint8Array>;
-}> {
-  const contentType = response.headers.get("content-type") ?? "";
-  if (contentType.includes("event-stream") && response.body) {
-    return { text: "", stream: response.body };
-  }
-  const text = await response.text();
-  if (looksLikeSse(text)) {
-    return { text, stream: encodedStream(text) };
-  }
-  return { text };
-}
-
-function looksLikeSse(text: string): boolean {
-  return /^\s*data:/m.test(text) || text.includes("data: [DONE]");
-}
-
-function encodedStream(text: string): ReadableStream<Uint8Array> {
-  const bytes = new TextEncoder().encode(text);
-  return new ReadableStream({
-    start(controller) {
-      controller.enqueue(bytes);
-      controller.close();
-    },
-  });
-}
-
-function mergeSignals(
-  left: AbortSignal | undefined,
-  right: AbortSignal,
-): AbortSignal {
-  if (!left) return right;
-  return AbortSignal.any([left, right]);
-}
-
-function isAbortError(error: unknown): boolean {
-  return (
-    (error instanceof Error && error.name === "AbortError") ||
-    (typeof DOMException !== "undefined" &&
-      error instanceof DOMException &&
-      error.name === "AbortError")
-  );
-}
-
-/** `poke Lookout: do the thing` — test/offline only. Live Flue uses poke_teammate. */
-export function parsePokePrompt(
-  prompt: string,
-): { name: string; message: string } | null {
-  const match = prompt.trim().match(/^poke\s+(\S+):\s*([\s\S]+)/i);
-  if (!match?.[1] || !match[2]?.trim()) return null;
-  return { name: match[1], message: match[2].trim() };
-}
-
-/** Product default: Flue bootstraps Pi (`useModel` + providers). */
-export const DEFAULT_AGENT_RUNTIME = "flue";
-
-/** Offline stub for tests and CI. */
-export const OFFLINE_AGENT_RUNTIME = "scripted";
-
-export function resolveAgentRuntimeKind(kind?: string | null): string {
-  const runtime = kind?.trim();
-  return runtime || DEFAULT_AGENT_RUNTIME;
-}
-
-export function isOfflineAgentRuntime(kind: string): boolean {
-  return kind === "scripted" || kind === "flue-echo";
-}
+import {
+  createScriptedOrGatewayRuntime,
+  OFFLINE_AGENT_RUNTIME,
+  resolveAgentRuntimeKind,
+  isOfflineAgentRuntime,
+} from "./runtime-core.js";
 
 export function bindAgentRuntime(
   kind: string | undefined,
@@ -248,7 +56,6 @@ export function createAgentRuntime(
   fetchImpl?: typeof fetch,
 ): AgentRuntime {
   const runtime = kind.trim() || OFFLINE_AGENT_RUNTIME;
-  if (runtime === "scripted") return new ScriptedAgentRuntime();
   if (runtime === "flue" || runtime === "flue-echo") {
     return getFlueAgentRuntime(runtime === "flue-echo", {
       ...process.env,
@@ -267,7 +74,5 @@ export function createAgentRuntime(
       loadGatewayConfig(source, { provider, fetch: fetchImpl }),
     );
   }
-  throw new Error(
-    `Unknown AGENT_RUNTIME "${kind}". Use scripted, flue, flue-echo, gateway, openrouter, or cloudflare.`,
-  );
+  return createScriptedOrGatewayRuntime(runtime, source, fetchImpl);
 }
