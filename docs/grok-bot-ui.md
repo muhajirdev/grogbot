@@ -202,7 +202,7 @@ Empty composer and New Agent must still work without those.
 1. Welcome → sign in → tour → tools → **models (BYOK)** → “meet a teammate” (name, title, description, color+shape).
 2. Sidebar of Bots; click = that office thread.
 3. Chat transcript with inline “working,” files, approval.
-4. Computer pane: fake/scripted first, then Docker / Cloudflare Computer; takeover control. Wakeup is the bot’s actor, not a queue UI. E2B later.
+4. Computer pane: fake/scripted first, then Flue `useSandbox` (Computer light, Docker / Sandbox / E2B heavy); takeover control. Wakeup is the bot’s actor, not a queue UI.
 5. Edit profile on the Bot, not a separate admin app.
 6. First-run does not require Composio.
 7. **Models on first-run + Settings → Models**: workspace BYOK keys (encrypted) + default model. OpenRouter is the one-key start. A bot can override. Messaging fails closed until a matching key exists (office banner as fallback).

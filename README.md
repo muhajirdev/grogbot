@@ -4,7 +4,7 @@ Source-available **Grok Bot** — Grok, then grog. Teammates with a real compute
 
 Packages live under `@grogbot/*`.
 
-Early scaffold: contracts, Postgres (team data), Node worker wakeup (one queue per bot), Flue + Pi on the **Node target**. Hosted grogbot.com sits on Cloudflare for landing/email and computers; the office is still Node so private companies can self-host. Chat UI and live computers next.
+Early scaffold: contracts, Postgres (team data), Node worker wakeup (one queue per bot), Flue + Pi on the **Node target**. Hosted grogbot.com sits on Cloudflare for landing/email; the office is still Node so private companies can self-host. Chat UI and live computers next.
 
 ## Stack (locked)
 
@@ -15,8 +15,8 @@ Early scaffold: contracts, Postgres (team data), Node worker wakeup (one queue p
 - **One queue per bot** on the Node worker — wakeup, serial runs, delayed sleep
 - **Routines** — Postgres cron metadata; worker fires with croner onto that queue
 - Better Auth (magic-link email, Google, GitHub)
-- Local Compose Postgres; hosted cloud is Cloudflare (landing/email/computers). API + worker stay Node.
-- Computers: Docker locally, Cloudflare Computer hosted, desktop only on a trusted machine. E2B later.
+- Local Compose Postgres; hosted cloud is Cloudflare (landing/email). API + worker stay Node.
+- Computers: Flue `useSandbox` (Cloudflare Computer light, Docker / Cloudflare Sandbox / E2B heavy). Desktop only on a trusted machine.
 - Plugins: Composio (optional)
 - UI: **web first** (Grok Bot-simple) — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md). Desktop = Electron around web. Mobile = Expo later.
 

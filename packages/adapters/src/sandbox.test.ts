@@ -6,18 +6,14 @@ describe("createSandboxProvider", () => {
     expect(createSandboxProvider("fake")).toBeInstanceOf(FakeSandboxProvider);
   });
 
-  it("knows docker, cloudflare, and desktop but does not implement them yet", () => {
-    for (const kind of ["docker", "cloudflare", "desktop"] as const) {
+  it("knows docker, e2b, and desktop but does not implement them yet", () => {
+    for (const kind of ["docker", "e2b", "desktop"] as const) {
       expect(() => createSandboxProvider(kind)).toThrow(/not implemented yet/);
     }
   });
 
-  it("refuses e2b as a later provider, not v1", () => {
-    expect(() => createSandboxProvider("e2b")).toThrow(/later, not v1/);
-  });
-
   it("rejects unknown kinds", () => {
-    expect(() => createSandboxProvider("modal")).toThrow(
+    expect(() => createSandboxProvider("cloudflare")).toThrow(
       /Unknown SANDBOX_PROVIDER/,
     );
   });

@@ -156,8 +156,8 @@ export function AppSettings(props: {
                     <p className="hint">
                       Let the assistant open files and run tasks on your
                       computer. Auto-review still checks everything first. Never
-                      enable this when the sandbox is Cloudflare Computer or
-                      E2B.
+                      enable this when the desk is a hosted Computer, Sandbox,
+                      or E2B.
                     </p>
                   </label>
                   <label className="toggle-row">

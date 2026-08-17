@@ -61,5 +61,5 @@ export const GROGBOT_STACK = [
   "Postgres + Drizzle for team data",
   "Flue + Pi on Node; one wakeup queue per bot; Postgres for team data",
   "Better Auth (magic-link email, Google, GitHub)",
-  "Sandboxes: Docker locally, Cloudflare Computer hosted, desktop on a trusted machine only. E2B later.",
+  "Sandboxes: Flue useSandbox — Cloudflare Computer light, Docker / Cloudflare Sandbox / E2B heavy, desktop on a trusted machine only",
 ] as const;
