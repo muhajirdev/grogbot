@@ -33,25 +33,25 @@ importers:
 
   apps/api:
     dependencies:
-      '@grogbot/adapter-kit':
+      '@groxbot/adapter-kit':
         specifier: workspace:*
         version: link:../../packages/adapter-kit
-      '@grogbot/adapters':
+      '@groxbot/adapters':
         specifier: workspace:*
         version: link:../../packages/adapters
-      '@grogbot/auth':
+      '@groxbot/auth':
         specifier: workspace:*
         version: link:../../packages/auth
-      '@grogbot/contracts':
+      '@groxbot/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@grogbot/core':
+      '@groxbot/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@grogbot/db':
+      '@groxbot/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@grogbot/seo':
+      '@groxbot/seo':
         specifier: workspace:*
         version: link:../../packages/seo
       '@hono/node-server':
@@ -70,7 +70,7 @@ importers:
         specifier: ^4.9.6
         version: 4.13.2
     devDependencies:
-      '@grogbot/rpc':
+      '@groxbot/rpc':
         specifier: workspace:*
         version: link:../../packages/rpc
       tsx:
@@ -101,7 +101,7 @@ importers:
 
   apps/guest:
     dependencies:
-      '@grogbot/adapter-kit':
+      '@groxbot/adapter-kit':
         specifier: workspace:*
         version: link:../../packages/adapter-kit
     devDependencies:
@@ -114,13 +114,13 @@ importers:
 
   apps/landing:
     dependencies:
-      '@grogbot/contracts':
+      '@groxbot/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@grogbot/mascot':
+      '@groxbot/mascot':
         specifier: workspace:*
         version: link:../../packages/mascot
-      '@grogbot/seo':
+      '@groxbot/seo':
         specifier: workspace:*
         version: link:../../packages/seo
       '@tanstack/react-router':
@@ -175,7 +175,7 @@ importers:
 
   apps/mobile:
     dependencies:
-      '@grogbot/rpc':
+      '@groxbot/rpc':
         specifier: workspace:*
         version: link:../../packages/rpc
       expo:
@@ -203,13 +203,13 @@ importers:
       '@base-ui/react':
         specifier: ^1.7.0
         version: 1.7.0(@types/react@19.2.18)(react-dom@19.2.3)(react@19.2.3)
-      '@grogbot/contracts':
+      '@groxbot/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@grogbot/mascot':
+      '@groxbot/mascot':
         specifier: workspace:*
         version: link:../../packages/mascot
-      '@grogbot/rpc':
+      '@groxbot/rpc':
         specifier: workspace:*
         version: link:../../packages/rpc
       '@orpc/tanstack-query':
@@ -276,16 +276,16 @@ importers:
 
   apps/worker:
     dependencies:
-      '@grogbot/adapter-kit':
+      '@groxbot/adapter-kit':
         specifier: workspace:*
         version: link:../../packages/adapter-kit
-      '@grogbot/adapters':
+      '@groxbot/adapters':
         specifier: workspace:*
         version: link:../../packages/adapters
-      '@grogbot/core':
+      '@groxbot/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@grogbot/db':
+      '@groxbot/db':
         specifier: workspace:*
         version: link:../../packages/db
       dotenv:
@@ -301,7 +301,7 @@ importers:
 
   packages/adapter-kit:
     dependencies:
-      '@grogbot/contracts':
+      '@groxbot/contracts':
         specifier: workspace:*
         version: link:../contracts
     devDependencies:
@@ -317,7 +317,7 @@ importers:
       '@flue/runtime':
         specifier: ^2.0.3
         version: 2.0.3(typescript@5.9.3)(zod@4.4.3)
-      '@grogbot/adapter-kit':
+      '@groxbot/adapter-kit':
         specifier: workspace:*
         version: link:../adapter-kit
       valibot:
@@ -333,7 +333,7 @@ importers:
 
   packages/auth:
     dependencies:
-      '@grogbot/db':
+      '@groxbot/db':
         specifier: workspace:*
         version: link:../db
       better-auth:
@@ -359,13 +359,13 @@ importers:
 
   packages/core:
     dependencies:
-      '@grogbot/adapter-kit':
+      '@groxbot/adapter-kit':
         specifier: workspace:*
         version: link:../adapter-kit
-      '@grogbot/contracts':
+      '@groxbot/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@grogbot/db':
+      '@groxbot/db':
         specifier: workspace:*
         version: link:../db
       drizzle-orm:
@@ -416,7 +416,7 @@ importers:
 
   packages/rpc:
     dependencies:
-      '@grogbot/contracts':
+      '@groxbot/contracts':
         specifier: workspace:*
         version: link:../contracts
       '@orpc/client':
@@ -432,7 +432,7 @@ importers:
 
   packages/seo:
     dependencies:
-      '@grogbot/contracts':
+      '@groxbot/contracts':
         specifier: workspace:*
         version: link:../contracts
     devDependencies:

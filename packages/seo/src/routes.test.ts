@@ -17,9 +17,9 @@ describe("discovery routes", () => {
     }
     expect(lookupDiscovery("/llm.txt", origins)?.redirectTo).toBe("/llms.txt");
     expect(lookupDiscovery("/press.md", origins)?.body).toContain(
-      "Grogbot press kit",
+      "Groxbot press kit",
     );
-    expect(lookupDiscovery("/llms.txt", origins)?.body).toContain("# Grogbot");
+    expect(lookupDiscovery("/llms.txt", origins)?.body).toContain("# Groxbot");
   });
 
   it("serves MCP discovery at /mcp and well-known cards", () => {
@@ -29,10 +29,10 @@ describe("discovery routes", () => {
     const json = mcpGetResponse("application/json", origins);
     expect(json.body).toContain("streamable-http");
     expect(lookupDiscovery("/.well-known/mcp.json", origins)?.body).toContain(
-      "https://grogbot.com/mcp",
+      "https://groxbot.com/mcp",
     );
     expect(lookupDiscovery("/mcp.json", origins)?.body).toContain(
-      "io.grogbot/docs",
+      "io.groxbot/docs",
     );
   });
 
@@ -42,7 +42,7 @@ describe("discovery routes", () => {
       origins,
     );
     expect(init.status).toBe(200);
-    expect(init.body).toContain("io.grogbot/docs");
+    expect(init.body).toContain("io.groxbot/docs");
     const call = mcpPostResponse(
       {
         jsonrpc: "2.0",
@@ -52,6 +52,6 @@ describe("discovery routes", () => {
       },
       origins,
     );
-    expect(call.body).toContain("# Grogbot");
+    expect(call.body).toContain("# Groxbot");
   });
 });

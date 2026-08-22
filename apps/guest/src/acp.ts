@@ -1,6 +1,6 @@
 import { type ChildProcess, spawn } from "node:child_process";
 import readline from "node:readline";
-import type { AgentRunRequest, AgentRuntimeEvent } from "@grogbot/adapter-kit";
+import type { AgentRunRequest, AgentRuntimeEvent } from "@groxbot/adapter-kit";
 
 interface Pending {
   resolve: (value: unknown) => void;
@@ -110,7 +110,7 @@ export class AcpSession {
         fs: { readTextFile: false, writeTextFile: false },
         terminal: false,
       },
-      clientInfo: { name: "grogbot-guest", version: "0.0.1" },
+      clientInfo: { name: "groxbot-guest", version: "0.0.1" },
     });
     const created = (await this.send("session/new", {
       cwd: this.cwd,

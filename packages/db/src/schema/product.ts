@@ -53,7 +53,7 @@ export const bots = pgTable("bots", {
   avatarColor: text("avatar_color").notNull().default("#5b7cff"),
   avatarShape: text("avatar_shape").notNull().default("circle"),
   parentBotId: text("parent_bot_id"),
-  /** off | hermes | openclaw | generic. Default off = Grogbot runtime. */
+  /** off | hermes | openclaw | generic. Default off = Groxbot runtime. */
   guestKind: text("guest_kind").notNull().default("off"),
   /** Empty = workspace default model from user_model_credentials. */
   model: text("model").notNull().default(""),

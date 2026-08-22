@@ -1,8 +1,8 @@
-# Grogbot
+# Groxbot
 
-Source-available **Grok Bot** — Grok, then grog. Teammates with a real computer. Composio for Gmail/Slack/GitHub. Shared workspace context and skills. Bring your own model keys. Self-host for your team is free; hosted Grogbot for others is the cloud business.
+Source-available **Grok Bot** — Grok, then grox. Teammates with a real computer. Composio for Gmail/Slack/GitHub. Shared workspace context and skills. Bring your own model keys. Self-host for your team is free; hosted Groxbot for others is the cloud business.
 
-Packages live under `@grogbot/*`.
+Packages live under `@groxbot/*`.
 
 Early scaffold: contracts, Neon Postgres (team data), one Durable Object queue per bot, Cloudflare Workers for landing + office + API. Chat UI and live computers next. Self-host (Node / workerd) later.
 
@@ -46,7 +46,7 @@ pnpm dev
 - Web: http://127.0.0.1:5173 — `/` welcome, `/login`, `/onboarding`, `/{botId}` office
 - Landing: http://127.0.0.1:5174 — marketing (`pnpm dev:landing`)
 
-Public LLM / agent discovery (also on https://grogbot.com):
+Public LLM / agent discovery (also on https://groxbot.com):
 
 - `/llms.txt` (and `/llm.txt` → 301)
 - `/llms.html`, `/llms-full.txt`, `/index.md`
@@ -72,13 +72,13 @@ Landing (marketing site, TanStack Start):
 pnpm dev:landing
 ```
 
-Deploy hosted staging to Cloudflare Workers. Config lives in each app’s `wrangler.jsonc` — no account IDs or secrets. Attach `grogbot.com` / `app.grogbot.com` / `api.grogbot.com` in the dashboard when the domain is ready.
+Deploy hosted staging to Cloudflare Workers. Config lives in each app’s `wrangler.jsonc` — no account IDs or secrets. Attach `groxbot.com` / `app.groxbot.com` / `api.groxbot.com` in the dashboard when the domain is ready.
 
 ```bash
-pnpm --filter @grogbot/api exec wrangler login
-pnpm deploy:landing   # https://grogbot-landing.qalam.workers.dev
-pnpm deploy:web       # https://grogbot-web.qalam.workers.dev
-pnpm deploy:api       # https://grogbot-api.qalam.workers.dev/health
+pnpm --filter @groxbot/api exec wrangler login
+pnpm deploy:landing   # https://groxbot-landing.qalam.workers.dev
+pnpm deploy:web       # https://groxbot-web.qalam.workers.dev
+pnpm deploy:api       # https://groxbot-api.qalam.workers.dev/health
 ```
 
 API Worker secrets (`wrangler secret put` in `apps/api`): `DATABASE_URL` (Neon), `BETTER_AUTH_SECRET`, `ENCRYPTION_KEY`. Wakeup is a Durable Object per `botId`. Brains are gateway-if-keys / scripted. `SANDBOX_PROVIDER=fake` until Computer/Sandbox factories are wired.
@@ -91,12 +91,12 @@ Desktop (same web UI in a window):
 pnpm dev:desktop
 ```
 
-That loads local Vite + wrangler. A **packaged** desktop build opens **https://app.grogbot.com**, which talks to **https://api.grogbot.com**. The marketing site is **https://grogbot.com**.
+That loads local Vite + wrangler. A **packaged** desktop build opens **https://app.groxbot.com**, which talks to **https://api.groxbot.com**. The marketing site is **https://groxbot.com**.
 
-OAuth callbacks (hosted staging until grogbot.com is attached):
+OAuth callbacks (hosted staging until groxbot.com is attached):
 
-- `https://grogbot-api.qalam.workers.dev/api/auth/callback/google`
-- `https://grogbot-api.qalam.workers.dev/api/auth/callback/github`
+- `https://groxbot-api.qalam.workers.dev/api/auth/callback/google`
+- `https://groxbot-api.qalam.workers.dev/api/auth/callback/github`
 
 Mobile (Expo stub, later):
 
@@ -119,4 +119,4 @@ docs/
 
 Fair-code (Apache 2.0 plus conditions). See [LICENSE](./LICENSE).
 
-Self-host for your own organization is free. You may not run a hosted Grogbot for third parties without a commercial license — that is grogbot.com. Not OSI-open, not MIT.
+Self-host for your own organization is free. You may not run a hosted Groxbot for third parties without a commercial license — that is groxbot.com. Not OSI-open, not MIT.

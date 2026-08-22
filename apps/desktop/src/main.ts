@@ -1,12 +1,12 @@
 import { app, BrowserWindow } from "electron";
 
-/** Same value as CLOUD_WEB_ORIGIN in `@grogbot/contracts`. */
-const CLOUD_WEB_ORIGIN = "https://app.grogbot.com";
+/** Same value as CLOUD_WEB_ORIGIN in `@groxbot/contracts`. */
+const CLOUD_WEB_ORIGIN = "https://app.groxbot.com";
 
 /**
- * Packaged desktop is a thin client of the hosted office (app.grogbot.com,
- * which talks to api.grogbot.com). Dev still loads the local Vite server.
- * grogbot.com is the marketing site.
+ * Packaged desktop is a thin client of the hosted office (app.groxbot.com,
+ * which talks to api.groxbot.com). Dev still loads the local Vite server.
+ * groxbot.com is the marketing site.
  */
 function webUrl(): string {
   if (process.env.WEB_ORIGIN) return process.env.WEB_ORIGIN;
@@ -19,7 +19,7 @@ function createWindow(): void {
     height: 840,
     minWidth: 880,
     minHeight: 600,
-    title: "Grogbot",
+    title: "Groxbot",
     backgroundColor: "#000000",
     titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "hidden",
     trafficLightPosition: { x: 16, y: 18 },

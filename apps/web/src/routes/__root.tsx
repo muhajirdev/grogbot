@@ -15,7 +15,7 @@ export interface RouterContext {
 function Boot() {
   return (
     <div className="screen">
-      <p className="kicker">Grogbot</p>
+      <p className="kicker">Groxbot</p>
     </div>
   );
 }

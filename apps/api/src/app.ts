@@ -1,9 +1,9 @@
-import { createSandboxProvider, createWakeupDriver } from "@grogbot/adapters/edge";
-import type { WakeupDriver } from "@grogbot/adapter-kit";
-import { createAuth } from "@grogbot/auth";
-import { grogbotCookieDomain } from "@grogbot/contracts";
-import { GuestHub, handleGuestRequest } from "@grogbot/core";
-import type { Database } from "@grogbot/db";
+import { createSandboxProvider, createWakeupDriver } from "@groxbot/adapters/edge";
+import type { WakeupDriver } from "@groxbot/adapter-kit";
+import { createAuth } from "@groxbot/auth";
+import { groxbotCookieDomain } from "@groxbot/contracts";
+import { GuestHub, handleGuestRequest } from "@groxbot/core";
+import type { Database } from "@groxbot/db";
 import { sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
@@ -34,7 +34,7 @@ export function createApp(
     secret: env.authSecret,
     baseURL: env.authUrl,
     trustedOrigins: env.corsOrigins,
-    cookieDomain: grogbotCookieDomain(env.webOrigin),
+    cookieDomain: groxbotCookieDomain(env.webOrigin),
     google: oauth.google,
     github: oauth.github,
     webOrigin: env.webOrigin,

@@ -5,7 +5,7 @@ import {
   fauxText,
 } from "@earendil-works/pi-ai";
 
-export const ECHO_PROVIDER_ID = "grogbot-echo";
+export const ECHO_PROVIDER_ID = "groxbot-echo";
 export const ECHO_MODEL_ID = "echo";
 export const ECHO_MODEL = `${ECHO_PROVIDER_ID}/${ECHO_MODEL_ID}`;
 

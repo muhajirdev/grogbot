@@ -62,7 +62,7 @@ export const USE_CASES: UseCase[] = [
     faqs: [
       {
         q: "Will it spam my pipeline?",
-        a: "No. Grogbot drafts. You grant send when the copy is right. There is no sequence canvas.",
+        a: "No. Groxbot drafts. You grant send when the copy is right. There is no sequence canvas.",
       },
       {
         q: "Which CRM?",
@@ -74,7 +74,7 @@ export const USE_CASES: UseCase[] = [
     slug: "social-scheduling",
     title: "Social scheduling",
     kicker: "A teammate for Postiz, Post Bridge, and Typefully",
-    lede: "Indie schedulers already exist. Grogbot is the coworker who fills the calendar and never hits publish.",
+    lede: "Indie schedulers already exist. Groxbot is the coworker who fills the calendar and never hits publish.",
     problem:
       "You already pay Postiz, Post Bridge, or Typefully. The work is still you sitting down every Sunday to write the week.",
     whatTheBotDoes: [
@@ -99,8 +99,8 @@ export const USE_CASES: UseCase[] = [
       "Draft this week's posts for Postiz and Post Bridge from this brief. Do not publish.",
     faqs: [
       {
-        q: "Postiz already has an agent. Why Grogbot?",
-        a: "Postiz drives Postiz. Grogbot is the teammate that also has Gmail, GitHub, and a computer — one thread when the post needs a screenshot from the product.",
+        q: "Postiz already has an agent. Why Groxbot?",
+        a: "Postiz drives Postiz. Groxbot is the teammate that also has Gmail, GitHub, and a computer — one thread when the post needs a screenshot from the product.",
       },
       {
         q: "Postiz, Post Bridge, or Typefully?",

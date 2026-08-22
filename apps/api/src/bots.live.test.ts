@@ -1,7 +1,7 @@
-import { ScriptedAgentRuntime } from "@grogbot/adapters/edge";
-import { createWakeHandlers } from "@grogbot/core";
-import { createDb } from "@grogbot/db/node";
-import { createGrogbotClient } from "@grogbot/rpc";
+import { ScriptedAgentRuntime } from "@groxbot/adapters/edge";
+import { createWakeHandlers } from "@groxbot/core";
+import { createDb } from "@groxbot/db/node";
+import { createGroxbotClient } from "@groxbot/rpc";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { type AppHandles, createApp } from "./app.js";
 import type { Env } from "./env.js";
@@ -11,7 +11,7 @@ loadRootEnv();
 
 const databaseUrl =
   process.env.DATABASE_URL ??
-  "postgres://grogbot:grogbot@127.0.0.1:5433/grogbot";
+  "postgres://groxbot:groxbot@127.0.0.1:5433/groxbot";
 
 let dbUp = false;
 try {
@@ -76,7 +76,7 @@ describe.skipIf(!dbUp)("bot thread loop", () => {
   });
 
   function client() {
-    return createGrogbotClient({
+    return createGroxbotClient({
       baseUrl: origin,
       headers: () => ({ cookie, origin }),
       fetch: async (input, init) => {
@@ -492,7 +492,7 @@ describe.skipIf(!dbUp)("bot thread loop", () => {
     ownerCookie = cookieHeader(ownerSignUp);
     expect(ownerSignUp.status, await ownerSignUp.text()).toBe(200);
 
-    const ownerRpc = createGrogbotClient({
+    const ownerRpc = createGroxbotClient({
       baseUrl: origin,
       headers: () => ({ cookie: ownerCookie, origin }),
       fetch: async (input, init) => {
@@ -525,7 +525,7 @@ describe.skipIf(!dbUp)("bot thread loop", () => {
     memberCookie = cookieHeader(memberSignUp);
     expect(memberSignUp.status, await memberSignUp.text()).toBe(200);
 
-    const memberRpc = createGrogbotClient({
+    const memberRpc = createGroxbotClient({
       baseUrl: origin,
       headers: () => ({ cookie: memberCookie, origin }),
       fetch: async (input, init) => {
@@ -628,7 +628,7 @@ describe.skipIf(!dbUp)("bot thread loop", () => {
 });
 
 async function collectOffice(
-  rpc: ReturnType<typeof createGrogbotClient>,
+  rpc: ReturnType<typeof createGroxbotClient>,
   botId: string,
   done: (texts: string[]) => boolean,
   timeoutMs = 12_000,

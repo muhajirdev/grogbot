@@ -1,4 +1,4 @@
-import type { AvatarShape } from "@grogbot/contracts";
+import type { AvatarShape } from "@groxbot/contracts";
 
 export const AVATAR_COLORS = [
   "#e45c9a",

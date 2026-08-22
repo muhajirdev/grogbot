@@ -8,7 +8,7 @@ import {
 
 describe("plugin connections", () => {
   it("scopes Composio users to the workspace", () => {
-    expect(composioUserId("ws-1")).toBe("grogbot:ws:ws-1");
+    expect(composioUserId("ws-1")).toBe("groxbot:ws:ws-1");
   });
 
   it("accepts marketplace slugs", () => {

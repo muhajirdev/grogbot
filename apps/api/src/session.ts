@@ -1,4 +1,4 @@
-import { deploymentSettings } from "@grogbot/db";
+import { deploymentSettings } from "@groxbot/db";
 import { ORPCError } from "@orpc/server";
 import { eq } from "drizzle-orm";
 import type { RpcContext } from "./context.js";

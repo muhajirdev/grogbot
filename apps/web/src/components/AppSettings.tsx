@@ -1,5 +1,5 @@
-import type { Me, ModelCatalogItem, ModelProvider } from "@grogbot/contracts";
-import { missingProviderMessage, PROVIDER_META } from "@grogbot/contracts";
+import type { Me, ModelCatalogItem, ModelProvider } from "@groxbot/contracts";
+import { missingProviderMessage, PROVIDER_META } from "@groxbot/contracts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { userFacingError } from "../lib/errors";
@@ -207,7 +207,7 @@ export function AppSettings(props: {
               </p>
             ) : null}
             {tab === "updates" ? (
-              <p className="muted">You're on the local build of Grogbot.</p>
+              <p className="muted">You're on the local build of Groxbot.</p>
             ) : null}
           </div>
         </div>
@@ -464,7 +464,7 @@ function ModelsTab() {
           <div className="provider-key soon">
             <div className="provider-key-toggle" aria-disabled="true">
               <span className="provider-name">
-                Grogbot
+                Groxbot
                 <em className="muted"> · hosted</em>
               </span>
               <span className="provider-status soon">Coming soon</span>

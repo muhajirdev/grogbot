@@ -1,6 +1,6 @@
 # Architecture
 
-**Grogbot** is fair-code **Grok Bot**: named teammates with a real computer. Message them like people. Composio for Gmail/Slack/GitHub. Workspace-shared context and skills. BYOK models. Self-host for your organization is free; grogbot.com is the hosted cloud.
+**Groxbot** is fair-code **Grok Bot**: named teammates with a real computer. Message them like people. Composio for Gmail/Slack/GitHub. Workspace-shared context and skills. BYOK models. Self-host for your organization is free; groxbot.com is the hosted cloud.
 
 UI: copy Grok Bot simplicity — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md). Rooms later: [docs/rooms-plan.md](./docs/rooms-plan.md).
 
@@ -28,7 +28,7 @@ The **workspace** (Better Auth org) also has:
 
 Product is **Cloudflare Workers**. Self-host is later (Node or workerd) — do not dual-optimize.
 
-| | **grogbot.com** (now) | **Self-host** (later) |
+| | **groxbot.com** (now) | **Self-host** (later) |
 | --- | --- | --- |
 | Who | We run it for customers | Their infra |
 | Marketing | Cloudflare Worker (`apps/landing`) | Skip, or host however they want |
@@ -40,17 +40,17 @@ Product is **Cloudflare Workers**. Self-host is later (Node or workerd) — do n
 | Computer | `SANDBOX_PROVIDER=fake` until Computer/Sandbox factories | TBD |
 | Auth email | Cloudflare Email Sending | TBD |
 
-Rivet, Agents SDK, Project Think, and agentOS stay out of **v1**. Flue’s Cloudflare target stays out of v1 (hosted brains are gateway/scripted). Hands are Flue sandbox factories, keyed by Grogbot `computerId`. Wiring: [docs/computers.md](./docs/computers.md). The actor port (`WakeupDriver`, key = `botId`) is how hosted can move to Agents SDK later without a rewrite.
+Rivet, Agents SDK, Project Think, and agentOS stay out of **v1**. Flue’s Cloudflare target stays out of v1 (hosted brains are gateway/scripted). Hands are Flue sandbox factories, keyed by Groxbot `computerId`. Wiring: [docs/computers.md](./docs/computers.md). The actor port (`WakeupDriver`, key = `botId`) is how hosted can move to Agents SDK later without a rewrite.
 
 ## Locked decisions
 
 | Topic | Choice |
 | --- | --- |
 | Product | Grok Bot-shaped teammates + Composio + team context/skills |
-| UI | Messaging app. **Web first** (SPA). Marketing is **TanStack Start** at grogbot.com. Packaged desktop loads app.grogbot.com (API: api.grogbot.com). Dev desktop loads local Vite. Mobile = Expo later |
-| API | **oRPC** — contract in `@grogbot/contracts`, client in `@grogbot/rpc` |
+| UI | Messaging app. **Web first** (SPA). Marketing is **TanStack Start** at groxbot.com. Packaged desktop loads app.groxbot.com (API: api.groxbot.com). Dev desktop loads local Vite. Mobile = Expo later |
+| API | **oRPC** — contract in `@groxbot/contracts`, client in `@groxbot/rpc` |
 | Web | **Vite + React 19 + TanStack Router** (SPA). oRPC queries via `@orpc/tanstack-query`. Not TanStack Start — API stays Hono so Electron can load the same origin. |
-| Landing | **TanStack Start** on **Cloudflare Workers** (`apps/landing/wrangler.jsonc`). SSR for grogbot.com. CTAs go to the office SPA. |
+| Landing | **TanStack Start** on **Cloudflare Workers** (`apps/landing/wrangler.jsonc`). SSR for groxbot.com. CTAs go to the office SPA. |
 | Actor | **One queue per bot** — never key on `threadId`. Durable Object `BotActor`. |
 | Computer | **Workspace default computer.** New computer = isolated sandbox. GUI serialized per computer. |
 | Shared data | **One Postgres** — auth, bots, threads, messages, skills, artifacts |
@@ -88,7 +88,7 @@ v1 code: `DurableObjectWakeupDriver` + `BotActor` alarms. Node `InProcessWakeupD
 
 v1 is already the actor model: **one mailbox per `botId`**. Hosted already uses a Durable Object (`BotActor`). Agents SDK / Flue Cloudflare target later is a new brain inside that actor, not a new product.
 
-| v1 Node (self-host) | v1 hosted | Later (grogbot.com) |
+| v1 Node (self-host) | v1 hosted | Later (groxbot.com) |
 | --- | --- | --- |
 | `InProcessWakeupDriver` keyed by `botId` | `BotActor` Durable Object, name = `botId` | `class BotAgent extends Agent` |
 | `enqueue` immediate | DO `fetch` (serial) | `onRequest` / DO invocation |
@@ -98,7 +98,7 @@ v1 is already the actor model: **one mailbox per `botId`**. Hosted already uses 
 
 Self-host is later. Do not import `agents` from `packages/core` or the Pi loop. Do not key the Agent on `threadId` (`teammateInstanceId` may stay `botId:threadId` for Flue session state). Do not put threads/messages in DO SQLite — Postgres stays truth. Do not `dispatch()` Flue from cron; always enqueue on the bot actor.
 
-agentOS is **not** the v1 computer. The desk is Grogbot’s `computers` row; the hands are Flue `useSandbox` factories.
+agentOS is **not** the v1 computer. The desk is Groxbot’s `computers` row; the hands are Flue `useSandbox` factories.
 
 ## Processes (v1)
 
@@ -115,7 +115,7 @@ Vite :5173 (dev) / Web Worker (prod) ──► API Worker (Hono + oRPC + Neon HT
                                         gateway / scripted  (Flue CF target later)
 ```
 
-Clients share **one contract**. Web is the office we build against now. The **landing** app is marketing only (no oRPC). Desktop loads that same web app. Expo is a later shell on the same `@grogbot/rpc` client.
+Clients share **one contract**. Web is the office we build against now. The **landing** app is marketing only (no oRPC). Desktop loads that same web app. Expo is a later shell on the same `@groxbot/rpc` client.
 
 Wake a bot with:
 
@@ -135,18 +135,18 @@ Wake a bot with:
 | `ConnectorProvider` | Composio or no-op | same |
 | Guest runtime | Off. Opt-in: Hermes/OpenClaw dial `/guest/*` | same protocol |
 
-Executor / `packages/core` must not import `fs`, `dockerode`, or Cloudflare bindings. The API Worker uses `@grogbot/adapters/edge`. Flue sandbox adapters (Computer, Sandbox, Docker, E2B) may import their SDKs. The Pi loop still talks only to ports. Do not add a Grogbot Computer Worker behind `SandboxProvider`.
+Executor / `packages/core` must not import `fs`, `dockerode`, or Cloudflare bindings. The API Worker uses `@groxbot/adapters/edge`. Flue sandbox adapters (Computer, Sandbox, Docker, E2B) may import their SDKs. The Pi loop still talks only to ports. Do not add a Groxbot Computer Worker behind `SandboxProvider`.
 
 ## Advanced — guest agents (off by default)
 
-Grogbot is the **host**. A bot can optionally allow Hermes or OpenClaw to connect **outbound** to this deployment (Multica-style daemon, not ACP-on-the-wire). Default remains Flue+Pi.
+Groxbot is the **host**. A bot can optionally allow Hermes or OpenClaw to connect **outbound** to this deployment (Multica-style daemon, not ACP-on-the-wire). Default remains Flue+Pi.
 
 1. Profile → Advanced → Hermes or OpenClaw. A one-time token is minted.
 2. On the machine that already has that CLI: `pnpm guest -- --url $GUEST_URL --token … --kind hermes`.
 3. The guest process dials `/guest/hello`, waits for `run` jobs, replies with events.
 4. Locally it may spawn `hermes acp` / `openclaw acp` (ACP stays on that machine). `--runtime fake` is for tests.
 
-The bot actor is still the bot. If the guest is offline, the run stays queued (`waiting for hermes…`). One guest session per bot. Turn off to return to Grogbot’s runtime.
+The bot actor is still the bot. If the guest is offline, the run stays queued (`waiting for hermes…`). One guest session per bot. Turn off to return to Groxbot’s runtime.
 
 ## Build order
 
@@ -167,4 +167,4 @@ The bot actor is still the bot. If the guest is offline, the run stays queued (`
 
 Gadgets, Gatekeepers, Rivet/rivetkit, Cloudflare Agents SDK, Flue Cloudflare target as the brain host, D1, Turso, Prisma, PGlite as product DB, store signing / Electron-builder / EAS submit, Pi subscription OAuth, Discord UI, agentOS as the default computer, Project Think, multi-bot rooms, Polar hosted billing.
 
-Hosted grogbot.com billing research (Polar as MoR, workspace as Polar customer, not v1): [docs/polar-integration.md](./docs/polar-integration.md). Computers: [docs/computers.md](./docs/computers.md).
+Hosted groxbot.com billing research (Polar as MoR, workspace as Polar customer, not v1): [docs/polar-integration.md](./docs/polar-integration.md). Computers: [docs/computers.md](./docs/computers.md).

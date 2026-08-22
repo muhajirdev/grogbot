@@ -1,4 +1,4 @@
-import type { ThreadMessage } from "@grogbot/contracts";
+import type { ThreadMessage } from "@groxbot/contracts";
 import type { QueryClient } from "@tanstack/react-query";
 import {
   messagesCollection,

@@ -2,7 +2,7 @@
  * Snapshot Composio's public toolkit catalog for landing SEO pages.
  * Offline tests read the JSON this writes — do not fetch Composio at runtime.
  *
- *   pnpm --filter @grogbot/landing sync:composio
+ *   pnpm --filter @groxbot/landing sync:composio
  */
 import { writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";

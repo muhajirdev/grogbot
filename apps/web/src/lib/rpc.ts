@@ -1,4 +1,4 @@
-import { createGrogbotClient } from "@grogbot/rpc";
+import { createGroxbotClient } from "@groxbot/rpc";
 import { apiOrigin } from "./host";
 
-export const client = createGrogbotClient({ baseUrl: apiOrigin() });
+export const client = createGroxbotClient({ baseUrl: apiOrigin() });

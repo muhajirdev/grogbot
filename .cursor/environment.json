@@ -1,5 +1,5 @@
 {
-  "name": "grogbot",
+  "name": "groxbot",
   "install": "corepack enable && corepack pnpm install --frozen-lockfile",
   "terminals": [
     {

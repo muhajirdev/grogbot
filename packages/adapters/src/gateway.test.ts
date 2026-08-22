@@ -76,7 +76,7 @@ describe("loadGatewayConfig", () => {
     expect(gatewayChatUrl(config)).toBe(
       "https://openrouter.ai/api/v1/chat/completions",
     );
-    expect(gatewayHeaders(config)["X-Title"]).toBe("Grogbot");
+    expect(gatewayHeaders(config)["X-Title"]).toBe("Groxbot");
   });
 
   it("prefers Cloudflare when both providers are configured", () => {
@@ -306,7 +306,7 @@ describe("createAgentRuntime", () => {
     expect(agentRuntimeNeedsModel("flue", {})).toBe(true);
     expect(
       agentRuntimeNeedsModel("flue", {
-        GROGBOT_MODEL: "openai/gpt-4o-mini",
+        GROXBOT_MODEL: "openai/gpt-4o-mini",
       }),
     ).toBe(false);
   });

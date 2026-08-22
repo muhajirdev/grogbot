@@ -1,4 +1,4 @@
-import { MascotMark } from "@grogbot/mascot";
+import { MascotMark } from "@groxbot/mascot";
 import type { ReactNode } from "react";
 
 export function OfficePreview() {
@@ -11,7 +11,7 @@ export function OfficePreview() {
             <i className="min" />
             <i className="max" />
           </span>
-          <span className="window-title">Grogbot</span>
+          <span className="window-title">Groxbot</span>
         </div>
         <div className="preview" aria-hidden>
         <aside className="preview-side">

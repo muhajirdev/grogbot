@@ -1,4 +1,4 @@
-import { MascotMark } from "@grogbot/mascot";
+import { MascotMark } from "@groxbot/mascot";
 import {
   PRESS_ASSETS,
   PRESS_BOILERPLATE,
@@ -7,7 +7,7 @@ import {
   PRESS_NAMES_OK,
   PRESS_VOICE,
   pressFacts,
-} from "@grogbot/seo";
+} from "@groxbot/seo";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { OfficePreview } from "../../components/OfficePreview";
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/press/")({
     seoHead({
       title: "Press kit",
       description:
-        "Grogbot logos, naming rules, and boilerplate for journalists and partners.",
+        "Groxbot logos, naming rules, and boilerplate for journalists and partners.",
       path: "/press",
       jsonLd: [
         breadcrumbJsonLd([
@@ -54,11 +54,11 @@ function PressPage() {
           <p className="kicker">Press kit</p>
           <h1 className="!my-2 !mb-4">Logos, naming, and boilerplate.</h1>
           <p className="lede !mb-5 !text-xl">
-            Use this when you write about Grogbot. The mark is the pink mascot.
+            Use this when you write about Groxbot. The mark is the pink mascot.
             The name is one word, capital G.
           </p>
           <div className="row">
-            <a className="btn" href={pressAssetHref("grogbot-mark.svg")} download>
+            <a className="btn" href={pressAssetHref("groxbot-mark.svg")} download>
               Download mark
             </a>
             <a className="btn ghost" href="/press.md">
@@ -114,7 +114,7 @@ function PressPage() {
           <section className="py-2">
             <p className="kicker">Name</p>
             <h2 className="!mb-4 !text-[clamp(28px,4.2vw,40px)]">
-              Grogbot. Not Grokbot.
+              Groxbot. Not Grokbot.
             </h2>
             <div className="mb-4 grid grid-cols-1 gap-3.5 md:grid-cols-2">
               <article className="card">
@@ -264,18 +264,18 @@ function LogoPreview(props: { file: string; label: string }) {
       {lockup ? (
         <span className="inline-flex items-center gap-3.5">
           <MascotMark
-            name="Grogbot"
+            name="Groxbot"
             color="#e45c9a"
             shape="circle"
             size="lg"
           />
           <span className="text-[28px] font-semibold tracking-[-0.02em]">
-            Grogbot
+            Groxbot
           </span>
         </span>
       ) : (
         <MascotMark
-          name="Grogbot"
+          name="Groxbot"
           color="#e45c9a"
           shape="circle"
           size="lg"

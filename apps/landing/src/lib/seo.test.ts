@@ -132,7 +132,7 @@ describe("sitemap", () => {
     );
   });
 
-  it("emits xml with canonical grogbot.com urls", () => {
+  it("emits xml with canonical groxbot.com urls", () => {
     const xml = sitemapXml();
     expect(xml).toContain(canonicalUrl("/integrations/postiz"));
     expect(xml).toContain('<?xml version="1.0" encoding="UTF-8"?>');
@@ -140,9 +140,9 @@ describe("sitemap", () => {
 });
 
 describe("llms discovery", () => {
-  it("names Grogbot and points agents at MCP plus use cases", () => {
+  it("names Groxbot and points agents at MCP plus use cases", () => {
     const txt = landingLlmsTxt();
-    expect(txt.startsWith("# Grogbot\n")).toBe(true);
+    expect(txt.startsWith("# Groxbot\n")).toBe(true);
     expect(txt).toContain("/mcp");
     expect(txt).toContain("/identity.json");
     expect(txt).toContain("/use-cases/");

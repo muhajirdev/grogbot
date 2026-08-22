@@ -19,7 +19,7 @@ WAKEUP_KIND=durable-object
 
 # CLOUDFLARE_ACCOUNT_ID=
 # CLOUDFLARE_EMAIL_API_TOKEN=
-# EMAIL_FROM=Grogbot <noreply@yourdomain.com>
+# EMAIL_FROM=Groxbot <noreply@yourdomain.com>
 # COMPOSIO_API_KEY=
 # GOOGLE_CLIENT_ID=
 # GOOGLE_CLIENT_SECRET=

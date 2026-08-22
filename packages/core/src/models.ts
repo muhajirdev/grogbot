@@ -3,7 +3,7 @@ import type {
   ModelProvider,
   ModelSettings,
   SaveModelSettingsInput,
-} from "@grogbot/contracts";
+} from "@groxbot/contracts";
 import {
   catalogForRuntime,
   flueModelId,
@@ -17,9 +17,9 @@ import {
   validateCloudflareAccountId,
   validateModelId,
   validateProviderSecret,
-} from "@grogbot/contracts";
-import type { Database } from "@grogbot/db";
-import { secrets, userModelCredentials, workspaceModels } from "@grogbot/db";
+} from "@groxbot/contracts";
+import type { Database } from "@groxbot/db";
+import { secrets, userModelCredentials, workspaceModels } from "@groxbot/db";
 import { eq } from "drizzle-orm";
 import { newId } from "./ids.js";
 import { decryptSecret, encryptSecret, secretHint } from "./secret-box.js";
@@ -44,7 +44,7 @@ export const PROVIDER_ENV: Record<
 
 /** Cleared from process env on each run so only Settings → Models keys apply. */
 const PROCESS_MODEL_ENV = [
-  "GROGBOT_MODEL",
+  "GROXBOT_MODEL",
   "ANTHROPIC_API_KEY",
   "OPENAI_API_KEY",
   "OPENROUTER_API_KEY",
@@ -514,7 +514,7 @@ export async function resolveRunModel(
   const model = flueModelId(
     botModel || settings.defaultModel || SUGGESTED_STARTER_MODEL,
   );
-  if (model) env.GROGBOT_MODEL = model;
+  if (model) env.GROXBOT_MODEL = model;
   const providers: ModelProvider[] = PROVIDERS.filter((provider) =>
     envKeyConfigured(provider, env),
   );

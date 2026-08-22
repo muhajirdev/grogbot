@@ -4,7 +4,7 @@ import {
   mcpGetResponse,
   mcpPostResponse,
   originsFromWeb,
-} from "@grogbot/seo";
+} from "@groxbot/seo";
 import type { Hono } from "hono";
 
 function corsHeaders(): Record<string, string> {

@@ -1,4 +1,4 @@
-import { CLOUD_WEB_ORIGIN } from "@grogbot/contracts";
+import { CLOUD_WEB_ORIGIN } from "@groxbot/contracts";
 
 const LOCAL_WEB_ORIGIN = "http://127.0.0.1:5173";
 

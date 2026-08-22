@@ -50,9 +50,9 @@ export function createMailer(env: MailEnv): Mailer {
           token,
           from,
           to: email,
-          subject: "Sign in to Grogbot",
-          text: `Sign in to Grogbot:\n${url}\n\nThis link expires in 15 minutes.`,
-          html: `<p>Sign in to Grogbot.</p><p><a href="${url}">Open Grogbot</a></p><p>This link expires in 15 minutes.</p>`,
+          subject: "Sign in to Groxbot",
+          text: `Sign in to Groxbot:\n${url}\n\nThis link expires in 15 minutes.`,
+          html: `<p>Sign in to Groxbot.</p><p><a href="${url}">Open Groxbot</a></p><p>This link expires in 15 minutes.</p>`,
         });
       },
       sendInvitation: async ({ email, url, organizationName, inviterName }) => {
@@ -61,9 +61,9 @@ export function createMailer(env: MailEnv): Mailer {
           token,
           from,
           to: email,
-          subject: `Join ${organizationName} on Grogbot`,
-          text: `${inviterName} invited you to ${organizationName} on Grogbot.\n${url}\n\nThis invite expires in 48 hours.`,
-          html: `<p>${inviterName} invited you to ${organizationName} on Grogbot.</p><p><a href="${url}">Join the workspace</a></p><p>This invite expires in 48 hours.</p>`,
+          subject: `Join ${organizationName} on Groxbot`,
+          text: `${inviterName} invited you to ${organizationName} on Groxbot.\n${url}\n\nThis invite expires in 48 hours.`,
+          html: `<p>${inviterName} invited you to ${organizationName} on Groxbot.</p><p><a href="${url}">Join the workspace</a></p><p>This invite expires in 48 hours.</p>`,
         });
       },
     };
@@ -72,12 +72,12 @@ export function createMailer(env: MailEnv): Mailer {
     kind: "log",
     sendMagicLink: async ({ email, url }) => {
       requireMailInProduction(env);
-      console.info(`[grogbot] Magic link for ${email}:\n${url}`);
+      console.info(`[groxbot] Magic link for ${email}:\n${url}`);
     },
     sendInvitation: async ({ email, url, organizationName, inviterName }) => {
       requireMailInProduction(env);
       console.info(
-        `[grogbot] Invite ${email} to ${organizationName} (from ${inviterName}):\n${url}`,
+        `[groxbot] Invite ${email} to ${organizationName} (from ${inviterName}):\n${url}`,
       );
     },
   };

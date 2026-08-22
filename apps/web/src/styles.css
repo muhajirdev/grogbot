@@ -397,7 +397,7 @@ html.electron .screen::before {
 }
 
 .mascot-hero {
-  view-transition-name: grog-hero;
+  view-transition-name: grox-hero;
   overflow: visible;
 }
 
@@ -446,31 +446,31 @@ html.electron .screen::before {
   height: 52px;
 }
 
-::view-transition-group(grog-hero) {
+::view-transition-group(grox-hero) {
   z-index: 30;
   overflow: visible;
   animation-duration: 0.72s;
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-::view-transition-image-pair(grog-hero) {
+::view-transition-image-pair(grox-hero) {
   overflow: visible;
-  animation: grog-hero-hop 0.72s cubic-bezier(0.34, 1.4, 0.64, 1);
+  animation: grox-hero-hop 0.72s cubic-bezier(0.34, 1.4, 0.64, 1);
 }
 
-::view-transition-old(grog-hero),
-::view-transition-new(grog-hero) {
+::view-transition-old(grox-hero),
+::view-transition-new(grox-hero) {
   height: 100%;
   overflow: visible;
   mix-blend-mode: normal;
 }
 
-::view-transition-old(grog-hero) {
-  animation: grog-hero-swap-out 0.18s linear both;
+::view-transition-old(grox-hero) {
+  animation: grox-hero-swap-out 0.18s linear both;
 }
 
-::view-transition-new(grog-hero) {
-  animation: grog-hero-swap-in 0.22s linear 0.06s both;
+::view-transition-new(grox-hero) {
+  animation: grox-hero-swap-in 0.22s linear 0.06s both;
 }
 
 ::view-transition-old(gate-stage) {
@@ -495,7 +495,7 @@ html.electron .screen::before {
   animation: gate-root-in 0.4s ease both;
 }
 
-@keyframes grog-hero-hop {
+@keyframes grox-hero-hop {
   0%,
   100% {
     transform: translateY(0) scale(1, 1);
@@ -505,13 +505,13 @@ html.electron .screen::before {
   }
 }
 
-@keyframes grog-hero-swap-out {
+@keyframes grox-hero-swap-out {
   to {
     opacity: 0;
   }
 }
 
-@keyframes grog-hero-swap-in {
+@keyframes grox-hero-swap-in {
   from {
     opacity: 0;
   }

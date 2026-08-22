@@ -6,7 +6,7 @@ import {
   mcpGetResponse,
   mcpPostResponse,
   originsFromWeb,
-} from "@grogbot/seo";
+} from "@groxbot/seo";
 import { USE_CASES } from "../data/use-cases";
 import { appOrigin } from "./app-url";
 import { computerIntegrations, featuredIntegrations } from "./integrations";
@@ -85,11 +85,11 @@ function escapeHtml(value: string): string {
 export function landingLlmsHtml(): string {
   return htmlPage({
     origins: LANDING_ORIGINS,
-    title: "Grogbot for language models",
+    title: "Groxbot for language models",
     description:
-      "Like Grok Bot, for the team. Named teammates with a real computer. If OpenClaw is for personal use, Grogbot is the office.",
+      "Like Grok Bot, for the team. Named teammates with a real computer. If OpenClaw is for personal use, Groxbot is the office.",
     canonicalPath: "/llms.html",
-    body: `<h1>Grogbot</h1>
+    body: `<h1>Groxbot</h1>
 <pre>${escapeHtml(landingLlmsTxt())}</pre>`,
   });
 }

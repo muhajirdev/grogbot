@@ -3,7 +3,7 @@ import type {
   AgentRunRequest,
   AgentRuntime,
   AgentRuntimeEvent,
-} from "@grogbot/adapter-kit";
+} from "@groxbot/adapter-kit";
 import type { GuestHub } from "./guest-hub.js";
 
 export class GuestAgentRuntime implements AgentRuntime {

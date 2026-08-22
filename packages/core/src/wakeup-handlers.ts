@@ -1,5 +1,5 @@
-import type { AgentRuntime, WakeupDriver } from "@grogbot/adapter-kit";
-import type { Database } from "@grogbot/db";
+import type { AgentRuntime, WakeupDriver } from "@groxbot/adapter-kit";
+import type { Database } from "@groxbot/db";
 import type { GuestHub } from "./guest-hub.js";
 import { continueRun, sleepComputer } from "./run-continue.js";
 

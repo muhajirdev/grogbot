@@ -1,4 +1,4 @@
-import type { ThreadMessage } from "@grogbot/contracts";
+import type { ThreadMessage } from "@groxbot/contracts";
 import { useLayoutEffect, useMemo, useRef } from "react";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { dayKey, formatDaySep } from "../lib/time";

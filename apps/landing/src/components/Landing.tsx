@@ -1,4 +1,4 @@
-import { MascotMark } from "@grogbot/mascot";
+import { MascotMark } from "@groxbot/mascot";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
@@ -26,16 +26,16 @@ export function Landing(props: { startUrl: string }) {
           <h1 className="hero-title">
             <span>Meet</span>
             <MascotMark
-              name="Grogbot"
+              name="Groxbot"
               color="#e45c9a"
               shape="circle"
               size="md"
             />
-            <span>Grogbot</span>
+            <span>Groxbot</span>
           </h1>
           <p className="lede">Like Grok Bot, for the whole team.</p>
           <p className="thesis">
-            If OpenClaw is for your personal use, Grogbot is for the office.
+            If OpenClaw is for your personal use, Groxbot is for the office.
           </p>
           <div className="row">
             <a className="btn lg" href={props.startUrl}>
@@ -67,7 +67,7 @@ export function Landing(props: { startUrl: string }) {
           </ul>
         </section>
 
-        <section className="band versus-band" aria-label="Where Grogbot sits">
+        <section className="band versus-band" aria-label="Where Groxbot sits">
           <h2>One is solo. One is locked. This is the office.</h2>
           <div className="versus">
             {COMPARE.map((item) => (
@@ -94,7 +94,7 @@ export function Landing(props: { startUrl: string }) {
           </div>
           <div className="statement-face" aria-hidden>
             <MascotMark
-              name="Grogbot"
+              name="Groxbot"
               color="#e45c9a"
               shape="circle"
               size="lg"
@@ -105,7 +105,7 @@ export function Landing(props: { startUrl: string }) {
         <section className="chapter">
           <h2>The whole team sits in the same office.</h2>
           <p className="lede">
-            OpenClaw is one person and a laptop. Grogbot is named teammates, a
+            OpenClaw is one person and a laptop. Groxbot is named teammates, a
             shared computer, and a thread anyone on the team can open.
           </p>
         </section>
@@ -170,7 +170,7 @@ export function Landing(props: { startUrl: string }) {
                 </div>
                 <div className="device cloud">
                   <MascotMark
-                    name="Grogbot"
+                    name="Groxbot"
                     color="#e45c9a"
                     shape="circle"
                     size="md"
@@ -289,7 +289,7 @@ export function Landing(props: { startUrl: string }) {
             <p className="kicker">Self-host</p>
             <h2>Enterprise ready.</h2>
             <p className="lede tight">
-              Keep the office on your machines. grogbot.com never sees the
+              Keep the office on your machines. groxbot.com never sees the
               threads. The office still remembers — on your Postgres. Model
               calls go to the key you paste.
             </p>

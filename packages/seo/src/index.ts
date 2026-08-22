@@ -7,10 +7,10 @@ export {
 export {
   cloudOrigins,
   type DiscoveryOrigins,
-  GROGBOT_EMAIL,
-  GROGBOT_NAME,
-  GROGBOT_SUMMARY,
-  GROGBOT_VERSION,
+  GROXBOT_EMAIL,
+  GROXBOT_NAME,
+  GROXBOT_SUMMARY,
+  GROXBOT_VERSION,
   originsFromWeb,
   stagingOrigins,
 } from "./identity.js";

@@ -2,8 +2,8 @@ import type {
   ComputerActivityItem,
   ComputerArtifact,
   ComputerDeskFile,
-} from "@grogbot/contracts";
-import { type Database, events, messages } from "@grogbot/db";
+} from "@groxbot/contracts";
+import { type Database, events, messages } from "@groxbot/db";
 import { and, desc, eq } from "drizzle-orm";
 import { iso } from "./threads.js";
 

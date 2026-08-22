@@ -1,4 +1,4 @@
-import type { Bot } from "@grogbot/contracts";
+import type { Bot } from "@groxbot/contracts";
 import type { QueryClient } from "@tanstack/react-query";
 import { redirect } from "@tanstack/react-router";
 import { authClient } from "./auth";

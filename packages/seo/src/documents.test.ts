@@ -1,4 +1,4 @@
-import { CLOUD_LANDING_ORIGIN } from "@grogbot/contracts";
+import { CLOUD_LANDING_ORIGIN } from "@groxbot/contracts";
 import { describe, expect, it } from "vitest";
 import {
   aiJson,
@@ -10,20 +10,20 @@ import {
   robotsTxt,
   sitemapXml,
 } from "./documents.js";
-import { cloudOrigins, GROGBOT_STACK, originsFromWeb } from "./identity.js";
+import { cloudOrigins, GROXBOT_STACK, originsFromWeb } from "./identity.js";
 
 const origins = cloudOrigins();
 
 describe("discovery documents", () => {
-  it("uses Grogbot as the llms.txt H1 and names identity.json the same", () => {
+  it("uses Groxbot as the llms.txt H1 and names identity.json the same", () => {
     expect(cloudOrigins().web).toBe(CLOUD_LANDING_ORIGIN);
     const txt = llmsTxt(origins);
-    expect(txt.startsWith("# Grogbot\n")).toBe(true);
-    expect(txt).toContain("hello@grogbot.com");
+    expect(txt.startsWith("# Groxbot\n")).toBe(true);
+    expect(txt).toContain("hello@groxbot.com");
     expect(txt).toContain(`](${CLOUD_LANDING_ORIGIN}/llms.txt)`);
     expect(txt).toContain("/press");
-    expect(identityJson(origins).name).toBe("Grogbot");
-    expect(aiJson(origins).name).toBe("Grogbot");
+    expect(identityJson(origins).name).toBe("Groxbot");
+    expect(aiJson(origins).name).toBe("Groxbot");
     const pages = identityJson(origins).sitePages as Array<{ name: string }>;
     expect(pages.some((page) => page.name === "Press kit")).toBe(true);
   });
@@ -43,23 +43,23 @@ describe("discovery documents", () => {
     expect(developerAiTxt(origins)).toMatch(/wrangler/);
     expect(faqAiTxt(origins)).toMatch(/self-host/i);
     expect(llmsFullTxt(origins)).not.toMatch(/Rivet/i);
-    expect(GROGBOT_STACK.join("\n")).not.toMatch(/Rivet/i);
-    expect(GROGBOT_STACK.join("\n")).toMatch(/useSandbox/);
-    expect(GROGBOT_STACK.join("\n")).toMatch(/Cloudflare Computer/);
+    expect(GROXBOT_STACK.join("\n")).not.toMatch(/Rivet/i);
+    expect(GROXBOT_STACK.join("\n")).toMatch(/useSandbox/);
+    expect(GROXBOT_STACK.join("\n")).toMatch(/Cloudflare Computer/);
   });
 
   it("maps workers.dev staging hosts to the hosted API", () => {
-    const staging = originsFromWeb("https://grogbot-web.qalam.workers.dev");
-    expect(staging.api).toBe("https://grogbot-api.qalam.workers.dev");
-    expect(staging.web).toBe("https://grogbot-landing.qalam.workers.dev");
-    expect(staging.office).toBe("https://grogbot-web.qalam.workers.dev");
+    const staging = originsFromWeb("https://groxbot-web.qalam.workers.dev");
+    expect(staging.api).toBe("https://groxbot-api.qalam.workers.dev");
+    expect(staging.web).toBe("https://groxbot-landing.qalam.workers.dev");
+    expect(staging.office).toBe("https://groxbot-web.qalam.workers.dev");
   });
 
-  it("does not claim zero retention as a Grogbot product feature", () => {
+  it("does not claim zero retention as a Groxbot product feature", () => {
     const faq = faqAiTxt(origins);
     expect(faq).toMatch(/Does my data leave the office/i);
     expect(faq).toMatch(/does not claim zero retention/i);
     expect(faq).toMatch(/office is meant to remember/i);
-    expect(faq).toContain("hello@grogbot.com");
+    expect(faq).toContain("hello@groxbot.com");
   });
 });

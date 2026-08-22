@@ -47,7 +47,7 @@ export const AvatarShape = z.enum([
 ]);
 export type AvatarShape = z.infer<typeof AvatarShape>;
 
-/** Off = Grogbot’s own runtime. Other values are outbound guest agents. */
+/** Off = Groxbot’s own runtime. Other values are outbound guest agents. */
 export const GuestKind = z.enum(["off", "hermes", "openclaw", "generic"]);
 export type GuestKind = z.infer<typeof GuestKind>;
 

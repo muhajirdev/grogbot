@@ -1,18 +1,18 @@
 {
   "expo": {
-    "name": "Grogbot",
-    "slug": "grogbot",
+    "name": "Groxbot",
+    "slug": "groxbot",
     "version": "0.0.1",
     "orientation": "portrait",
-    "scheme": "grogbot",
+    "scheme": "groxbot",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "dev.grogbot.mobile"
+      "bundleIdentifier": "dev.groxbot.mobile"
     },
     "android": {
-      "package": "dev.grogbot.mobile"
+      "package": "dev.groxbot.mobile"
     },
     "plugins": []
   }

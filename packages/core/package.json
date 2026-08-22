@@ -1,5 +1,5 @@
 {
-  "name": "@grogbot/core",
+  "name": "@groxbot/core",
   "version": "0.0.1",
   "license": "SEE LICENSE IN LICENSE",
   "type": "module",
@@ -11,9 +11,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@grogbot/adapter-kit": "workspace:*",
-    "@grogbot/contracts": "workspace:*",
-    "@grogbot/db": "workspace:*",
+    "@groxbot/adapter-kit": "workspace:*",
+    "@groxbot/contracts": "workspace:*",
+    "@groxbot/db": "workspace:*",
     "drizzle-orm": "^0.44.5"
   },
   "devDependencies": {

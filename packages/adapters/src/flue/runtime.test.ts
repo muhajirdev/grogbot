@@ -37,14 +37,14 @@ describe("FlueAgentRuntime", () => {
     expect(resolveFlueModel(true, {})).toBe(ECHO_MODEL);
   });
 
-  it("requires GROGBOT_MODEL for live Pi", () => {
+  it("requires GROXBOT_MODEL for live Pi", () => {
     expect(flueConfigured({})).toBe(false);
     expect(flueConfigured({ ANTHROPIC_API_KEY: "sk-ant-test" })).toBe(false);
     expect(
-      flueConfigured({ GROGBOT_MODEL: "anthropic/claude-sonnet-4-6" }),
+      flueConfigured({ GROXBOT_MODEL: "anthropic/claude-sonnet-4-6" }),
     ).toBe(true);
     expect(
-      resolveFlueModel(false, { GROGBOT_MODEL: "anthropic/claude-sonnet-4-6" }),
+      resolveFlueModel(false, { GROXBOT_MODEL: "anthropic/claude-sonnet-4-6" }),
     ).toBe("anthropic/claude-sonnet-4-6");
   });
 
@@ -57,7 +57,7 @@ describe("FlueAgentRuntime", () => {
     expect(events.some((event) => event.type === "progress")).toBe(true);
     expect(events.at(-1)).toMatchObject({
       type: "error",
-      text: expect.stringMatching(/Settings → Models|GROGBOT_MODEL/),
+      text: expect.stringMatching(/Settings → Models|GROXBOT_MODEL/),
     });
     await runtime.stop();
   });
@@ -97,7 +97,7 @@ describe("FlueAgentRuntime", () => {
         prompt: "summarize the handoff",
         instructions: "You are Piper.",
         history: [{ role: "user", content: "summarize the handoff" }],
-        composioUserId: "grogbot:ws:1",
+        composioUserId: "groxbot:ws:1",
         pluginToolkits: ["gmail"],
         composioSearch: async () => "should not run on echo",
         composioExecute: async () => "should not run on echo",
@@ -137,7 +137,7 @@ describe("FlueAgentRuntime", () => {
     const runtime = createAgentRuntime("flue-echo");
     const events = [];
     for await (const event of runtime.run(
-      { ...runRequest, model: "grogbot-echo/echo" },
+      { ...runRequest, model: "groxbot-echo/echo" },
       adapterContext,
     )) {
       events.push(event);
@@ -147,11 +147,11 @@ describe("FlueAgentRuntime", () => {
 
   it("reuses one Flue runtime and applies later env overlays", async () => {
     await stopFlueAgentRuntime();
-    const first = getFlueAgentRuntime(true, { GROGBOT_MODEL: "echo-1" });
-    const second = getFlueAgentRuntime(true, { GROGBOT_MODEL: "echo-2" });
+    const first = getFlueAgentRuntime(true, { GROXBOT_MODEL: "echo-1" });
+    const second = getFlueAgentRuntime(true, { GROXBOT_MODEL: "echo-2" });
     expect(second).toBe(first);
     expect(flueRuntimePoolSize()).toBe(1);
-    expect(resolveFlueModel(true, { GROGBOT_MODEL: "ignored" })).toBe(
+    expect(resolveFlueModel(true, { GROXBOT_MODEL: "ignored" })).toBe(
       ECHO_MODEL,
     );
     await stopFlueAgentRuntime();

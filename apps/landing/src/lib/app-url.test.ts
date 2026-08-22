@@ -1,4 +1,4 @@
-import { CLOUD_WEB_ORIGIN } from "@grogbot/contracts";
+import { CLOUD_WEB_ORIGIN } from "@groxbot/contracts";
 import { describe, expect, it } from "vitest";
 import { resolveAppOrigin } from "./app-url.js";
 

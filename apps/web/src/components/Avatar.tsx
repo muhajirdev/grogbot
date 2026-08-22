@@ -1,5 +1,5 @@
-import type { AvatarShape } from "@grogbot/contracts";
-import { MascotMark, type MascotMood } from "@grogbot/mascot";
+import type { AvatarShape } from "@groxbot/contracts";
+import { MascotMark, type MascotMood } from "@groxbot/mascot";
 
 export function AvatarMark(props: {
   name: string;

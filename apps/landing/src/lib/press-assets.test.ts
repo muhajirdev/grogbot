@@ -1,4 +1,4 @@
-import { PRESS_ASSETS } from "@grogbot/seo";
+import { PRESS_ASSETS } from "@groxbot/seo";
 import { describe, expect, it } from "vitest";
 import {
   PRESS_ASSET_VERSION,
@@ -15,7 +15,7 @@ describe("press assets", () => {
       expect(file, asset.file).toBeDefined();
       expect(file?.contentType).toContain("image/svg+xml");
       expect(file?.body).toContain("<svg");
-      expect(file?.body).toContain("Grogbot");
+      expect(file?.body).toContain("Groxbot");
       expect(file?.body).toContain("<rect");
       expect(file?.body).not.toContain("pupil");
     }
@@ -26,8 +26,8 @@ describe("press assets", () => {
   });
 
   it("cache-busts download hrefs when the mark changes", () => {
-    expect(pressAssetHref("grogbot-mark.svg")).toBe(
-      `/press/grogbot-mark.svg?v=${PRESS_ASSET_VERSION}`,
+    expect(pressAssetHref("groxbot-mark.svg")).toBe(
+      `/press/groxbot-mark.svg?v=${PRESS_ASSET_VERSION}`,
     );
   });
 });

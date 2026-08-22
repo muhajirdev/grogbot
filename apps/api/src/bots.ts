@@ -1,4 +1,4 @@
-import { isOfflineAgentRuntime } from "@grogbot/adapters/edge";
+import { isOfflineAgentRuntime } from "@groxbot/adapters/edge";
 import {
   type Bot,
   type ComputerListItem,
@@ -6,7 +6,7 @@ import {
   DEFAULT_COMPUTER_NAME,
   type Routine,
   validateModelId,
-} from "@grogbot/contracts";
+} from "@groxbot/contracts";
 import {
   appendEvent,
   computerStatusForBot,
@@ -24,7 +24,7 @@ import {
   toComputerListItem,
   toRoutineDto,
   tryClaimComputer,
-} from "@grogbot/core";
+} from "@groxbot/core";
 import {
   bots,
   computers,
@@ -35,7 +35,7 @@ import {
   tasks,
   threadMembers,
   threads,
-} from "@grogbot/db";
+} from "@groxbot/db";
 import { ORPCError } from "@orpc/server";
 import { and, count, desc, eq, inArray, isNull } from "drizzle-orm";
 import type { RpcContext } from "./context.js";

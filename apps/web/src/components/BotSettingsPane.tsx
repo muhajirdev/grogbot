@@ -1,5 +1,5 @@
-import type { Bot, ComputerStatus, GuestAgentKind } from "@grogbot/contracts";
-import { PROVIDER_META } from "@grogbot/contracts";
+import type { Bot, ComputerStatus, GuestAgentKind } from "@groxbot/contracts";
+import { PROVIDER_META } from "@groxbot/contracts";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { AVATAR_COLORS, AVATAR_SHAPES } from "../lib/jobs";

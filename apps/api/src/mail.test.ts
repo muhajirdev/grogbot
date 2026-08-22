@@ -3,13 +3,13 @@ import { cloudflareMailConfigured, createMailer, parseFrom } from "./mail.js";
 
 describe("parseFrom", () => {
   it("keeps a bare address", () => {
-    expect(parseFrom("noreply@grogbot.com")).toBe("noreply@grogbot.com");
+    expect(parseFrom("noreply@groxbot.com")).toBe("noreply@groxbot.com");
   });
 
   it("splits display name", () => {
-    expect(parseFrom("Grogbot <noreply@grogbot.com>")).toEqual({
-      address: "noreply@grogbot.com",
-      name: "Grogbot",
+    expect(parseFrom("Groxbot <noreply@groxbot.com>")).toEqual({
+      address: "noreply@groxbot.com",
+      name: "Groxbot",
     });
   });
 });
@@ -48,12 +48,12 @@ describe("createMailer", () => {
     const mailer = createMailer({
       cloudflareAccountId: "acct",
       cloudflareEmailToken: "token",
-      emailFrom: "Grogbot <noreply@grogbot.com>",
+      emailFrom: "Groxbot <noreply@groxbot.com>",
     });
     expect(mailer.kind).toBe("cloudflare");
     await mailer.sendMagicLink({
       email: "you@example.com",
-      url: "https://app.grogbot.com/api/auth/magic-link/verify?token=abc",
+      url: "https://app.groxbot.com/api/auth/magic-link/verify?token=abc",
     });
     expect(fetchMock).toHaveBeenCalledOnce();
     const call = fetchMock.mock.calls[0];
@@ -72,10 +72,10 @@ describe("createMailer", () => {
     };
     expect(payload.to).toBe("you@example.com");
     expect(payload.from).toEqual({
-      address: "noreply@grogbot.com",
-      name: "Grogbot",
+      address: "noreply@groxbot.com",
+      name: "Groxbot",
     });
-    expect(payload.subject).toBe("Sign in to Grogbot");
+    expect(payload.subject).toBe("Sign in to Groxbot");
   });
 
   it("sends workspace invites through Cloudflare", async () => {
@@ -94,11 +94,11 @@ describe("createMailer", () => {
     const mailer = createMailer({
       cloudflareAccountId: "acct",
       cloudflareEmailToken: "token",
-      emailFrom: "Grogbot <noreply@grogbot.com>",
+      emailFrom: "Groxbot <noreply@groxbot.com>",
     });
     await mailer.sendInvitation({
       email: "you@example.com",
-      url: "https://app.grogbot.com/onboarding?invite=inv_abc",
+      url: "https://app.groxbot.com/onboarding?invite=inv_abc",
       organizationName: "Acme",
       inviterName: "Sam",
     });
@@ -109,6 +109,6 @@ describe("createMailer", () => {
       to: string;
     };
     expect(payload.to).toBe("you@example.com");
-    expect(payload.subject).toBe("Join Acme on Grogbot");
+    expect(payload.subject).toBe("Join Acme on Groxbot");
   });
 });

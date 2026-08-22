@@ -9,7 +9,7 @@ import {
   mascotSpark,
 } from "./geometry.js";
 
-export const GROGBOT_MARK_COLOR = "#e45c9a";
+export const GROXBOT_MARK_COLOR = "#e45c9a";
 
 export type MascotMarkSvgOptions = {
   name?: string;
@@ -47,13 +47,13 @@ function slitRect(
 export function mascotMarkElements(options: MascotMarkSvgOptions = {}): string {
   const shape = options.shape ?? "circle";
   const mood = options.mood ?? "idle";
-  const colors = mascotColors(options.color ?? GROGBOT_MARK_COLOR);
+  const colors = mascotColors(options.color ?? GROXBOT_MARK_COLOR);
   const body = mascotBody(shape);
   const slits = mascotSlits(shape, mood);
   const [left, right] = slits;
   const blush = mascotBlush(slits);
   const shine = mascotShine();
-  const paint = options.paintId ?? "grogbot-mark";
+  const paint = options.paintId ?? "groxbot-mark";
   const sheen = `${paint}-sheen`;
   const clip = `${paint}-clip`;
   const d = escapeXml(body.d);
@@ -88,7 +88,7 @@ export function mascotMarkElements(options: MascotMarkSvgOptions = {}): string {
 }
 
 export function mascotMarkSvg(options: MascotMarkSvgOptions = {}): string {
-  const name = options.name ?? "Grogbot";
+  const name = options.name ?? "Groxbot";
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img">
   <title>${escapeXml(name)}</title>

@@ -1,6 +1,6 @@
 # Grok Bot UI copy-brief
 
-Grogbot should **feel like Grok Bot**: a messaging app of named teammates, not a workflow builder, IDE, or Discord. This is the visual and onboarding spec. Product/architecture stays ours (workspace default computer shared by default, optional isolated computer, Postgres for team data, one actor per bot, oRPC, Composio). **Implement on web first**; desktop reuses that UI; Expo gets the same contract later.
+Groxbot should **feel like Grok Bot**: a messaging app of named teammates, not a workflow builder, IDE, or Discord. This is the visual and onboarding spec. Product/architecture stays ours (workspace default computer shared by default, optional isolated computer, Postgres for team data, one actor per bot, oRPC, Composio). **Implement on web first**; desktop reuses that UI; Expo gets the same contract later.
 
 We could not screenshot the live desktop app (paywalled: SuperGrok Heavy / Cursor Ultra). This brief is from official docs and marketing as of 11–15 Aug 2026.
 
@@ -161,7 +161,7 @@ Label: **Agent Computer** (we can say **Computer**).
 - Closing the pane or the laptop does not stop cloud work.
 - Files live in a workspace folder; conversation still gets the final artifact or a link.
 
-**Grok:** one VM, many screens. **Grogbot v1:** one VM per bot; pane shows **this** bot’s sandbox. Same UX, different isolation.
+**Grok:** one VM, many screens. **Groxbot v1:** one VM per bot; pane shows **this** bot’s sandbox. Same UX, different isolation.
 
 ---
 

@@ -2,7 +2,7 @@
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md) for locked decisions (Flue Node, one queue per bot, Postgres, oRPC, web-first clients, Cloudflare for hosted landing, computers via Flue `useSandbox`).
 
-Contributions are under the [Grogbot License](./LICENSE): self-host for your organization is free; the authors may use contributions in grogbot.com and may tighten or relax the license.
+Contributions are under the [Groxbot License](./LICENSE): self-host for your organization is free; the authors may use contributions in groxbot.com and may tighten or relax the license.
 
 ```bash
 pnpm install

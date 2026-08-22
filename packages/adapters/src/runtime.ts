@@ -1,4 +1,4 @@
-import type { AgentRuntime } from "@grogbot/adapter-kit";
+import type { AgentRuntime } from "@groxbot/adapter-kit";
 import { flueConfigured, getFlueAgentRuntime } from "./flue/runtime.js";
 import {
   type GatewayEnv,

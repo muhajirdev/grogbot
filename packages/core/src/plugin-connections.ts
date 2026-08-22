@@ -1,10 +1,10 @@
-import { composioUserId } from "@grogbot/adapter-kit";
-import type { PluginConnection, PluginStatus } from "@grogbot/contracts";
+import { composioUserId } from "@groxbot/adapter-kit";
+import type { PluginConnection, PluginStatus } from "@groxbot/contracts";
 import {
   PluginStatus as PluginStatusSchema,
   ToolkitSlug,
-} from "@grogbot/contracts";
-import { type Database, pluginConnections } from "@grogbot/db";
+} from "@groxbot/contracts";
+import { type Database, pluginConnections } from "@groxbot/db";
 import { and, eq } from "drizzle-orm";
 import { newId } from "./ids.js";
 import { iso } from "./threads.js";

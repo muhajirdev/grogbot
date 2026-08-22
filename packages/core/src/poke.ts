@@ -1,5 +1,5 @@
-import type { PokeTeammate } from "@grogbot/adapter-kit";
-import type { MessageBlock, ThreadMessage } from "@grogbot/contracts";
+import type { PokeTeammate } from "@groxbot/adapter-kit";
+import type { MessageBlock, ThreadMessage } from "@groxbot/contracts";
 import {
   bots,
   type Database,
@@ -8,7 +8,7 @@ import {
   tasks,
   threadMembers,
   threads,
-} from "@grogbot/db";
+} from "@groxbot/db";
 import { and, asc, eq, isNull } from "drizzle-orm";
 import { newId } from "./ids.js";
 import { appendThreadMessage, getHomeThread, iso } from "./threads.js";

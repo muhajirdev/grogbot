@@ -1,4 +1,4 @@
-import type { WakeupDriver, WakeupJob } from "@grogbot/adapter-kit";
+import type { WakeupDriver, WakeupJob } from "@groxbot/adapter-kit";
 
 type ActorStub = {
   fetch: (request: Request) => Promise<Response>;
@@ -15,7 +15,7 @@ export class DurableObjectWakeupDriver implements WakeupDriver {
   async enqueue(job: WakeupJob): Promise<void> {
     const stub = this.actors.get(this.actors.idFromName(job.botId));
     const response = await stub.fetch(
-      new Request("https://grogbot.internal/wakeup", {
+      new Request("https://groxbot.internal/wakeup", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({

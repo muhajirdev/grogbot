@@ -1,5 +1,5 @@
 {
-  "name": "@grogbot/rpc",
+  "name": "@groxbot/rpc",
   "version": "0.0.1",
   "license": "SEE LICENSE IN LICENSE",
   "type": "module",
@@ -10,7 +10,7 @@
     "check": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@grogbot/contracts": "workspace:*",
+    "@groxbot/contracts": "workspace:*",
     "@orpc/client": "^1.10.0",
     "@orpc/contract": "^1.10.0"
   },

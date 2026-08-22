@@ -18,6 +18,6 @@ export default defineConfig({
   dbCredentials: {
     url:
       process.env.DATABASE_URL ??
-      "postgres://grogbot:grogbot@127.0.0.1:5433/grogbot",
+      "postgres://groxbot:groxbot@127.0.0.1:5433/groxbot",
   },
 });

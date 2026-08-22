@@ -1,4 +1,4 @@
-import type { AgentRunRequest, AgentRuntimeEvent } from "@grogbot/adapter-kit";
+import type { AgentRunRequest, AgentRuntimeEvent } from "@groxbot/adapter-kit";
 import { AcpSession, guestCommand } from "./acp.js";
 import { createGuestClient, runFake } from "./client.js";
 
@@ -20,7 +20,7 @@ async function main() {
   const cwd = arg("cwd", process.cwd()) ?? process.cwd();
   if (!url || !token || !kind) {
     console.error(
-      "usage: grogbot-guest --url http://127.0.0.1:3101 --token gbg_… --kind hermes|openclaw|generic [--runtime fake|acp]",
+      "usage: groxbot-guest --url http://127.0.0.1:3101 --token gbg_… --kind hermes|openclaw|generic [--runtime fake|acp]",
     );
     process.exit(1);
   }

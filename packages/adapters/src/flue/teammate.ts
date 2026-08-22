@@ -7,7 +7,7 @@ import { ECHO_MODEL } from "./echo.js";
 import { useComposio } from "./tools.js";
 
 /**
- * One Grogbot teammate type. Instances are `botId:threadId`, not new modules.
+ * One Groxbot teammate type. Instances are `botId:threadId`, not new modules.
  * Instructions and model come from the host process for this turn.
  * Hands are Flue `useSandbox(factory)` keyed by the bound `computerId` —
  * see docs/computers.md. Do not add a second computer SDK here.
@@ -18,7 +18,7 @@ export function Teammate(props: { id: string }) {
   if (turn?.instructions) useInstruction(turn.instructions);
   usePoke(props.id, turn);
   useComposio(props.id);
-  return "You are a Grogbot teammate in an office thread. Be concise and useful. The human talks primarily to you. If another teammate must do a slice of work, poke them and bring their reply back here. Do not send the human to their office. Connected plugins are available via composio_search and composio_execute. Draft mail, events, issues, and PRs; do not send, pay, merge, or delete unless the human clearly asked.";
+  return "You are a Groxbot teammate in an office thread. Be concise and useful. The human talks primarily to you. If another teammate must do a slice of work, poke them and bring their reply back here. Do not send the human to their office. Connected plugins are available via composio_search and composio_execute. Draft mail, events, issues, and PRs; do not send, pay, merge, or delete unless the human clearly asked.";
 }
 
 function usePoke(

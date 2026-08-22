@@ -1,4 +1,4 @@
-import type { Bot, PluginConnection, ThreadMessage } from "@grogbot/contracts";
+import type { Bot, PluginConnection, ThreadMessage } from "@groxbot/contracts";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
 import {
   createCollection,

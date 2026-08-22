@@ -1,5 +1,5 @@
-import type { AgentRuntime } from "@grogbot/adapter-kit";
-import type { MessageBlock, RunStatus } from "@grogbot/contracts";
+import type { AgentRuntime } from "@groxbot/adapter-kit";
+import type { MessageBlock, RunStatus } from "@groxbot/contracts";
 import {
   bots,
   computers,
@@ -8,7 +8,7 @@ import {
   runs,
   tasks,
   threads,
-} from "@grogbot/db";
+} from "@groxbot/db";
 import { asc, eq } from "drizzle-orm";
 import {
   activeBotIdsOnComputer,

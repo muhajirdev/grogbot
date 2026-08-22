@@ -1,19 +1,19 @@
 /** Canonical cloud hosts. Local dev still uses 127.0.0.1. */
-export const CLOUD_LANDING_ORIGIN = "https://grogbot.com";
-export const CLOUD_WEB_ORIGIN = "https://app.grogbot.com";
-export const CLOUD_API_ORIGIN = "https://api.grogbot.com";
+export const CLOUD_LANDING_ORIGIN = "https://groxbot.com";
+export const CLOUD_WEB_ORIGIN = "https://app.groxbot.com";
+export const CLOUD_API_ORIGIN = "https://api.groxbot.com";
 
-/** Staging on workers.dev until grogbot.com is attached. */
+/** Staging on workers.dev until groxbot.com is attached. */
 export const STAGING_LANDING_ORIGIN =
-  "https://grogbot-landing.qalam.workers.dev";
-export const STAGING_WEB_ORIGIN = "https://grogbot-web.qalam.workers.dev";
-export const STAGING_API_ORIGIN = "https://grogbot-api.qalam.workers.dev";
+  "https://groxbot-landing.qalam.workers.dev";
+export const STAGING_WEB_ORIGIN = "https://groxbot-web.qalam.workers.dev";
+export const STAGING_API_ORIGIN = "https://groxbot-api.qalam.workers.dev";
 
-export function grogbotCookieDomain(origin: string): string | undefined {
+export function groxbotCookieDomain(origin: string): string | undefined {
   try {
     const { hostname } = new URL(origin);
-    if (hostname === "grogbot.com" || hostname.endsWith(".grogbot.com")) {
-      return ".grogbot.com";
+    if (hostname === "groxbot.com" || hostname.endsWith(".groxbot.com")) {
+      return ".groxbot.com";
     }
   } catch {
     return undefined;
@@ -21,7 +21,7 @@ export function grogbotCookieDomain(origin: string): string | undefined {
   return undefined;
 }
 
-export function isGrogbotStagingOrigin(origin: string): boolean {
+export function isGroxbotStagingOrigin(origin: string): boolean {
   try {
     const { hostname } = new URL(origin);
     return (

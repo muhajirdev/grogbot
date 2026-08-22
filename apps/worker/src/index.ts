@@ -2,21 +2,21 @@
 import { existsSync } from "node:fs";
 import { createServer } from "node:http";
 import path from "node:path";
-import type { WakeupJob } from "@grogbot/adapter-kit";
+import type { WakeupJob } from "@groxbot/adapter-kit";
 import {
   bindAgentRuntime,
   createAgentRuntime,
   createPluginTools,
   InProcessWakeupDriver,
   resolveAgentRuntimeKind,
-} from "@grogbot/adapters";
+} from "@groxbot/adapters";
 import {
   createWakeHandlers,
   GuestHub,
   handleGuestRequest,
   nodeRequestFrom,
-} from "@grogbot/core";
-import { createDb } from "@grogbot/db/node";
+} from "@groxbot/core";
+import { createDb } from "@groxbot/db/node";
 import { config } from "dotenv";
 
 function loadRootEnv() {
@@ -140,7 +140,7 @@ async function main() {
   });
 
   server.listen(port, "127.0.0.1", () => {
-    console.log(`grogbot worker (bot actors) http://127.0.0.1:${port}`);
+    console.log(`groxbot worker (bot actors) http://127.0.0.1:${port}`);
   });
 }
 

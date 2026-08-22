@@ -26,7 +26,7 @@ describe("invitationIdFromInput", () => {
   it("pulls invite from an onboarding URL", () => {
     expect(
       invitationIdFromInput(
-        "https://app.grogbot.com/onboarding?invite=inv_abc&x=1",
+        "https://app.groxbot.com/onboarding?invite=inv_abc&x=1",
       ),
     ).toBe("inv_abc");
   });
@@ -34,8 +34,8 @@ describe("invitationIdFromInput", () => {
 
 describe("invitationUrl", () => {
   it("builds an onboarding invite link", () => {
-    expect(invitationUrl("https://app.grogbot.com/", "inv_abc")).toBe(
-      "https://app.grogbot.com/onboarding?invite=inv_abc",
+    expect(invitationUrl("https://app.groxbot.com/", "inv_abc")).toBe(
+      "https://app.groxbot.com/onboarding?invite=inv_abc",
     );
   });
 });

@@ -5,7 +5,7 @@ import {
   randomBytes,
 } from "node:crypto";
 
-const PREFIX = "grogbot1";
+const PREFIX = "groxbot1";
 
 function keyFromSecret(secret: string): Buffer {
   return createHash("sha256").update(secret, "utf8").digest();

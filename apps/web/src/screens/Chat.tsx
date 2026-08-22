@@ -3,7 +3,7 @@ import type {
   ComputerStatus,
   ProductEvent,
   ThreadMessage,
-} from "@grogbot/contracts";
+} from "@groxbot/contracts";
 import { eq, useLiveQuery } from "@tanstack/react-db";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";

@@ -1,4 +1,4 @@
-const INVITE_KEY = "grogbot.invite";
+const INVITE_KEY = "groxbot.invite";
 
 export function rememberInvite(id: string | undefined) {
   if (typeof window === "undefined") return;

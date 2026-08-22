@@ -1,7 +1,7 @@
-import type { SandboxProvider, WakeupDriver } from "@grogbot/adapter-kit";
-import type { Auth } from "@grogbot/auth";
-import type { GuestHub } from "@grogbot/core";
-import type { Database } from "@grogbot/db";
+import type { SandboxProvider, WakeupDriver } from "@groxbot/adapter-kit";
+import type { Auth } from "@groxbot/auth";
+import type { GuestHub } from "@groxbot/core";
+import type { Database } from "@groxbot/db";
 import type { Env } from "./env.js";
 
 export interface RpcContext {

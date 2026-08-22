@@ -4,9 +4,9 @@ import {
   bindAgentRuntime,
   createAgentRuntime,
   createPluginTools,
-} from "@grogbot/adapters/edge";
-import { createWakeHandlers } from "@grogbot/core";
-import { createNeonHttpDb } from "@grogbot/db/neon";
+} from "@groxbot/adapters/edge";
+import { createWakeHandlers } from "@groxbot/core";
+import { createNeonHttpDb } from "@groxbot/db/neon";
 import { createApp } from "./app.js";
 import { DurableObjectWakeupDriver } from "./do-wakeup.js";
 import { agentRuntimeSource, loadEnv } from "./env.js";

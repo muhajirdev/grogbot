@@ -1,6 +1,6 @@
 # Computers (Flue `useSandbox`)
 
-**Locked:** the desk is a Grogbot product row. The hands are Flue’s builtin sandbox adapters. Do not add a Grogbot `@cloudflare/computer` Worker or a `SANDBOX_PROVIDER=cloudflare` port.
+**Locked:** the desk is a Groxbot product row. The hands are Flue’s builtin sandbox adapters. Do not add a Groxbot `@cloudflare/computer` Worker or a `SANDBOX_PROVIDER=cloudflare` port.
 
 `Teammate` attaches a factory with `useSandbox(...)`. Postgres `computers` (bind-on-hire, `control_holder`, computer pane) stays ours. Flue does not own the lease.
 
@@ -16,11 +16,11 @@ Same hook, different factories:
 | Heavy alternate | `flue add sandbox e2b` | E2B |
 | Tests | in-memory `bash()` / `SANDBOX_PROVIDER=fake` | none |
 
-Cloudflare Computer and Cloudflare Sandbox are different products. Computer is the cheap durable workspace. Sandbox / Docker / E2B is the full Linux box. Flue already models that; Grogbot should not wrap the SDKs again.
+Cloudflare Computer and Cloudflare Sandbox are different products. Computer is the cheap durable workspace. Sandbox / Docker / E2B is the full Linux box. Flue already models that; Groxbot should not wrap the SDKs again.
 
 ## Key on `computerId`
 
-Flue’s Cloudflare Computer blueprint puts the `Workspace` on **the agent’s Durable Object**. Grogbot desks are **workspace-scoped**. Several bots share the default computer.
+Flue’s Cloudflare Computer blueprint puts the `Workspace` on **the agent’s Durable Object**. Groxbot desks are **workspace-scoped**. Several bots share the default computer.
 
 Pass the bound `computerId` into the factory (or a host Durable Object named by that id). Do not key the filesystem on `botId` or `botId:threadId`. Isolated hire = another computer row = another Workspace.
 
@@ -28,7 +28,7 @@ Pass the bound `computerId` into the factory (or a host Durable Object named by 
 
 ## Node vs Cloudflare target
 
-Grogbot’s brain stays `@flue/runtime/node`. Flue’s `getComputerSandbox({ loader })` and `cloudflareSandbox(...)` are **Cloudflare-target** helpers (Worker Loader, container bindings).
+Groxbot’s brain stays `@flue/runtime/node`. Flue’s `getComputerSandbox({ loader })` and `cloudflareSandbox(...)` are **Cloudflare-target** helpers (Worker Loader, container bindings).
 
 Until the actor moves to the Cloudflare target (later):
 

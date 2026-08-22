@@ -1,45 +1,45 @@
-# Grogbot License
+# Groxbot License
 
-Grogbot is licensed under a modified Apache License 2.0 (fair-code), with the
+Groxbot is licensed under a modified Apache License 2.0 (fair-code), with the
 additional conditions below. This is the same shape as Dify (Apache 2.0 plus
 no competing multi-tenant cloud) and n8n (source available; hosted resale
 requires a commercial license). It is not OSI-approved open source and it is
 not MIT.
 
-Copyright 2026 Grogbot contributors
+Copyright 2026 Groxbot contributors
 
 ## Additional conditions
 
-1. You may use Grogbot commercially, including self-hosting for your own
+1. You may use Groxbot commercially, including self-hosting for your own
    organization and using it as a backend for your own applications, provided
-   the conditions below are met. A commercial license from the Grogbot authors
+   the conditions below are met. A commercial license from the Groxbot authors
    is required if you:
 
-   a. Hosted / multi-tenant service. You may not use the Grogbot source code to
-      operate a hosted Grogbot service for third parties — that is, offering
-      Grogbot as a cloud product to organizations other than your own
-      (including grogbot.com-style workspaces for paying or free public
+   a. Hosted / multi-tenant service. You may not use the Groxbot source code to
+      operate a hosted Groxbot service for third parties — that is, offering
+      Groxbot as a cloud product to organizations other than your own
+      (including groxbot.com-style workspaces for paying or free public
       customers). Self-hosting for your own organization is allowed, including
       multiple workspaces for your own team.
 
-   b. Logo and copyright. You may not remove or modify Grogbot’s name, logo, or
+   b. Logo and copyright. You may not remove or modify Groxbot’s name, logo, or
       copyright notices in the product UI. This does not apply when you use
-      Grogbot without its frontend (API, worker, or packages only).
+      Groxbot without its frontend (API, worker, or packages only).
       Frontend here means `apps/web`, `apps/landing`, `apps/desktop`, and
       `apps/mobile`.
 
 2. As a contributor, you agree that:
 
-   a. The Grogbot authors may make this license more strict or more relaxed.
+   a. The Groxbot authors may make this license more strict or more relaxed.
 
    b. Your contributed code may be used for commercial purposes, including but
-      not limited to grogbot.com and other cloud operations.
+      not limited to groxbot.com and other cloud operations.
 
 Apart from these conditions, all other rights and restrictions follow the
 Apache License 2.0. The Apache License 2.0 text is included below.
 
-To run a hosted Grogbot for others, contact the authors via the project
-repository: https://github.com/muhajirdev/grogbot
+To run a hosted Groxbot for others, contact the authors via the project
+repository: https://github.com/muhajirdev/groxbot
 
                                  Apache License
                            Version 2.0, January 2004

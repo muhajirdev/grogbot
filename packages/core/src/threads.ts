@@ -8,14 +8,14 @@ import type {
   ProductEvent,
   Routine,
   SandboxKind,
-} from "@grogbot/contracts";
+} from "@groxbot/contracts";
 import {
   AvatarShape,
   ControlHolder,
   DEFAULT_COMPUTER_NAME,
   GuestKind,
   SandboxKind as SandboxKindSchema,
-} from "@grogbot/contracts";
+} from "@groxbot/contracts";
 import {
   type bots,
   type computers,
@@ -24,7 +24,7 @@ import {
   messages,
   type routines,
   threads,
-} from "@grogbot/db";
+} from "@groxbot/db";
 import { and, asc, desc, eq, gt } from "drizzle-orm";
 
 export function iso(value: Date | null | undefined): string | null {

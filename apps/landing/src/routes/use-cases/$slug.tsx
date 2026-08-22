@@ -23,7 +23,7 @@ export const Route = createFileRoute("/use-cases/$slug")({
     if (!loaderData?.item) return {};
     const { item } = loaderData;
     return seoHead({
-      title: `${item.title} with Grogbot`,
+      title: `${item.title} with Groxbot`,
       description: item.lede,
       path: `/use-cases/${item.slug}`,
       jsonLd: useCaseJsonLd(item),

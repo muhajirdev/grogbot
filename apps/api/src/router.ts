@@ -1,9 +1,9 @@
-import { isOfflineAgentRuntime } from "@grogbot/adapters/edge";
+import { isOfflineAgentRuntime } from "@groxbot/adapters/edge";
 import {
   appContract,
   labelForModel,
   SUGGESTED_STARTER_MODEL,
-} from "@grogbot/contracts";
+} from "@groxbot/contracts";
 import {
   encryptionSecret,
   getBotComputer,
@@ -16,8 +16,8 @@ import {
   sleep,
   toBotDto,
   userHasModelCredentials,
-} from "@grogbot/core";
-import { guestConnectors, threads, userModelCredentials } from "@grogbot/db";
+} from "@groxbot/core";
+import { guestConnectors, threads, userModelCredentials } from "@groxbot/db";
 import { implement, ORPCError } from "@orpc/server";
 import { and, eq } from "drizzle-orm";
 import {

@@ -131,7 +131,7 @@ describe("mascot geometry", () => {
     expect(seedFromName("Piper")).not.toBe(seedFromName("Ledger"));
   });
 
-  it("paints a plump highlight and a grog flush from the bot color", () => {
+  it("paints a plump highlight and a grox flush from the bot color", () => {
     const colors = mascotColors("#5b7cff");
     expect(colors.mid).toBe("#5b7cff");
     expect(colors.light).not.toBe(colors.mid);

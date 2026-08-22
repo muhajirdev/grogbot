@@ -3,8 +3,8 @@ import {
   bindAgentRuntime,
   createAgentRuntime,
   createPluginTools,
-} from "@grogbot/adapters";
-import { createWakeHandlers } from "@grogbot/core";
+} from "@groxbot/adapters";
+import { createWakeHandlers } from "@groxbot/core";
 import { serve } from "@hono/node-server";
 import { loadRootEnv } from "./load-root-env.js";
 
@@ -12,7 +12,7 @@ loadRootEnv();
 
 import { createApp } from "./app.js";
 import { agentRuntimeSource, loadEnv } from "./env.js";
-import { createDb } from "@grogbot/db/node";
+import { createDb } from "@groxbot/db/node";
 
 async function main() {
   const env = loadEnv();
@@ -45,7 +45,7 @@ async function main() {
     process.env.LISTEN_HOST ??
     (env.production ? "0.0.0.0" : "127.0.0.1");
   serve({ fetch: handles.app.fetch, port, hostname }, () => {
-    console.log(`grogbot api http://${hostname}:${port}`);
+    console.log(`groxbot api http://${hostname}:${port}`);
   });
 }
 

@@ -13,7 +13,7 @@ import {
 
 describe("Composio adapter", () => {
   it("scopes users to the workspace", () => {
-    expect(composioUserId("ws-9")).toBe("grogbot:ws:ws-9");
+    expect(composioUserId("ws-9")).toBe("groxbot:ws:ws-9");
   });
 
   it("treats a missing key as unconfigured", () => {
@@ -52,7 +52,7 @@ describe("Composio adapter", () => {
     });
     await expect(
       gateway.link({
-        userId: "grogbot:ws:1",
+        userId: "groxbot:ws:1",
         toolkit: "gmail",
         callbackUrl: "http://127.0.0.1:3100/api/plugins/callback?id=1",
       }),
@@ -85,7 +85,7 @@ describe("Composio adapter", () => {
         },
       },
     );
-    await expect(gateway.listAccounts("grogbot:ws:1")).resolves.toEqual([
+    await expect(gateway.listAccounts("groxbot:ws:1")).resolves.toEqual([
       { id: "ca_gmail", toolkit: "gmail", status: "ACTIVE" },
     ]);
   });
@@ -111,7 +111,7 @@ describe("Composio adapter", () => {
     });
     await expect(
       gateway.link({
-        userId: "grogbot:ws:1",
+        userId: "groxbot:ws:1",
         toolkit: "gmail",
         callbackUrl: "http://127.0.0.1:3100/api/plugins/callback?id=1",
       }),

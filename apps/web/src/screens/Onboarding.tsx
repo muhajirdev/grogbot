@@ -2,12 +2,12 @@ import type {
   AvatarShape,
   ModelCatalogItem,
   ModelProvider,
-} from "@grogbot/contracts";
+} from "@groxbot/contracts";
 import {
   PROVIDER_META,
   providerForModel,
   SUGGESTED_STARTER_MODEL,
-} from "@grogbot/contracts";
+} from "@groxbot/contracts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
@@ -328,7 +328,7 @@ export function Onboarding(props: { invite?: string }) {
         avatarColor: color,
         avatarShape: shape,
       });
-      localStorage.setItem("grogbot.onboarded", "1");
+      localStorage.setItem("groxbot.onboarded", "1");
       await cacheCreatedBot(bot);
       await navigate({
         to: "/$botId",
@@ -347,7 +347,7 @@ export function Onboarding(props: { invite?: string }) {
   if (!phase) {
     return (
       <GateShell>
-        <p className="kicker">Grogbot</p>
+        <p className="kicker">Groxbot</p>
       </GateShell>
     );
   }

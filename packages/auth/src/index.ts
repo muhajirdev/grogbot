@@ -1,4 +1,4 @@
-import type { Database } from "@grogbot/db";
+import type { Database } from "@groxbot/db";
 import {
   account,
   invitation,
@@ -7,7 +7,7 @@ import {
   session,
   user,
   verification,
-} from "@grogbot/db";
+} from "@groxbot/db";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import {

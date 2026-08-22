@@ -1,5 +1,5 @@
 {
-  "name": "grogbot",
+  "name": "groxbot",
   "private": true,
   "version": "0.0.1",
   "license": "SEE LICENSE IN LICENSE",
@@ -8,22 +8,22 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "turbo dev --filter=@grogbot/api --filter=@grogbot/web",
-    "dev:landing": "turbo dev --filter=@grogbot/landing",
-    "deploy:landing": "pnpm --filter @grogbot/landing run deploy",
-    "deploy:web": "pnpm --filter @grogbot/web run deploy",
-    "deploy:api": "pnpm --filter @grogbot/api run deploy",
-    "dev:desktop": "turbo dev --filter=@grogbot/api --filter=@grogbot/web --filter=@grogbot/desktop",
-    "dev:mobile": "pnpm --filter @grogbot/mobile start",
+    "dev": "turbo dev --filter=@groxbot/api --filter=@groxbot/web",
+    "dev:landing": "turbo dev --filter=@groxbot/landing",
+    "deploy:landing": "pnpm --filter @groxbot/landing run deploy",
+    "deploy:web": "pnpm --filter @groxbot/web run deploy",
+    "deploy:api": "pnpm --filter @groxbot/api run deploy",
+    "dev:desktop": "turbo dev --filter=@groxbot/api --filter=@groxbot/web --filter=@groxbot/desktop",
+    "dev:mobile": "pnpm --filter @groxbot/mobile start",
     "build": "turbo build",
     "check": "turbo check",
     "lint": "biome check .",
     "format": "biome check --write .",
     "test": "vitest run",
-    "db:generate": "pnpm --filter @grogbot/db generate",
-    "db:migrate": "pnpm --filter @grogbot/db migrate",
-    "db:push": "pnpm --filter @grogbot/db push",
-    "guest": "pnpm --filter @grogbot/guest start"
+    "db:generate": "pnpm --filter @groxbot/db generate",
+    "db:migrate": "pnpm --filter @groxbot/db migrate",
+    "db:push": "pnpm --filter @groxbot/db push",
+    "guest": "pnpm --filter @groxbot/guest start"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.8",

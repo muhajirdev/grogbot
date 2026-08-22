@@ -3,7 +3,7 @@ import {
   CLOUD_API_ORIGIN,
   CLOUD_LANDING_ORIGIN,
   CLOUD_WEB_ORIGIN,
-  grogbotCookieDomain,
+  groxbotCookieDomain,
   STAGING_API_ORIGIN,
   STAGING_LANDING_ORIGIN,
   STAGING_WEB_ORIGIN,
@@ -11,24 +11,24 @@ import {
 
 describe("cloud origins", () => {
   it("splits marketing, office, and API hosts", () => {
-    expect(CLOUD_LANDING_ORIGIN).toBe("https://grogbot.com");
-    expect(CLOUD_WEB_ORIGIN).toBe("https://app.grogbot.com");
-    expect(CLOUD_API_ORIGIN).toBe("https://api.grogbot.com");
+    expect(CLOUD_LANDING_ORIGIN).toBe("https://groxbot.com");
+    expect(CLOUD_WEB_ORIGIN).toBe("https://app.groxbot.com");
+    expect(CLOUD_API_ORIGIN).toBe("https://api.groxbot.com");
   });
 
   it("names workers.dev staging hosts", () => {
     expect(STAGING_LANDING_ORIGIN).toBe(
-      "https://grogbot-landing.qalam.workers.dev",
+      "https://groxbot-landing.qalam.workers.dev",
     );
-    expect(STAGING_WEB_ORIGIN).toBe("https://grogbot-web.qalam.workers.dev");
-    expect(STAGING_API_ORIGIN).toBe("https://grogbot-api.qalam.workers.dev");
+    expect(STAGING_WEB_ORIGIN).toBe("https://groxbot-web.qalam.workers.dev");
+    expect(STAGING_API_ORIGIN).toBe("https://groxbot-api.qalam.workers.dev");
   });
 
-  it("sets a parent cookie domain on grogbot.com hosts", () => {
-    expect(grogbotCookieDomain(CLOUD_LANDING_ORIGIN)).toBe(".grogbot.com");
-    expect(grogbotCookieDomain(CLOUD_WEB_ORIGIN)).toBe(".grogbot.com");
-    expect(grogbotCookieDomain(CLOUD_API_ORIGIN)).toBe(".grogbot.com");
-    expect(grogbotCookieDomain("http://127.0.0.1:5173")).toBeUndefined();
-    expect(grogbotCookieDomain(STAGING_WEB_ORIGIN)).toBeUndefined();
+  it("sets a parent cookie domain on groxbot.com hosts", () => {
+    expect(groxbotCookieDomain(CLOUD_LANDING_ORIGIN)).toBe(".groxbot.com");
+    expect(groxbotCookieDomain(CLOUD_WEB_ORIGIN)).toBe(".groxbot.com");
+    expect(groxbotCookieDomain(CLOUD_API_ORIGIN)).toBe(".groxbot.com");
+    expect(groxbotCookieDomain("http://127.0.0.1:5173")).toBeUndefined();
+    expect(groxbotCookieDomain(STAGING_WEB_ORIGIN)).toBeUndefined();
   });
 });

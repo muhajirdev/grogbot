@@ -1,4 +1,4 @@
-import type { AgentRunRequest } from "@grogbot/adapter-kit";
+import type { AgentRunRequest } from "@groxbot/adapter-kit";
 
 export const GATEWAY_PROVIDERS = ["openrouter", "cloudflare"] as const;
 export type GatewayProvider = (typeof GATEWAY_PROVIDERS)[number];
@@ -118,7 +118,7 @@ export function loadGatewayConfig(
   const provider = resolveProvider(source, options.provider);
   const model =
     read(source, "AI_GATEWAY_MODEL") ?? defaultGatewayModel(provider);
-  const referer = read(source, "WEB_ORIGIN") ?? "https://grogbot.com";
+  const referer = read(source, "WEB_ORIGIN") ?? "https://groxbot.com";
   if (provider === "cloudflare") {
     const accountId = read(source, "CLOUDFLARE_ACCOUNT_ID");
     const apiKey =
@@ -136,7 +136,7 @@ export function loadGatewayConfig(
       accountId,
       gatewayId: read(source, "CLOUDFLARE_AI_GATEWAY_ID") ?? "default",
       referer,
-      title: "Grogbot",
+      title: "Groxbot",
       fetch: options.fetch ?? fetch,
     };
   }
@@ -149,7 +149,7 @@ export function loadGatewayConfig(
     apiKey,
     model,
     referer,
-    title: "Grogbot",
+    title: "Groxbot",
     fetch: options.fetch ?? fetch,
   };
 }

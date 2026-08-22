@@ -1,9 +1,9 @@
-import { createGrogbotClient } from "@grogbot/rpc";
+import { createGroxbotClient } from "@groxbot/rpc";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-const client = createGrogbotClient({
+const client = createGroxbotClient({
   baseUrl: process.env.EXPO_PUBLIC_API_URL ?? "http://127.0.0.1:3100",
 });
 
@@ -21,7 +21,7 @@ export function App() {
 
   return (
     <View style={styles.screen}>
-      <Text style={styles.kicker}>Grogbot</Text>
+      <Text style={styles.kicker}>Groxbot</Text>
       <Text style={styles.title}>Mobile later. Same oRPC.</Text>
       <Text style={styles.body}>
         v1 UI is the web app. This Expo shell talks to the same contract.

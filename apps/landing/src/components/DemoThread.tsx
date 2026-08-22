@@ -1,4 +1,4 @@
-import { MascotMark } from "@grogbot/mascot";
+import { MascotMark } from "@groxbot/mascot";
 import { Link } from "@tanstack/react-router";
 import { DEMOS, demoLogo } from "../lib/copy";
 

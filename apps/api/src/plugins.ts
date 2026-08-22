@@ -2,8 +2,8 @@ import {
   ComposioError,
   composioConfigured,
   createComposioGateway,
-} from "@grogbot/adapters/edge";
-import type { PluginConnection } from "@grogbot/contracts";
+} from "@groxbot/adapters/edge";
+import type { PluginConnection } from "@groxbot/contracts";
 import {
   addPluginConnection,
   composioUserId,
@@ -14,7 +14,7 @@ import {
   removePluginConnection,
   savePluginConnection,
   toPluginDto,
-} from "@grogbot/core";
+} from "@groxbot/core";
 import { ORPCError } from "@orpc/server";
 import type { RpcContext } from "./context.js";
 import type { Env } from "./env.js";
@@ -246,13 +246,13 @@ export function pluginCallbackPage(webOrigin: string): string {
   const origin = JSON.stringify(webOrigin);
   return `<!doctype html>
 <html lang="en">
-  <head><meta charset="utf-8"><title>Grogbot plugins</title></head>
+  <head><meta charset="utf-8"><title>Groxbot plugins</title></head>
   <body>
     <p>You can close this window.</p>
     <script>
       const params = new URLSearchParams(location.search);
       const payload = {
-        type: "grogbot:plugin",
+        type: "groxbot:plugin",
         id: params.get("id"),
         status: params.get("status") || "success",
       };

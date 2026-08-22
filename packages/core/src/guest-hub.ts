@@ -3,8 +3,8 @@ import type {
   AgentRuntimeEvent,
   GuestAgentKind,
   HostToGuest,
-} from "@grogbot/adapter-kit";
-import { GuestOfflineError } from "@grogbot/adapter-kit";
+} from "@groxbot/adapter-kit";
+import { GuestOfflineError } from "@groxbot/adapter-kit";
 import { newId } from "./ids.js";
 
 interface RunWaiter {

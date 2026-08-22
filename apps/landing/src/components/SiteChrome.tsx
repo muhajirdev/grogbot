@@ -1,4 +1,4 @@
-import { MascotMark } from "@grogbot/mascot";
+import { MascotMark } from "@groxbot/mascot";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { FOOTER_BLURB, MAC_DOWNLOAD_URL, SOURCE_REPO, CONTACT_EMAIL, CONTACT_MAILTO } from "../lib/copy";
@@ -6,9 +6,9 @@ import { FOOTER_BLURB, MAC_DOWNLOAD_URL, SOURCE_REPO, CONTACT_EMAIL, CONTACT_MAI
 export function SiteHeader(props: { startUrl: string }) {
   return (
     <header className="nav">
-      <Link className="brand" to="/" aria-label="Grogbot home">
-        <MascotMark name="Grogbot" color="#e45c9a" shape="circle" size="sm" />
-        Grogbot
+      <Link className="brand" to="/" aria-label="Groxbot home">
+        <MascotMark name="Groxbot" color="#e45c9a" shape="circle" size="sm" />
+        Groxbot
       </Link>
       <nav className="nav-links" aria-label="Site">
         <Link className="nav-hide-sm" to="/integrations">

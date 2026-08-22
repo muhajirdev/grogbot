@@ -3,14 +3,14 @@ import type {
   GuestAgentKind,
   HostToGuest,
   WakeupDriver,
-} from "@grogbot/adapter-kit";
-import { GuestAgentKind as GuestAgentKindSchema } from "@grogbot/contracts";
+} from "@groxbot/adapter-kit";
+import { GuestAgentKind as GuestAgentKindSchema } from "@groxbot/contracts";
 import {
   bots,
   type Database,
   guestConnectors,
   runs,
-} from "@grogbot/db";
+} from "@groxbot/db";
 import { and, eq } from "drizzle-orm";
 import type { GuestHub } from "./guest-hub.js";
 import { parseGuestToken, tokenMatches } from "./guest-token.js";

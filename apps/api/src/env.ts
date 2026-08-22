@@ -1,4 +1,4 @@
-import { resolveAgentRuntimeKind } from "@grogbot/adapters/edge";
+import { resolveAgentRuntimeKind } from "@groxbot/adapters/edge";
 import {
   CLOUD_API_ORIGIN,
   CLOUD_LANDING_ORIGIN,
@@ -6,7 +6,7 @@ import {
   STAGING_API_ORIGIN,
   STAGING_LANDING_ORIGIN,
   STAGING_WEB_ORIGIN,
-} from "@grogbot/contracts";
+} from "@groxbot/contracts";
 
 export type OAuthProviderId = "google" | "github";
 

@@ -1,4 +1,4 @@
-import { GROGBOT_EMAIL } from "@grogbot/seo";
+import { GROXBOT_EMAIL } from "@groxbot/seo";
 import { canonicalUrl, landingOrigin, SITE_NAME } from "./site";
 import type { Integration } from "./integrations";
 import type { UseCase } from "../data/use-cases";
@@ -9,8 +9,8 @@ export function organizationJsonLd(): Record<string, unknown> {
     "@type": "Organization",
     name: SITE_NAME,
     url: landingOrigin(),
-    email: GROGBOT_EMAIL,
-    sameAs: ["https://github.com/muhajirdev/grogbot"],
+    email: GROXBOT_EMAIL,
+    sameAs: ["https://github.com/muhajirdev/groxbot"],
   };
 }
 
@@ -23,7 +23,7 @@ export function softwareJsonLd(): Record<string, unknown> {
     operatingSystem: "Web",
     url: landingOrigin(),
     description:
-      "Like Grok Bot, for the team. Named teammates with a real computer. If OpenClaw is for personal use, Grogbot is the office. Self-hostable.",
+      "Like Grok Bot, for the team. Named teammates with a real computer. If OpenClaw is for personal use, Groxbot is the office. Self-hostable.",
     offers: {
       "@type": "Offer",
       price: "0",

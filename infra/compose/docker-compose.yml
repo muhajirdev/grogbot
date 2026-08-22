@@ -2,15 +2,15 @@ services:
   postgres:
     image: postgres:16
     environment:
-      POSTGRES_USER: grogbot
-      POSTGRES_PASSWORD: grogbot
-      POSTGRES_DB: grogbot
+      POSTGRES_USER: groxbot
+      POSTGRES_PASSWORD: groxbot
+      POSTGRES_DB: groxbot
     ports:
       - "127.0.0.1:5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U grogbot"]
+      test: ["CMD-SHELL", "pg_isready -U groxbot"]
       interval: 3s
       timeout: 5s
       retries: 20

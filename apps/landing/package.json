@@ -1,5 +1,5 @@
 {
-  "name": "@grogbot/landing",
+  "name": "@groxbot/landing",
   "version": "0.0.1",
   "license": "SEE LICENSE IN LICENSE",
   "private": true,
@@ -14,9 +14,9 @@
     "check": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@grogbot/contracts": "workspace:*",
-    "@grogbot/mascot": "workspace:*",
-    "@grogbot/seo": "workspace:*",
+    "@groxbot/contracts": "workspace:*",
+    "@groxbot/mascot": "workspace:*",
+    "@groxbot/seo": "workspace:*",
     "@tanstack/react-router": "^1.170.29",
     "@tanstack/react-start": "^1.168.46",
     "clsx": "^2.1.1",

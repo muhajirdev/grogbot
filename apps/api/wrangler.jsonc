@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "grogbot-api",
+  "name": "groxbot-api",
   "main": "src/worker.ts",
   "compatibility_date": "2026-08-16",
   "compatibility_flags": ["nodejs_compat"],
@@ -29,10 +29,10 @@
   ],
   "vars": {
     "NODE_ENV": "production",
-    "BETTER_AUTH_URL": "https://grogbot-api.qalam.workers.dev",
-    "API_URL": "https://grogbot-api.qalam.workers.dev",
-    "WEB_ORIGIN": "https://grogbot-web.qalam.workers.dev",
-    "CORS_ORIGINS": "https://grogbot-web.qalam.workers.dev,https://grogbot-landing.qalam.workers.dev",
+    "BETTER_AUTH_URL": "https://groxbot-api.qalam.workers.dev",
+    "API_URL": "https://groxbot-api.qalam.workers.dev",
+    "WEB_ORIGIN": "https://groxbot-web.qalam.workers.dev",
+    "CORS_ORIGINS": "https://groxbot-web.qalam.workers.dev,https://groxbot-landing.qalam.workers.dev",
     "SANDBOX_PROVIDER": "fake",
     "AGENT_RUNTIME": "flue",
     "WAKEUP_KIND": "durable-object",

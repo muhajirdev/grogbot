@@ -4,7 +4,7 @@ import type {
   ComputerDeskFile,
   ComputerStatus,
   Routine,
-} from "@grogbot/contracts";
+} from "@groxbot/contracts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { client } from "../lib/rpc";

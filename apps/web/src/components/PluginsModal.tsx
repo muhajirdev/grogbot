@@ -1,4 +1,4 @@
-import type { PluginConnection } from "@grogbot/contracts";
+import type { PluginConnection } from "@groxbot/contracts";
 import { useLiveQuery } from "@tanstack/react-db";
 import { useEffect, useMemo, useState } from "react";
 import { pluginsCollection } from "../lib/collections";
@@ -13,7 +13,7 @@ import { client } from "../lib/rpc";
 import { cn, ModalShell } from "../ui";
 import { CheckIcon, CloseIcon, FilterIcon, SearchIcon } from "./Icons";
 
-const PLUGIN_MESSAGE = "grogbot:plugin";
+const PLUGIN_MESSAGE = "groxbot:plugin";
 
 export function PluginsModal(props: { onClose: () => void }) {
   const [tab, setTab] = useState<"market" | "yours">("market");
@@ -114,7 +114,7 @@ export function PluginsModal(props: { onClose: () => void }) {
       if (result.redirectUrl) {
         window.open(
           result.redirectUrl,
-          "grogbot-plugin",
+          "groxbot-plugin",
           "popup,width=480,height=720",
         );
       }

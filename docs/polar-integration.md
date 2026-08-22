@@ -1,6 +1,6 @@
 # Polar integration (research)
 
-**Recommendation:** use [Polar](https://polar.sh) as the Merchant of Record for **hosted** grogbot.com. Do not put Polar in v1. Self-host stays free, with Polar unset.
+**Recommendation:** use [Polar](https://polar.sh) as the Merchant of Record for **hosted** groxbot.com. Do not put Polar in v1. Self-host stays free, with Polar unset.
 
 This is research, not a locked architecture decision. Product API, auth, and computers stay as they are.
 
@@ -8,7 +8,7 @@ Polar docs index: [polar.sh/docs/llms.txt](https://polar.sh/docs/llms.txt). Prim
 
 ## Why Polar (for hosted cloud)
 
-Grogbot is fair-code (Apache 2.0 plus no competing hosted cloud), workspace-scoped, BYOK by default, and will eventually charge for **hosted** compute (Flue sandboxes: Cloudflare Computer, Cloudflare Sandbox, E2B), not for the source. Self-host for your own organization stays free; offering Grogbot as a cloud to third parties needs a commercial license.
+Groxbot is fair-code (Apache 2.0 plus no competing hosted cloud), workspace-scoped, BYOK by default, and will eventually charge for **hosted** compute (Flue sandboxes: Cloudflare Computer, Cloudflare Sandbox, E2B), not for the source. Self-host for your own organization stays free; offering Groxbot as a cloud to third parties needs a commercial license.
 
 | Need | Polar | Stripe-as-PSP |
 | --- | --- | --- |
@@ -23,7 +23,7 @@ Polar Starter is **5% + 50¢** per transaction (orgs created on/after 27 May 202
 
 Polar is a worse fit than Stripe if we need custom enterprise invoices, mid-cycle per-seat gymnastics beyond Polar seats, or we already have a Stripe Tax stack. We do not.
 
-Do **not** use Polar as a second team directory. Better Auth organizations remain Grogbot workspaces. Polar is money + entitlements.
+Do **not** use Polar as a second team directory. Better Auth organizations remain Groxbot workspaces. Polar is money + entitlements.
 
 ## What exists in this repo today
 
@@ -34,21 +34,21 @@ Nothing Polar-related. Billing-shaped pieces:
 - Sessions already carry `activeOrganizationId`. `requireActor` needs a workspace; first-run onboarding asks to create one or join with an invite (`apps/api/src/session.ts`).
 - Product API is **oRPC** (`packages/contracts`). Web, desktop, and later mobile share that contract — not Better Auth client methods.
 - `MeSchema` has `workspaceId` and `isDeploymentOwner`. No plan, seats, or usage.
-- Self-host vs cloud is already a thing: packaged desktop talks to grogbot.com / api.grogbot.com; local Compose does not.
+- Self-host vs cloud is already a thing: packaged desktop talks to groxbot.com / api.groxbot.com; local Compose does not.
 - Tests are offline: `AGENT_RUNTIME=scripted`, `SANDBOX_PROVIDER=fake`. Polar must follow that rule.
 
-v1 does not need payments. Hosted computers and a paid grogbot.com are later, same bucket as store signing.
+v1 does not need payments. Hosted computers and a paid groxbot.com are later, same bucket as store signing.
 
 ## Two Polar uses (keep them separate)
 
-1. **Product billing** — Polar organization for grogbot.com. Subscriptions, usage, customer portal. This doc.
+1. **Product billing** — Polar organization for groxbot.com. Subscriptions, usage, customer portal. This doc.
 2. **Project funding** — optional second Polar org on the public GitHub repo (donations, sponsor-style GitHub access). Do not mix tokens, products, or webhooks with (1).
 
 ## Customer identity (the important mapping)
 
-Polar’s Better Auth plugin creates a Polar **Customer** per **user**, with `externalId = user.id`. That is the wrong grain for Grogbot.
+Polar’s Better Auth plugin creates a Polar **Customer** per **user**, with `externalId = user.id`. That is the wrong grain for Groxbot.
 
-Grogbot bills the **workspace**:
+Groxbot bills the **workspace**:
 
 - Computers and hosted sandbox cost sit on the workspace, not the human who clicked Send.
 - Several humans share one Desk.
@@ -60,14 +60,14 @@ Checkout and usage then use `customerExternalId: workspaceId`. Entitlement check
 
 Payer email on checkout is the billing manager’s user email. Polar still needs a person on the receipt; the *id* we key on is the workspace.
 
-### Seats vs Grogbot members
+### Seats vs Groxbot members
 
 Polar [seat-based pricing](https://polar.sh/docs/features/seat-based-pricing) splits **Customer** (who pays, becomes `type: "team"`) from **Member** (who uses). Benefits are granted to claimed seats, **not** to the billing customer. Custom `success_url` means the buyer does not auto-claim a seat.
 
 Do not sync Polar members into Better Auth or the reverse. Two options:
 
-- **v1 hosted (simpler):** one workspace plan (Hobby / Team) with included limits. Polar feature-flag benefits + a Postgres mirror. Member count is a Grogbot cap (`memberCount <= seats`), not Polar seat assignment.
-- **Later:** Polar seats as the paid quantity; Grogbot still owns login. Assign seats by email / `external_member_id` = Better Auth `user.id` only if we want Polar to grant per-human benefits (Discord, license keys). Hosted product access should still be “workspace has an active subscription.”
+- **v1 hosted (simpler):** one workspace plan (Hobby / Team) with included limits. Polar feature-flag benefits + a Postgres mirror. Member count is a Groxbot cap (`memberCount <= seats`), not Polar seat assignment.
+- **Later:** Polar seats as the paid quantity; Groxbot still owns login. Assign seats by email / `external_member_id` = Better Auth `user.id` only if we want Polar to grant per-human benefits (Discord, license keys). Hosted product access should still be “workspace has an active subscription.”
 
 Polar’s Better Auth docs also allow `referenceId: organizationId` on checkout while keeping the Polar customer as the user. That tracks org purchases on the *user* customer, and `customer.state()` **does not** include parent-org subscriptions. We would have to list orders/subscriptions by `referenceId` on every gate. Worse than workspace-as-customer.
 
@@ -168,9 +168,9 @@ Keep Polar out of the Better Auth client. Add to `packages/contracts`:
 
 ## What to sell (product, not Polar objects)
 
-Self-host: fair-code license, BYOK, Docker computers, Polar off. Your organization only — not a public grogbot.com clone.
+Self-host: fair-code license, BYOK, Docker computers, Polar off. Your organization only — not a public groxbot.com clone.
 
-Hosted grogbot.com (strawman — pricing TBD):
+Hosted groxbot.com (strawman — pricing TBD):
 
 | Plan | Polar product | Included | Metered overage |
 | --- | --- | --- | --- |
@@ -207,12 +207,12 @@ POLAR_PRODUCT_HOBBY=
 POLAR_PRODUCT_TEAM=
 ```
 
-Production webhook URL: `https://api.grogbot.com/polar/webhooks`.  
+Production webhook URL: `https://api.groxbot.com/polar/webhooks`.  
 Local: Polar CLI `polar listen http://127.0.0.1:3100/` ([local webhooks](https://polar.sh/docs/integrate/webhooks/locally)). Copy the printed secret into `POLAR_WEBHOOK_SECRET`.
 
 Polar OATs are in GitHub secret scanning. A leaked token is revoked. Same rule as `BETTER_AUTH_SECRET` / computer Worker credentials.
 
-Checkout `successUrl` should be the **web** origin (`https://grogbot.com/settings/billing?checkout_id={CHECKOUT_ID}`), not the API. Polar `server`/`environment` must match the token.
+Checkout `successUrl` should be the **web** origin (`https://groxbot.com/settings/billing?checkout_id={CHECKOUT_ID}`), not the API. Polar `server`/`environment` must match the token.
 
 ## Entitlement flow
 
@@ -251,4 +251,4 @@ Do not ingest from `apps/web`. Polar’s usage plugin client endpoint is unsafe 
 5. Settings UI: plan, checkout button, portal link. Not in the office thread.
 6. Optional: Polar seats, hosted-token meter, project-funding Polar org.
 
-Step 1 is the only piece that belongs near the current scaffold. Steps 2–6 wait until grogbot.com is a real host with Flue sandboxes and a Polar org.
+Step 1 is the only piece that belongs near the current scaffold. Steps 2–6 wait until groxbot.com is a real host with Flue sandboxes and a Polar org.

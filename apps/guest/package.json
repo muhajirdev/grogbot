@@ -1,18 +1,18 @@
 {
-  "name": "@grogbot/guest",
+  "name": "@groxbot/guest",
   "version": "0.0.1",
   "license": "SEE LICENSE IN LICENSE",
   "private": true,
   "type": "module",
   "bin": {
-    "grogbot-guest": "./src/cli.ts"
+    "groxbot-guest": "./src/cli.ts"
   },
   "scripts": {
     "start": "tsx src/cli.ts",
     "check": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@grogbot/adapter-kit": "workspace:*"
+    "@groxbot/adapter-kit": "workspace:*"
   },
   "devDependencies": {
     "tsx": "^4.20.5",

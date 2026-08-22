@@ -35,7 +35,7 @@ export {
 } from "./geometry.js";
 export { MascotMark } from "./MascotMark.js";
 export {
-  GROGBOT_MARK_COLOR,
+  GROXBOT_MARK_COLOR,
   type MascotMarkSvgOptions,
   mascotMarkElements,
   mascotMarkSvg,

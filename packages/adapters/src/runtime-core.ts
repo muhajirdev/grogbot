@@ -3,7 +3,7 @@ import type {
   AgentRunRequest,
   AgentRuntime,
   AgentRuntimeEvent,
-} from "@grogbot/adapter-kit";
+} from "@groxbot/adapter-kit";
 import {
   chatMessages,
   deltaText,
@@ -219,7 +219,7 @@ export function isOfflineAgentRuntime(kind: string): boolean {
 
 /**
  * Worker-safe runtimes: scripted echo, or chat-completions gateway.
- * Flue/Pi stays Node (`@grogbot/adapters`). On Workers, `flue` maps to
+ * Flue/Pi stays Node (`@groxbot/adapters`). On Workers, `flue` maps to
  * gateway when keys exist, otherwise scripted.
  */
 export function createScriptedOrGatewayRuntime(

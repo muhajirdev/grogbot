@@ -1,4 +1,4 @@
-import { composioUserId } from "@grogbot/adapter-kit";
+import { composioUserId } from "@groxbot/adapter-kit";
 
 export { composioUserId };
 
@@ -273,7 +273,7 @@ export class SdkComposioGateway implements ComposioGateway {
     const created = asRecord(
       await this.sdk.authConfigs.create(toolkit, {
         type: "use_composio_managed_auth",
-        name: `grogbot-${toolkit}`,
+        name: `groxbot-${toolkit}`,
       }),
     );
     const id = readString(

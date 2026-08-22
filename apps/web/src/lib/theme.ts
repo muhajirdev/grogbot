@@ -1,6 +1,6 @@
 export type Theme = "system" | "light" | "dark";
 
-const KEY = "grogbot.theme";
+const KEY = "groxbot.theme";
 
 export function readTheme(): Theme {
   const value = localStorage.getItem(KEY);

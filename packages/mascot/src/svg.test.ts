@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { GROGBOT_MARK_COLOR, mascotMarkSvg } from "./svg.js";
+import { GROXBOT_MARK_COLOR, mascotMarkSvg } from "./svg.js";
 
 describe("mascotMarkSvg", () => {
-  it("renders a still Grogbot mark with the brand pink", () => {
-    const svg = mascotMarkSvg({ name: "Grogbot" });
+  it("renders a still Groxbot mark with the brand pink", () => {
+    const svg = mascotMarkSvg({ name: "Groxbot" });
     expect(svg).toContain("<svg");
     expect(svg).toContain('viewBox="0 0 100 100"');
-    expect(svg).toContain("<title>Grogbot</title>");
-    expect(svg).toContain(GROGBOT_MARK_COLOR);
+    expect(svg).toContain("<title>Groxbot</title>");
+    expect(svg).toContain(GROXBOT_MARK_COLOR);
     expect(svg).toContain("<path");
     expect(svg).toContain("<rect");
     expect(svg).toContain("linearGradient");

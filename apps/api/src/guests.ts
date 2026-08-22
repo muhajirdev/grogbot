@@ -2,10 +2,10 @@ import type {
   GuestAgentKind,
   GuestConnect,
   GuestStatus,
-} from "@grogbot/contracts";
-import { GuestKind } from "@grogbot/contracts";
-import { guestConnectCommand, mintGuestToken, newId } from "@grogbot/core";
-import { bots, guestConnectors } from "@grogbot/db";
+} from "@groxbot/contracts";
+import { GuestKind } from "@groxbot/contracts";
+import { guestConnectCommand, mintGuestToken, newId } from "@groxbot/core";
+import { bots, guestConnectors } from "@groxbot/db";
 import { ORPCError } from "@orpc/server";
 import { and, eq } from "drizzle-orm";
 import { getBotThread } from "./bots.js";

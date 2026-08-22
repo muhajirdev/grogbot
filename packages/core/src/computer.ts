@@ -1,6 +1,6 @@
-import type { ComputerListItem, ComputerStatus } from "@grogbot/contracts";
-import { ControlHolder } from "@grogbot/contracts";
-import { bots, computers, type Database, runs, threads } from "@grogbot/db";
+import type { ComputerListItem, ComputerStatus } from "@groxbot/contracts";
+import { ControlHolder } from "@groxbot/contracts";
+import { bots, computers, type Database, runs, threads } from "@groxbot/db";
 import { and, eq, inArray, isNull, ne } from "drizzle-orm";
 import { EMPTY_COMPUTER_DESK, loadComputerDesks } from "./computer-desk.js";
 import { appendEvent, sandboxKind, toComputerStatus } from "./threads.js";

@@ -1,4 +1,4 @@
-import { CLOUD_API_ORIGIN } from "@grogbot/contracts";
+import { CLOUD_API_ORIGIN } from "@groxbot/contracts";
 
 /** Absolute origin for oRPC. RPCLink cannot take a relative `/rpc` URL. */
 export function apiOrigin(): string {

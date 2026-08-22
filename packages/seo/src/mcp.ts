@@ -1,10 +1,10 @@
 import { identityJson, llmsTxt } from "./documents.js";
 import {
   type DiscoveryOrigins,
-  GROGBOT_NAME,
-  GROGBOT_SUMMARY,
-  GROGBOT_UPDATED,
-  GROGBOT_VERSION,
+  GROXBOT_NAME,
+  GROXBOT_SUMMARY,
+  GROXBOT_UPDATED,
+  GROXBOT_VERSION,
 } from "./identity.js";
 
 const PROTOCOL_VERSION = "2025-03-26";
@@ -24,10 +24,10 @@ export function mcpServerCard(
     version: "1.0.0",
     protocolVersion: PROTOCOL_VERSION,
     serverInfo: {
-      name: "io.grogbot/docs",
-      title: `${GROGBOT_NAME} docs`,
-      version: GROGBOT_VERSION,
-      description: GROGBOT_SUMMARY,
+      name: "io.groxbot/docs",
+      title: `${GROXBOT_NAME} docs`,
+      version: GROXBOT_VERSION,
+      description: GROXBOT_SUMMARY,
     },
     transport: {
       type: "streamable-http",
@@ -43,7 +43,7 @@ export function mcpServerCard(
       schemes: [],
     },
     websiteUrl: `${origins.web.replace(/\/$/, "")}/`,
-    lastUpdated: GROGBOT_UPDATED,
+    lastUpdated: GROXBOT_UPDATED,
   };
 }
 
@@ -99,7 +99,7 @@ function tools() {
   return [
     {
       name: "get_product_info",
-      description: "Return the canonical Grogbot llms.txt identity document.",
+      description: "Return the canonical Groxbot llms.txt identity document.",
       inputSchema: {
         type: "object",
         properties: {},
@@ -108,7 +108,7 @@ function tools() {
     },
     {
       name: "get_identity",
-      description: "Return structured Grogbot identity.json.",
+      description: "Return structured Groxbot identity.json.",
       inputSchema: {
         type: "object",
         properties: {},
@@ -134,11 +134,11 @@ function handleMethod(
           prompts: {},
         },
         serverInfo: {
-          name: "io.grogbot/docs",
-          version: GROGBOT_VERSION,
+          name: "io.groxbot/docs",
+          version: GROXBOT_VERSION,
         },
         instructions:
-          "Public Grogbot docs MCP. Use resources for discovery files. Private workspaces are not exposed.",
+          "Public Groxbot docs MCP. Use resources for discovery files. Private workspaces are not exposed.",
       };
     case "ping":
       return {};

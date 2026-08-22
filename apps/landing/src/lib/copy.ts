@@ -1,6 +1,6 @@
-import { GROGBOT_EMAIL } from "@grogbot/seo";
+import { GROXBOT_EMAIL } from "@groxbot/seo";
 
-export const CONTACT_EMAIL = GROGBOT_EMAIL;
+export const CONTACT_EMAIL = GROXBOT_EMAIL;
 export const CONTACT_MAILTO = `mailto:${CONTACT_EMAIL}`;
 
 export const DEMOS = [
@@ -128,7 +128,7 @@ export const COMPARE = [
     ours: false,
   },
   {
-    name: "Grogbot",
+    name: "Groxbot",
     kicker: "The office",
     line: "The same idea, for the team. Shared knowledge. Source on GitHub.",
     ours: true,
@@ -138,11 +138,11 @@ export const COMPARE = [
 export const FAQS = [
   {
     q: "How is this different from Grok Bot?",
-    a: "Same motion: create a Bot, message it, grant access as needed. Grogbot is for the team — a shared workspace computer by default, isolated when logins should stay private — and you can run the source yourself.",
+    a: "Same motion: create a Bot, message it, grant access as needed. Groxbot is for the team — a shared workspace computer by default, isolated when logins should stay private — and you can run the source yourself.",
   },
   {
     q: "How is this different from OpenClaw?",
-    a: "OpenClaw is a personal agent on your machine. Grogbot is the office: named teammates, a shared computer, Postgres for team data, and a messaging UI the whole company can sit in.",
+    a: "OpenClaw is a personal agent on your machine. Groxbot is the office: named teammates, a shared computer, Postgres for team data, and a messaging UI the whole company can sit in.",
   },
   {
     q: "Do I need a workflow builder?",
@@ -154,7 +154,7 @@ export const FAQS = [
   },
   {
     q: "Is it open source?",
-    a: "The source is on GitHub. Self-host for your own team is free. Fair-code: you may not run a hosted Grogbot for third parties without a commercial license — that is grogbot.com.",
+    a: "The source is on GitHub. Self-host for your own team is free. Fair-code: you may not run a hosted Groxbot for third parties without a commercial license — that is groxbot.com.",
   },
   {
     q: "Which tools can a Bot use?",
@@ -178,7 +178,7 @@ export const FAQS = [
   },
   {
     q: "Does my data leave the office?",
-    a: "Self-host and the office stays in your Postgres and sandboxes — grogbot.com never sees it. Hosted stores it for you. Either way, a Bot talking to a model sends the prompt to the provider behind your key. Pick one with a zero-retention agreement if you need that. We do not claim zero retention: the office is meant to remember.",
+    a: "Self-host and the office stays in your Postgres and sandboxes — groxbot.com never sees it. Hosted stores it for you. Either way, a Bot talking to a model sends the prompt to the provider behind your key. Pick one with a zero-retention agreement if you need that. We do not claim zero retention: the office is meant to remember.",
   },
   {
     q: "How do I talk to a person?",
@@ -186,7 +186,7 @@ export const FAQS = [
   },
 ] as const;
 
-export const SOURCE_REPO = "https://github.com/muhajirdev/grogbot";
+export const SOURCE_REPO = "https://github.com/muhajirdev/groxbot";
 export const MAC_DOWNLOAD_URL = `${SOURCE_REPO}/releases`;
 export const FOOTER_BLURB =
   "Named teammates like Grok Bot, for the whole team. Fair-code.";

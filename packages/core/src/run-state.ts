@@ -1,4 +1,4 @@
-import type { RunStatus } from "@grogbot/contracts";
+import type { RunStatus } from "@groxbot/contracts";
 
 const allowed: Record<RunStatus, RunStatus[]> = {
   queued: ["leased", "cancelled"],

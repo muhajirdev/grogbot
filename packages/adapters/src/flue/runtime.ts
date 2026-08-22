@@ -7,7 +7,7 @@ import type {
   AgentRunRequest,
   AgentRuntime,
   AgentRuntimeEvent,
-} from "@grogbot/adapter-kit";
+} from "@groxbot/adapter-kit";
 import { installCloudflareGatewayProvider } from "./cloudflare-provider.js";
 import { setTeammateTurn, teammateInstanceId } from "./context.js";
 import { createEchoProvider, ECHO_MODEL } from "./echo.js";
@@ -30,7 +30,7 @@ export function resolveFlueModel(
   source: NodeJS.ProcessEnv = process.env,
 ): string {
   if (echo) return ECHO_MODEL;
-  const explicit = envValue(source, "GROGBOT_MODEL");
+  const explicit = envValue(source, "GROXBOT_MODEL");
   if (explicit) return explicit;
   throw new Error(
     "AGENT_RUNTIME=flue needs a model from Settings → Models. Use AGENT_RUNTIME=flue-echo or scripted offline.",
@@ -40,7 +40,7 @@ export function resolveFlueModel(
 export function flueConfigured(
   source: NodeJS.ProcessEnv = process.env,
 ): boolean {
-  return Boolean(envValue(source, "GROGBOT_MODEL"));
+  return Boolean(envValue(source, "GROXBOT_MODEL"));
 }
 
 function persistence(source: NodeJS.ProcessEnv) {

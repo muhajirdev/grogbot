@@ -1,5 +1,5 @@
 {
-  "name": "@grogbot/web",
+  "name": "@groxbot/web",
   "version": "0.0.1",
   "license": "SEE LICENSE IN LICENSE",
   "private": true,
@@ -13,9 +13,9 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
-    "@grogbot/contracts": "workspace:*",
-    "@grogbot/mascot": "workspace:*",
-    "@grogbot/rpc": "workspace:*",
+    "@groxbot/contracts": "workspace:*",
+    "@groxbot/mascot": "workspace:*",
+    "@groxbot/rpc": "workspace:*",
     "@orpc/tanstack-query": "^1.10.0",
     "@tanstack/query-db-collection": "^1.2.4",
     "@tanstack/react-db": "^0.2.1",

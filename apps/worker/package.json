@@ -1,5 +1,5 @@
 {
-  "name": "@grogbot/worker",
+  "name": "@groxbot/worker",
   "version": "0.0.1",
   "license": "SEE LICENSE IN LICENSE",
   "type": "module",
@@ -9,10 +9,10 @@
     "check": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@grogbot/adapter-kit": "workspace:*",
-    "@grogbot/adapters": "workspace:*",
-    "@grogbot/core": "workspace:*",
-    "@grogbot/db": "workspace:*",
+    "@groxbot/adapter-kit": "workspace:*",
+    "@groxbot/adapters": "workspace:*",
+    "@groxbot/core": "workspace:*",
+    "@groxbot/db": "workspace:*",
     "dotenv": "^17.2.1"
   },
   "devDependencies": {

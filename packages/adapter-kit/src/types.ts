@@ -1,4 +1,4 @@
-import type { SandboxKind } from "@grogbot/contracts";
+import type { SandboxKind } from "@groxbot/contracts";
 
 export interface AdapterContext {
   operationId: string;
@@ -68,7 +68,7 @@ export interface AgentRunRequest {
 }
 
 export function composioUserId(workspaceId: string): string {
-  return `grogbot:ws:${workspaceId}`;
+  return `groxbot:ws:${workspaceId}`;
 }
 
 export type AgentRuntimeEvent =

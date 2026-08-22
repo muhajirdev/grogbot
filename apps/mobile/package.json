@@ -1,5 +1,5 @@
 {
-  "name": "@grogbot/mobile",
+  "name": "@groxbot/mobile",
   "version": "0.0.1",
   "license": "SEE LICENSE IN LICENSE",
   "private": true,
@@ -12,7 +12,7 @@
     "check": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@grogbot/rpc": "workspace:*",
+    "@groxbot/rpc": "workspace:*",
     "expo": "~57.0.9",
     "expo-status-bar": "~57.0.0",
     "react": "19.2.3",

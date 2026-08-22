@@ -4,7 +4,7 @@ import {
   listPendingInvitations,
   slugForWorkspace,
   workspaceAuthMessage,
-} from "@grogbot/core";
+} from "@groxbot/core";
 import { ORPCError } from "@orpc/server";
 import type { RpcContext } from "./context.js";
 import { requireActor, type SessionUser } from "./session.js";

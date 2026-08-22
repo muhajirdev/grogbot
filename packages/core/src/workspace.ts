@@ -1,4 +1,4 @@
-import { type Database, invitation, organization } from "@grogbot/db";
+import { type Database, invitation, organization } from "@groxbot/db";
 import { and, eq, gt, sql } from "drizzle-orm";
 
 const SLUG_NAME_MAX = 24;

@@ -1,5 +1,5 @@
-import type { AvatarShape } from "@grogbot/contracts";
-import type { MascotMood } from "@grogbot/mascot";
+import type { AvatarShape } from "@groxbot/contracts";
+import type { MascotMood } from "@groxbot/mascot";
 import type { ReactNode } from "react";
 import { AvatarMark } from "./Avatar";
 
@@ -22,7 +22,7 @@ export function GateMark(props: {
   return (
     <div className="gate-mark">
       <AvatarMark
-        name={props.name ?? "Grogbot"}
+        name={props.name ?? "Groxbot"}
         color={props.color ?? "#e45c9a"}
         shape={props.shape ?? "circle"}
         size={props.size ?? "md"}
@@ -69,7 +69,7 @@ export function GateAnywhere(props: { hero?: boolean }) {
       </div>
       <div className="device cloud">
         <AvatarMark
-          name="Grogbot"
+          name="Groxbot"
           color="#e45c9a"
           shape="circle"
           size="sm"

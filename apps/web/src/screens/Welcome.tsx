@@ -10,14 +10,14 @@ export function Welcome(props: { start: ReactNode }) {
         <h1 className="hero-title">
           <span>Meet</span>
           <AvatarMark
-            name="Grogbot"
+            name="Groxbot"
             color="#e45c9a"
             shape="circle"
             size="md"
             mood="happy"
             hero
           />
-          <span>Grogbot</span>
+          <span>Groxbot</span>
         </h1>
         <div className="gate-stage">
           <p className="lede">Like Grok Bot, for the whole team.</p>

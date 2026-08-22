@@ -1,4 +1,4 @@
-import type { AgentRunRequest, AgentRuntimeEvent } from "@grogbot/adapter-kit";
+import type { AgentRunRequest, AgentRuntimeEvent } from "@groxbot/adapter-kit";
 
 export interface GuestClient {
   hello(): Promise<{ sessionId: string; botId: string; name: string }>;

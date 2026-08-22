@@ -1,4 +1,4 @@
-import type { WakeupDriver, WakeupJob } from "@grogbot/adapter-kit";
+import type { WakeupDriver, WakeupJob } from "@groxbot/adapter-kit";
 
 type Handler = (payload: Record<string, unknown>) => Promise<void>;
 
