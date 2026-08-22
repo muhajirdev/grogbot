@@ -4,6 +4,7 @@ import { createAuth } from "@grogbot/auth";
 import { grogbotCookieDomain } from "@grogbot/contracts";
 import { GuestHub, handleGuestRequest } from "@grogbot/core";
 import type { Database } from "@grogbot/db";
+import { sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { RpcContext } from "./context.js";
@@ -96,7 +97,15 @@ export function createApp(
     });
   }
 
-  app.get("/health", (c) => c.json(healthPayload(env)));
+  app.get("/health", async (c) => {
+    let database: "ok" | "error" = "ok";
+    try {
+      await opts.db.execute(sql`select 1`);
+    } catch {
+      database = "error";
+    }
+    return c.json({ ...healthPayload(env), database });
+  });
 
   return handles;
 }

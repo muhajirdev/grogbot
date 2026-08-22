@@ -4,8 +4,9 @@
   "license": "SEE LICENSE IN LICENSE",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "start": "tsx src/index.ts",
+    "dev": "wrangler dev",
+    "start": "wrangler dev",
+    "dev:node": "tsx watch src/index.ts",
     "deploy": "wrangler deploy",
     "cf-typegen": "wrangler types",
     "check": "tsc --noEmit -p tsconfig.json"

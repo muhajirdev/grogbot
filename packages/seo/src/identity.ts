@@ -89,8 +89,8 @@ export const GROGBOT_STACK = [
   "Marketing, office SPA, and API: Cloudflare Workers",
   "oRPC contract in @grogbot/contracts, client in @grogbot/rpc",
   "Postgres + Drizzle for team data (Neon on hosted Cloudflare)",
-  "Flue + Pi on Node for local/self-host; hosted API uses gateway/scripted until Flue’s Cloudflare target",
-  "One wakeup queue per bot — Node worker locally, Durable Object hosted",
+  "Hosted brains: gateway/scripted until Flue’s Cloudflare target",
+  "One wakeup queue per bot — Durable Object BotActor",
   "Better Auth (magic-link email, Google, GitHub)",
   "Sandboxes: Flue useSandbox — Cloudflare Computer light, Docker / Cloudflare Sandbox / E2B heavy, desktop on a trusted machine only",
 ] as const;

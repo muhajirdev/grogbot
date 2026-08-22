@@ -1,3 +1,4 @@
+/** Node Flue actor. Product wakeup is Durable Object `BotActor` on the API Worker. */
 import { existsSync } from "node:fs";
 import { createServer } from "node:http";
 import path from "node:path";

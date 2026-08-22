@@ -8,12 +8,12 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "turbo dev --filter=@grogbot/api --filter=@grogbot/worker --filter=@grogbot/web",
+    "dev": "turbo dev --filter=@grogbot/api --filter=@grogbot/web",
     "dev:landing": "turbo dev --filter=@grogbot/landing",
     "deploy:landing": "pnpm --filter @grogbot/landing run deploy",
     "deploy:web": "pnpm --filter @grogbot/web run deploy",
     "deploy:api": "pnpm --filter @grogbot/api run deploy",
-    "dev:desktop": "turbo dev --filter=@grogbot/api --filter=@grogbot/worker --filter=@grogbot/web --filter=@grogbot/desktop",
+    "dev:desktop": "turbo dev --filter=@grogbot/api --filter=@grogbot/web --filter=@grogbot/desktop",
     "dev:mobile": "pnpm --filter @grogbot/mobile start",
     "build": "turbo build",
     "check": "turbo check",

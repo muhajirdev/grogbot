@@ -4,18 +4,18 @@ Source-available **Grok Bot** — Grok, then grog. Teammates with a real compute
 
 Packages live under `@grogbot/*`.
 
-Early scaffold: contracts, Postgres (team data), one queue per bot, Flue + Pi on the **Node target** for local/self-host. Hosted grogbot.com is three Cloudflare Workers (landing, office SPA, API). Chat UI and live computers next.
+Early scaffold: contracts, Neon Postgres (team data), one Durable Object queue per bot, Cloudflare Workers for landing + office + API. Chat UI and live computers next. Self-host (Node / workerd) later.
 
 ## Stack (locked)
 
 - TypeScript, pnpm, Hono, React, Vite, TanStack Router
 - **oRPC** — one contract for web, desktop, and mobile
-- Postgres + Drizzle — workspaces, threads, skills
-- **Flue + Pi** — Node target. One `Teammate`; hires are `botId`
-- **One queue per bot** — Node worker locally; Durable Object `BotActor` on hosted Cloudflare
-- **Routines** — Postgres cron metadata; worker fires with croner onto that queue
+- Postgres + Drizzle — workspaces, threads, skills (Neon on Cloudflare)
+- **One queue per bot** — Durable Object `BotActor`
+- Hosted brains: gateway if keys exist, else scripted (Flue Cloudflare target later)
+- **Routines** — Postgres cron metadata; the actor enqueues `routine.wakeup`
 - Better Auth (magic-link email, Google, GitHub)
-- Local Compose Postgres + Node API/worker. Hosted cloud is Cloudflare Workers (landing, web, API) + Neon Postgres.
+- **Cloudflare first:** Workers (landing, web, API) + Neon. Local = `wrangler dev` + Vite
 - Computers: Flue `useSandbox` (Cloudflare Computer light, Docker / Cloudflare Sandbox / E2B heavy). Desktop only on a trusted machine.
 - Plugins: Composio (optional)
 - UI: **web first** (Grok Bot-simple) — [docs/grok-bot-ui.md](./docs/grok-bot-ui.md). Desktop = Electron around web. Mobile = Expo later.
@@ -26,23 +26,25 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 - Node.js 22+
 - pnpm 9
-- Docker (Postgres)
+- A Neon database (same project for local wrangler and `pnpm db:migrate`)
 
 ## Run locally
 
 ```bash
 cp .env.example .env
-docker compose -f infra/compose/docker-compose.yml up postgres -d
+cp apps/api/.dev.vars.example apps/api/.dev.vars
+# Put the same Neon DATABASE_URL (and secrets) in both files.
 pnpm install
 pnpm db:migrate
 pnpm dev
 ```
 
+`pnpm dev` is **wrangler** (API Worker + Durable Objects on :3100) and **Vite** (office on :5173, which proxies `/api` `/rpc` `/health`).
+
 - API: http://127.0.0.1:3100/health
 - oRPC: http://127.0.0.1:3100/rpc
-- Worker / actors: http://127.0.0.1:3101/health
 - Web: http://127.0.0.1:5173 — `/` welcome, `/login`, `/onboarding`, `/{botId}` office
-- Landing: http://127.0.0.1:5174 — marketing (TanStack Start)
+- Landing: http://127.0.0.1:5174 — marketing (`pnpm dev:landing`)
 
 Public LLM / agent discovery (also on https://grogbot.com):
 
@@ -60,9 +62,9 @@ Google / GitHub need client IDs in `.env`. Use **127.0.0.1**, not localhost:
 
 Email sign-in sends a magic link through **Cloudflare Email Sending** (REST). Set `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_EMAIL_API_TOKEN`, and `EMAIL_FROM`. Without those, local (and hosted until those secrets exist) prints the link / uses `mail: log`.
 
-Office chats run **Flue + Pi** (`AGENT_RUNTIME=flue`). Flue is the Node bootstrap; Pi is the agent loop (`useModel`, providers, compaction). Paste provider keys and pick a default model in the office (**Settings → Models**). Each bot can override the workspace default from its settings pane. Offline Flue: `AGENT_RUNTIME=flue-echo`. Tests stay on `scripted`.
+Office chats on the Worker use **gateway** if you pasted model keys, otherwise **scripted**. `AGENT_RUNTIME=flue` on the Worker means that mapping until Flue’s Cloudflare target exists. Paste provider keys and pick a default model in the office (**Settings → Models**). Tests stay on `scripted`.
 
-**Cloudflare AI Gateway** is in that same Models tab (account id, API token, gateway id). Pick a Cloudflare model — Flue + Pi uses Pi’s `cloudflare-ai-gateway` provider, so tools and the computer still work. See [Cloudflare’s Pi guide](https://developers.cloudflare.com/ai-gateway/integrations/coding-agents/pi/).
+**Cloudflare AI Gateway** is in that same Models tab (account id, API token, gateway id). See [Cloudflare’s Pi guide](https://developers.cloudflare.com/ai-gateway/integrations/coding-agents/pi/).
 
 Landing (marketing site, TanStack Start):
 
@@ -79,7 +81,7 @@ pnpm deploy:web       # https://grogbot-web.qalam.workers.dev
 pnpm deploy:api       # https://grogbot-api.qalam.workers.dev/health
 ```
 
-API Worker secrets (`wrangler secret put` in `apps/api`): `DATABASE_URL` (Neon), `BETTER_AUTH_SECRET`, `ENCRYPTION_KEY`. Hosted wakeup is a Durable Object per `botId`; hosted brains are gateway-if-keys / scripted (Flue + Pi stays on the Node worker for local and self-host). `SANDBOX_PROVIDER=fake` on the Worker until Computer/Sandbox factories are wired.
+API Worker secrets (`wrangler secret put` in `apps/api`): `DATABASE_URL` (Neon), `BETTER_AUTH_SECRET`, `ENCRYPTION_KEY`. Wakeup is a Durable Object per `botId`. Brains are gateway-if-keys / scripted. `SANDBOX_PROVIDER=fake` until Computer/Sandbox factories are wired.
 
 Advanced, off by default: a bot can let **Hermes** or **OpenClaw** connect outbound (`pnpm guest -- --url http://127.0.0.1:3101 --token … --kind hermes`). Enable it under Profile → Advanced. Default teammates still use the scripted/Pi runtime.
 
@@ -89,7 +91,7 @@ Desktop (same web UI in a window):
 pnpm dev:desktop
 ```
 
-That loads local Vite. A **packaged** desktop build opens **https://app.grogbot.com**, which talks to **https://api.grogbot.com**. Override with `WEB_ORIGIN` if you self-host. The marketing site is **https://grogbot.com**.
+That loads local Vite + wrangler. A **packaged** desktop build opens **https://app.grogbot.com**, which talks to **https://api.grogbot.com**. The marketing site is **https://grogbot.com**.
 
 OAuth callbacks (hosted staging until grogbot.com is attached):
 

@@ -209,9 +209,9 @@ export function Landing(props: { startUrl: string }) {
           </article>
         </section>
 
-        <section className="adopt" aria-label="Get the team on AI">
+        <section className="adopt" aria-label="Track AI adoption in your team">
           <div className="adopt-copy">
-            <p className="kicker">This week</p>
+            <p className="kicker">Track AI adoption in your team</p>
             <h2>They won’t use it if nobody can see it.</h2>
             <p className="lede tight">
               A personal agent hides on a laptop. Who is putting Bots to work is

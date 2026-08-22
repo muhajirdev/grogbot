@@ -83,7 +83,7 @@ export function createAuth(
     account: {
       accountLinking: {
         enabled: true,
-        trustedProviders: ["google", "github"],
+        trustedProviders: ["google"],
         requireLocalEmailVerified: false,
       },
     },

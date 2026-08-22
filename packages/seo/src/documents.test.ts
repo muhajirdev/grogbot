@@ -37,10 +37,10 @@ describe("discovery documents", () => {
     expect(robotsTxt(origins)).toContain("Allow: /llms.txt");
   });
 
-  it("describes Flue on Node and self-host, not Rivet", () => {
+  it("describes Cloudflare Workers and self-host later, not Rivet", () => {
     expect(llmsTxt(origins)).toMatch(/self-host/i);
     expect(llmsTxt(origins)).toMatch(/Cloudflare Workers/i);
-    expect(developerAiTxt(origins)).toMatch(/Flue/);
+    expect(developerAiTxt(origins)).toMatch(/wrangler/);
     expect(faqAiTxt(origins)).toMatch(/self-host/i);
     expect(llmsFullTxt(origins)).not.toMatch(/Rivet/i);
     expect(GROGBOT_STACK.join("\n")).not.toMatch(/Rivet/i);

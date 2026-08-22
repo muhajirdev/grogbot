@@ -1,3 +1,4 @@
+/** Product API: Cloudflare Worker + Neon HTTP + Durable Object wakeup. */
 import { DurableObject } from "cloudflare:workers";
 import {
   bindAgentRuntime,

@@ -1,6 +1,25 @@
-# Cloudflare Worker API secrets (wrangler secret put). Never commit real values.
+# Local wrangler env (overrides wrangler.jsonc vars). Never commit real values.
+# cp .dev.vars.example .dev.vars
+#
+# DATABASE_URL is a Neon pooled URI (same as pnpm db:migrate).
+# The Worker uses Neon HTTP, not Docker Postgres.
+
 DATABASE_URL=
-BETTER_AUTH_SECRET=
-ENCRYPTION_KEY=
+BETTER_AUTH_SECRET=development-only-change-me-please-32ch
+ENCRYPTION_KEY=replace-with-64-char-hex-or-passphrase
+
+NODE_ENV=development
+BETTER_AUTH_URL=http://127.0.0.1:5173
+API_URL=http://127.0.0.1:3100
+WEB_ORIGIN=http://127.0.0.1:5173
+CORS_ORIGINS=http://127.0.0.1:5173,http://127.0.0.1:5174
+SANDBOX_PROVIDER=fake
+AGENT_RUNTIME=flue
+WAKEUP_KIND=durable-object
+
+# CLOUDFLARE_ACCOUNT_ID=
 # CLOUDFLARE_EMAIL_API_TOKEN=
+# EMAIL_FROM=Grogbot <noreply@yourdomain.com>
 # COMPOSIO_API_KEY=
+# GOOGLE_CLIENT_ID=
+# GOOGLE_CLIENT_SECRET=

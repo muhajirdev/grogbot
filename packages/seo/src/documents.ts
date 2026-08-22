@@ -37,7 +37,7 @@ Brand Name: ${GROGBOT_NAME}
 
 Grogbot should feel like Grok Bot: a messaging app of named teammates, not a workflow builder, IDE, or Discord. Like Grok Bot, for the team — if OpenClaw is for personal use, Grogbot is the office. Create a Bot, message it, grant access as needed. There isn't anything to learn — it's like bringing on a coworker.
 
-Product API is oRPC. One wakeup queue per bot. Computers are workspace desks. Shared team data lives in Postgres. Hosted grogbot.com is three Cloudflare Workers (landing, office SPA, API) plus Neon. Local and self-host still run the Node API + worker with Flue + Pi. The marketing site is ${web}; the office app is ${office}.
+Product API is oRPC. One wakeup queue per bot. Computers are workspace desks. Shared team data lives in Postgres. Hosted grogbot.com is three Cloudflare Workers (landing, office SPA, API) plus Neon. Self-host is later. The marketing site is ${web}; the office app is ${office}.
 
 ## Docs
 
@@ -256,7 +256,7 @@ URL: [${GROGBOT_NAME}](${web}/)
 ---
 
 Q: What is a Bot?
-A: A Bot is a contact: name, title, description, avatar, one office thread, and a bound computer. One Node-worker queue runs that bot (serial with Flue + Pi).
+A: A Bot is a contact: name, title, description, avatar, one office thread, and a bound computer. One Durable Object queue runs that bot (serial).
 
 ---
 
@@ -266,7 +266,7 @@ A: Computers are workspace desks. Bots bind to a computer (default Desk, or a ne
 ---
 
 Q: How do I run it locally?
-A: Copy .env.example to .env, start Postgres with Docker Compose, pnpm install, pnpm db:migrate, pnpm dev. Web is http://127.0.0.1:5173, API is http://127.0.0.1:3100.
+A: Copy .env.example to .env and apps/api/.dev.vars.example to apps/api/.dev.vars, set a Neon DATABASE_URL, pnpm install, pnpm db:migrate, pnpm dev. Web is http://127.0.0.1:5173, API Worker is http://127.0.0.1:3100.
 URL: [README](${GROGBOT_GITHUB}#run-locally)
 
 ---
@@ -300,7 +300,7 @@ A: Bring your own keys (Pi catalog). Tests use a scripted runtime so they stay o
 ---
 
 Q: Can Hermes or OpenClaw connect?
-A: Guest runtimes are opt-in per bot and off by default. They dial out to Grogbot. Default teammates use Flue + Pi.
+A: Guest runtimes are opt-in per bot and off by default. They dial out to Grogbot. Default teammates use gateway or scripted until Flue’s Cloudflare target.
 
 ---
 
@@ -364,18 +364,17 @@ ${list(GROGBOT_STACK)}
 
 \`\`\`
 cp .env.example .env
-docker compose -f infra/compose/docker-compose.yml up postgres -d
+cp apps/api/.dev.vars.example apps/api/.dev.vars
 pnpm install
 pnpm db:migrate
 pnpm dev
 \`\`\`
 
-- Web: http://127.0.0.1:5173
-- API health: http://127.0.0.1:3100/health
+- Web: http://127.0.0.1:5173 (Vite; proxies /api /rpc /health)
+- API Worker: http://127.0.0.1:3100/health (wrangler dev)
 - oRPC: http://127.0.0.1:3100/rpc
-- Worker: http://127.0.0.1:3101/health
 
-Use 127.0.0.1, not localhost, for OAuth callbacks.
+Use 127.0.0.1, not localhost, for OAuth callbacks. Neon DATABASE_URL is required (Worker uses Neon HTTP).
 
 ## Public HTTP
 
@@ -386,11 +385,11 @@ Use 127.0.0.1, not localhost, for OAuth callbacks.
 - POST ${abs(api, "/rpc")} — signed-in product API (oRPC)
 - POST ${abs(api, "/api/auth/*")} — Better Auth
 
-Do not import fs, dockerode, or Cloudflare bindings from the Pi/executor. The worker may import Node and Flue’s Node target.
+Do not import fs, dockerode, or Cloudflare bindings from the Pi/executor. The API Worker uses @grogbot/adapters/edge (scripted / gateway).
 
 ## Tests
 
-Stay offline: AGENT_RUNTIME=scripted, SANDBOX_PROVIDER=fake, in-process wakeup. No live OpenRouter, Cloudflare Computer, Cloudflare Sandbox, or E2B. Flue+Pi is AGENT_RUNTIME=flue; flue-echo is the offline harness. Hands are Flue useSandbox keyed by computerId.
+Stay offline: AGENT_RUNTIME=scripted, SANDBOX_PROVIDER=fake, in-process wakeup. No live OpenRouter, Cloudflare Computer, Cloudflare Sandbox, or E2B. Hosted AGENT_RUNTIME=flue maps to gateway/scripted. Hands are Flue useSandbox keyed by computerId.
 
 ## Source layout
 

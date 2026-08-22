@@ -1,3 +1,4 @@
+/** Node self-host entry. Product path is `worker.ts` (`pnpm dev` → wrangler). */
 import {
   bindAgentRuntime,
   createAgentRuntime,
